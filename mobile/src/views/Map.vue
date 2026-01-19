@@ -142,7 +142,7 @@ import {
   checkmarkCircleOutline,
   personOutline
 } from 'ionicons/icons';
-import { logout, currentUser } from '@/authService';
+import { logout, currentUser } from '@/services/firebase/authService';
 import { createSignalement } from '@/services/problemService';
 import MapView from '@/components/MapView.vue';
 

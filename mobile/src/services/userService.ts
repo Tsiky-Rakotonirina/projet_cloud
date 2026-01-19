@@ -1,42 +1,7 @@
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, increment, query, where, getDocs } from "firebase/firestore";
-import { auth } from "@/firebase";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDIWOJvZx9RTmPQ5Cs_HIhDkhsupOHRH1Q",
-  authDomain: "tp-firebase-b195d.firebaseapp.com",
-  projectId: "tp-firebase-b195d",
-  storageBucket: "tp-firebase-b195d.firebasestorage.app",
-  messagingSenderId: "79410079282",
-  appId: "1:79410079282:web:79ea5bb57d79bbc7ae7e2b",
-  measurementId: "G-2CL6MR5X2T"
-};
-
-import { initializeApp } from "firebase/app";
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Configuration du nombre maximum de tentatives (paramétrable)
-let MAX_LOGIN_ATTEMPTS = 3;
-
-export const setMaxLoginAttempts = (max: number) => {
-  MAX_LOGIN_ATTEMPTS = max;
-  console.log(`Nombre max de tentatives défini à ${max}`);
-};
-
-export const getMaxLoginAttempts = () => MAX_LOGIN_ATTEMPTS;
-
-export interface UserProfile {
-  id: string;
-  email: string;
-  github?: string;
-  dateNaissance?: string;
-  profilId: string;
-  blocked?: boolean;
-  loginAttempts?: number;
-  lastFailedLogin?: string;
-  displayName?: string;
-  telephone?: string;
-}
+import { auth } from "@/services/firebase/firebase";
+import type { UserProfile } from "@/types/user";
+import { LOGIN_ATTEMPTS_CONFIG } from "@/config/auth";
 
 // Récupérer le profil utilisateur par email
 export const getUserByEmail = async (email: string): Promise<UserProfile | null> => {
@@ -131,7 +96,7 @@ export const incrementLoginAttempts = async (email: string): Promise<{ blocked: 
     const userDoc = querySnapshot.docs[0];
     const userData = userDoc.data() as UserProfile;
     const currentAttempts = (userData.loginAttempts || 0) + 1;
-    const shouldBlock = currentAttempts >= MAX_LOGIN_ATTEMPTS;
+    const shouldBlock = currentAttempts >= LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS;
 
     await updateDoc(doc(db, "utilisateurs", userDoc.id), {
       loginAttempts: currentAttempts,
@@ -139,7 +104,7 @@ export const incrementLoginAttempts = async (email: string): Promise<{ blocked: 
       blocked: shouldBlock
     });
 
-    console.log(`Tentative ${currentAttempts}/${MAX_LOGIN_ATTEMPTS} pour ${email}`);
+    console.log(`Tentative ${currentAttempts}/${LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS} pour ${email}`);
     
     return { 
       blocked: shouldBlock, 
@@ -248,6 +213,36 @@ export const isManager = async (): Promise<boolean> => {
     return false;
   } catch (error) {
     console.error("Erreur lors de la vérification du rôle :", error);
+    return false;
+  }
+};
+
+// Vérifier et débloquer automatiquement les comptes dont le blocage a expiré
+export const checkAndUnblockExpiredAccounts = async (email: string): Promise<boolean> => {
+  try {
+    const userProfile = await getUserByEmail(email);
+    if (!userProfile?.blocked || !userProfile.lastFailedLogin) {
+      return false; // Pas bloqué ou pas de date de dernier échec
+    }
+
+    const lastFailedLogin = new Date(userProfile.lastFailedLogin);
+    const now = new Date();
+    const timeSinceLastFailure = now.getTime() - lastFailedLogin.getTime();
+
+    // Si le temps écoulé dépasse la durée de blocage, débloquer le compte
+    if (timeSinceLastFailure >= LOGIN_ATTEMPTS_CONFIG.BLOCK_DURATION) {
+      await updateDoc(doc(db, "utilisateurs", userProfile.id), {
+        blocked: false,
+        loginAttempts: 0,
+        lastFailedLogin: null
+      });
+      console.log(`Compte débloqué automatiquement pour ${email}`);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error("Erreur lors de la vérification du blocage :", error);
     return false;
   }
 };

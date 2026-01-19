@@ -1,5 +1,5 @@
 // src/authService.ts
-import { auth } from "./services/firebase/firebase";
+import { auth } from "./firebase";
 import {
   onAuthStateChanged,
   signOut,
@@ -8,52 +8,26 @@ import {
   User
 } from "firebase/auth";
 import { ref } from "vue";
-import {
-  SESSION_CONFIG,
-  setSessionTimeout as configSetSessionTimeout,
-  getSessionTimeout
-} from "@/config/auth";
-import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts } from "@/services/userService";
 
 // État global de l'utilisateur
 export const currentUser = ref<User | null>(null);
 
-// Variables pour la gestion de session
+// Configuration de la durée de vie de session (en millisecondes)
+// Par défaut : 30 minutes d'inactivité
+let sessionTimeout: number = 30 * 60 * 1000; // 30 minutes
 let inactivityTimer: NodeJS.Timeout | null = null;
-let sessionStartTime: number = 0;
 
 // Fonction pour se connecter
 export const login = async (email: string, password: string) => {
   try {
     console.log("Tentative de connexion avec :", email);
-
-    // Vérifier si le compte est bloqué (et essayer de le débloquer automatiquement)
-    const userProfile = await getUserByEmail(email);
-    if (userProfile?.blocked) {
-      // Essayer de débloquer automatiquement
-      const unblocked = await checkAndUnblockExpiredAccounts(email);
-      if (!unblocked) {
-        throw new Error("Votre compte est temporairement bloqué en raison de trop nombreuses tentatives de connexion échouées. Veuillez réessayer plus tard.");
-      }
-    }
-
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log("Connecté :", userCredential.user.email);
     currentUser.value = userCredential.user;
-
-    // Réinitialiser les tentatives de connexion après une connexion réussie
-    await resetLoginAttempts(email);
-
     startInactivityTimer(); // Démarrer le timer de session
     return userCredential.user;
   } catch (err: any) {
     console.error("Erreur login :", err.code, err.message);
-
-    // Incrémenter les tentatives de connexion échouées
-    if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-      await incrementLoginAttempts(email);
-    }
-
     throw new Error(translateAuthError(err.code));
   }
 };
@@ -65,10 +39,6 @@ export const register = async (email: string, password: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     console.log("Inscrit :", userCredential.user.email);
     currentUser.value = userCredential.user;
-
-    // Réinitialiser les tentatives de connexion après une inscription réussie
-    await resetLoginAttempts(email);
-
     startInactivityTimer(); // Démarrer le timer de session
     return userCredential.user;
   } catch (err: any) {
@@ -120,7 +90,8 @@ export const getCurrentUser = () => {
 
 // Fonction pour définir la durée de vie de session (en minutes)
 export const setSessionTimeout = (minutes: number) => {
-  configSetSessionTimeout(minutes);
+  sessionTimeout = minutes * 60 * 1000;
+  console.log(`Durée de session définie à ${minutes} minutes`);
   // Redémarrer le timer si un utilisateur est connecté
   if (currentUser.value) {
     resetInactivityTimer();
@@ -129,7 +100,7 @@ export const setSessionTimeout = (minutes: number) => {
 
 // Fonction pour obtenir la durée de session actuelle (en minutes)
 export const getSessionTimeout = () => {
-  return SESSION_CONFIG.TIMEOUT_INACTIVITY / (60 * 1000);
+  return sessionTimeout / (60 * 1000);
 };
 
 // Déconnexion automatique après inactivité
@@ -137,13 +108,13 @@ const startInactivityTimer = () => {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer);
   }
-
+  
   inactivityTimer = setTimeout(async () => {
     console.log("Session expirée par inactivité");
     await logout();
     // Optionnel : émettre un événement ou rediriger
     window.dispatchEvent(new CustomEvent('session-expired'));
-  }, SESSION_CONFIG.TIMEOUT_INACTIVITY);
+  }, sessionTimeout);
 };
 
 // Réinitialiser le timer d'inactivité

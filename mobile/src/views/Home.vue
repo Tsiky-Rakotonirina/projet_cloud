@@ -94,7 +94,7 @@ import {
   IonLabel,
 } from '@ionic/vue';
 import { mapOutline, logOutOutline, logInOutline, locationOutline, statsChartOutline, personOutline } from 'ionicons/icons';
-import { logout, currentUser } from '@/authService';
+import { logout, currentUser } from '@/services/firebase/authService';
 
 const router = useRouter();
 

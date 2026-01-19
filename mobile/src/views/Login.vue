@@ -83,7 +83,7 @@ import {
   toastController,
   alertController
 } from '@ionic/vue';
-import { login } from '@/authService';
+import { login } from '@/services/firebase/authService';
 import { 
   isAccountBlocked, 
   incrementLoginAttempts, 

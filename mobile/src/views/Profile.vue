@@ -184,7 +184,7 @@ import {
   alertCircleOutline,
   listOutline
 } from 'ionicons/icons';
-import { logout, currentUser } from '@/authService';
+import { logout, currentUser } from '@/services/firebase/authService';
 import { getMyProfile, updateMyProfile, UserProfile } from '@/services/userService';
 import { getMySignalements } from '@/services/problemService';
 

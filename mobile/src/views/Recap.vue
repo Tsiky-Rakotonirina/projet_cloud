@@ -132,7 +132,7 @@ import {
 } from '@ionic/vue';
 import { mapOutline, logOutOutline, logInOutline } from 'ionicons/icons';
 import { getAllProblems } from '@/services/problemService';
-import { logout, currentUser } from '@/authService';
+import { logout, currentUser } from '@/services/firebase/authService';
 
 const router = useRouter();
 const loading = ref(true);

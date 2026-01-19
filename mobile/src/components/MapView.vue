@@ -10,7 +10,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getAllProblems, getMySignalements } from '@/services/problemService';
 import type { Problem, Signalement } from '@/services/problemService';
-import { auth } from '@/firebase';
+import { auth } from '@/services/firebase/firebase';
 
 const props = defineProps<{
   filterMine?: boolean;

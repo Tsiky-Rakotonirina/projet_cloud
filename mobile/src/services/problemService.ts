@@ -1,70 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, query, where, addDoc, serverTimestamp } from "firebase/firestore";
-import { auth } from "@/firebase";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDIWOJvZx9RTmPQ5Cs_HIhDkhsupOHRH1Q",
-  authDomain: "tp-firebase-b195d.firebaseapp.com",
-  projectId: "tp-firebase-b195d",
-  storageBucket: "tp-firebase-b195d.firebasestorage.app",
-  messagingSenderId: "79410079282",
-  appId: "1:79410079282:web:79ea5bb57d79bbc7ae7e2b",
-  measurementId: "G-2CL6MR5X2T"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-export interface Problem {
-  id: string;
-  surface: number;
-  budget: number;
-  entrepriseId: string;
-  signalementId: string;
-  statutId: string;
-  signalement?: Signalement;
-  entreprise?: Entreprise;
-  statut?: ProblemeStatut;
-  historiques: Array<{
-    date: string;
-    surface: number;
-    budget: number;
-    utilisateurId: string;
-    statutId: string;
-  }>;
-}
-
-export interface Entreprise {
-  id: string;
-  nom: string;
-  adresse: string;
-  telephone: string;
-}
-
-export interface ProblemeStatut {
-  id: string;
-  libelle: string;
-  descri: string;
-  pourcentage: number;
-}
-
-export interface Signalement {
-  id: string;
-  description: string;
-  utilisateurId: string;
-  statutId: string;
-  point: {
-    lat: number;
-    lng: number;
-    villeId: string;
-  };
-  createdAt: string;
-  historiques: Array<{
-    date: string;
-    utilisateurId: string;
-    statutId: string;
-  }>;
-}
+import { auth } from "@/services/firebase/firebase";
+import type { Problem, Entreprise, ProblemeStatut, Signalement } from "@/types/entities";
 
 // Récupérer tous les problèmes avec leurs signalements, entreprises et statuts associés
 export const getAllProblems = async (): Promise<Problem[]> => {

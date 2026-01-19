@@ -98,7 +98,7 @@ import {
   IonBackButton,
   toastController
 } from '@ionic/vue';
-import { register } from '@/authService';
+import { register } from '@/services/firebase/authService';
 
 const router = useRouter();
 const loading = ref(false);
