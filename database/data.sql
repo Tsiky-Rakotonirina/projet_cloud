@@ -6,8 +6,7 @@ INSERT INTO types_rues (libelle) VALUES
 
 INSERT INTO profils (libelle, descri) VALUES 
   ('admin', 'Administrateur du système'),
-  ('utilisateur', 'Utilisateur standard'),
-  ('technicien', 'Technicien de maintenance');
+  ('utilisateur', 'Utilisateur standard');
 
 INSERT INTO villes (nom, xy) VALUES 
   ('Paris', ST_GeomFromText('POINT(2.3522 48.8566)', 4326)),
