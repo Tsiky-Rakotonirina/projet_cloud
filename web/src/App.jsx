@@ -1,14 +1,16 @@
 import React from 'react';
-import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import './App.css';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { AuthProvider } from '@context/AuthContext';
+import AppRoutes from '@routes';
 
 function App() {
+  
   return (
-    <div className="App">
-      <Navbar />
-      <Hero />
-    </div>
+    <AuthProvider>
+      <Router>
+        <AppRoutes />
+      </Router>
+    </AuthProvider>
   );
 }
 
