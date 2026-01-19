@@ -3,8 +3,8 @@ const { Utilisateur } = require('../models');
 const { generateToken } = require('../utils/jwt');
 const loginAttemptService = require('./login-attempt.service');
 
-const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '3', 10);
-const LOGIN_LOCK_DURATION = parseInt(process.env.LOGIN_LOCK_DURATION || '900000', 10);
+const MAX_LOGIN_ATTEMPTS = parseInt(process.env.MAX_LOGIN_ATTEMPTS);
+const LOGIN_LOCK_DURATION = parseInt(process.env.LOGIN_LOCK_DURATION);
 
 const authService = {
   async login(email, password) {
