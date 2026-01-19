@@ -174,43 +174,6 @@ const mapService = {
     return probleme;
   },
 
-  async getAllRues() {
-    const rues = await db.Rue.findAll({
-      attributes: [
-        'id_rues',
-        'nom',
-        [
-          db.sequelize.sequelize.fn(
-            'ST_AsGeoJSON',
-            db.sequelize.col('xy')
-          ),
-          'geometry',
-        ],
-      ],
-      include: [
-        {
-          model: db.TypeRue,
-          as: 'type_rue',
-          attributes: ['id_types_rues', 'libelle'],
-        },
-        {
-          model: db.Ville,
-          as: 'ville',
-          attributes: ['id_villes', 'nom'],
-        },
-      ],
-      raw: true,
-    });
-
-    return rues.map((r) => ({
-      id_rues: r.id_rues,
-      nom: r.nom,
-      geometry: r.geometry ? JSON.parse(r.geometry) : null,
-      type: r['type_rue.libelle'],
-      ville: r['ville.nom'],
-    }));
-  },
-
   async getMapStats() {
     const totalSignalements = await db.Signalement.count();
     const totalProblemes = await db.Probleme.count();
@@ -264,13 +227,11 @@ const mapService = {
   async getMapData() {
     const signalements = await this.getAllSignalements();
     const problemes = await this.getAllProblemes();
-    const rues = await this.getAllRues();
     const stats = await this.getMapStats();
 
     return {
       signalements,
       problemes,
-      rues,
       stats,
     };
   },

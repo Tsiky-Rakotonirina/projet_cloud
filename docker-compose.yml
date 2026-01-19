@@ -61,16 +61,30 @@ services:
     depends_on:
       - API
 
+  tiles-init:
+    image: alpine:latest
+    container_name: tiles-init
+    restart: "no"
+    volumes:
+      - ./tiles:/data
+      - ./init-tiles.sh:/init-tiles.sh
+    entrypoint: sh /init-tiles.sh
+    networks:
+      - default
+
   tileserver:
     image: maptiler/tileserver-gl
     container_name: tileserver
     restart: unless-stopped
     volumes:
-      - ./tiles:/data     # place ici ton fichier antananarivo.mbtiles
+      - ./tiles:/data
     ports:
       - "3001:80"
     environment:
       - NODE_ENV=production
+    depends_on:
+      tiles-init:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:

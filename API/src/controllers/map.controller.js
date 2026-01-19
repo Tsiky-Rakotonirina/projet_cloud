@@ -45,15 +45,6 @@ const mapController = {
     }
   },
 
-  async getRues(req, res, next) {
-    try {
-      const rues = await mapService.getAllRues();
-      return res.sendSuccess('Rues récupérées', rues, 200);
-    } catch (error) {
-      next(error);
-    }
-  },
-
   async getVilles(req, res, next) {
     try {
       const villes = await mapService.getVilles();

@@ -138,45 +138,6 @@ router.get('/problemes/:id', mapController.getProblemeById);
 
 /**
  * @swagger
- * /api/map/rues:
- *   get:
- *     tags:
- *       - Map (Visiteur)
- *     summary: Récupérer toutes les rues
- *     description: Retourne toutes les rues avec leurs géométries (LineString) pour affichage sur la carte
- *     responses:
- *       200:
- *         description: Liste des rues
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: array
- *                   items:
- *                     type: object
- *                     properties:
- *                       id_rues:
- *                         type: integer
- *                       nom:
- *                         type: string
- *                       geometry:
- *                         type: object
- *                         description: GeoJSON LineString
- *                       type:
- *                         type: string
- *                       ville:
- *                         type: string
- */
-router.get('/rues', mapController.getRues);
-
-/**
- * @swagger
  * /api/map/villes:
  *   get:
  *     tags:
@@ -236,7 +197,7 @@ router.get('/stats', mapController.getStats);
  *     tags:
  *       - Map (Visiteur)
  *     summary: Récupérer toutes les données cartographiques
- *     description: Retourne signalements, problèmes, rues et statistiques en une seule requête (utile pour le offline)
+ *     description: Retourne signalements, problèmes et statistiques en une seule requête (utile pour le offline)
  *     responses:
  *       200:
  *         description: Données complètes
@@ -255,8 +216,6 @@ router.get('/stats', mapController.getStats);
  *                     signalements:
  *                       type: array
  *                     problemes:
- *                       type: array
- *                     rues:
  *                       type: array
  *                     stats:
  *                       type: object

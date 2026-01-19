@@ -15,23 +15,6 @@ CREATE TABLE
   );
 
 CREATE TABLE
-  types_rues (
-    id_types_rues SERIAL PRIMARY KEY,
-    libelle TEXT NOT NULL UNIQUE
-  );
-
-CREATE TABLE
-  rues (
-    id_rues SERIAL PRIMARY KEY,
-    nom TEXT NOT NULL,
-    type_id INTEGER NOT NULL,
-    xy geometry (LineString, 4326),
-    ville_id INTEGER,
-    CONSTRAINT fk_rues_type FOREIGN KEY (type_id) REFERENCES types_rues (id_types_rues) ON DELETE RESTRICT,
-    CONSTRAINT fk_rues_ville FOREIGN KEY (ville_id) REFERENCES villes (id_villes) ON DELETE CASCADE
-  );
-
-CREATE TABLE
   entreprises (
     id_entreprises SERIAL PRIMARY KEY,
     nom TEXT NOT NULL,
