@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgis/postgis:16-3
+    container_name: bdd
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: route
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    image: node:latest
+    container_name: backend
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: route
+      DB_USER: admin
+      DB_PASSWORD: admin
+    depends_on:
+      - db
+
+  vue_ionic:
+    image: vuejs:latest
+    container_name: mobile
+    working_dir: /app
+    volumes:
+      - ./vue-ionic:/app
+    command: npm run dev
+    ports:
+      - "5001:5001"
+    environment:
+      VITE_API_URL: http://backend:3000
+    depends_on:
+      - backend
+
+  react:
+    image: react:latest
+    container_name: web
+    working_dir: /app
+    volumes:
+      - ./react:/app
+    command: npm run dev -- --host
+    ports:
+      - "5002:5173"
+    environment:
+      VITE_API_URL: http://backend:3000
+    depends_on:
+      - backend
+
+  tileserver:
+    image: maptiler/tileserver-gl
+    container_name: tileserver
+    restart: unless-stopped
+    volumes:
+      - ./tiles:/data     # place ici ton fichier antananarivo.mbtiles
+    ports:
+      - "3001:80"
+    environment:
+      - NODE_ENV=production
+    # pas de depends_on nécessaire mais tu peux l'ajouter si tu veux que db soit prêt avant
+
+volumes:
+  pgdata:
