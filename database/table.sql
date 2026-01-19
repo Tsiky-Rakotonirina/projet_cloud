@@ -1,186 +1,125 @@
--- create_db_schema.sql
 CREATE EXTENSION IF NOT EXISTS postgis;
 
--- ----------------------
--- Table profils
--- ----------------------
-CREATE TABLE profils (
-  id_profils SERIAL PRIMARY KEY,
-  libelle TEXT NOT NULL,
-  descri TEXT
-);
+CREATE TABLE
+  profils (
+    id_profils SERIAL PRIMARY KEY,
+    libelle TEXT NOT NULL,
+    descri TEXT
+  );
 
--- ----------------------
--- Table villes
--- ----------------------
-CREATE TABLE villes (
-  id_villes SERIAL PRIMARY KEY,
-  nom TEXT NOT NULL,
-  xy geometry(Point, 4326)
-);
+CREATE TABLE
+  villes (
+    id_villes SERIAL PRIMARY KEY,
+    nom TEXT NOT NULL,
+    xy geometry (Point, 4326)
+  );
 
-CREATE TABLE rues (
-  id_rues SERIAL PRIMARY KEY,
-  nom TEXT NOT NULL,
-  type TEXT, -- avenue, rue, boulevard
-  xy geometry(LineString, 4326),
-  ville_id INTEGER,
-  CONSTRAINT fk_rues_ville
-    FOREIGN KEY (ville_id)
-    REFERENCES villes(id_villes)
-    ON DELETE CASCADE
-);
+CREATE TABLE
+  types_rues (
+    id_types_rues SERIAL PRIMARY KEY,
+    libelle TEXT NOT NULL UNIQUE
+  );
 
+CREATE TABLE
+  rues (
+    id_rues SERIAL PRIMARY KEY,
+    nom TEXT NOT NULL,
+    type_id INTEGER NOT NULL,
+    xy geometry (LineString, 4326),
+    ville_id INTEGER,
+    CONSTRAINT fk_rues_type FOREIGN KEY (type_id) REFERENCES types_rues (id_types_rues) ON DELETE RESTRICT,
+    CONSTRAINT fk_rues_ville FOREIGN KEY (ville_id) REFERENCES villes (id_villes) ON DELETE CASCADE
+  );
 
--- ----------------------
--- Table entreprises
--- ----------------------
-CREATE TABLE entreprises (
-  id_entreprises SERIAL PRIMARY KEY,
-  nom TEXT NOT NULL,
-  adresse TEXT,
-  telephone TEXT
-);
+CREATE TABLE
+  entreprises (
+    id_entreprises SERIAL PRIMARY KEY,
+    nom TEXT NOT NULL,
+    adresse TEXT,
+    telephone TEXT
+  );
 
--- ----------------------
--- Table signalement_statuts
--- ----------------------
-CREATE TABLE signalement_statuts (
-  id_signalement_statuts SERIAL PRIMARY KEY,
-  libelle TEXT NOT NULL,
-  descri TEXT
-);
+CREATE TABLE
+  signalement_statuts (
+    id_signalement_statuts SERIAL PRIMARY KEY,
+    libelle TEXT NOT NULL,
+    descri TEXT
+  );
 
--- ----------------------
--- Table probleme_statuts
--- ----------------------
-CREATE TABLE probleme_statuts (
-  id_probleme_statuts SERIAL PRIMARY KEY,
-  libelle TEXT NOT NULL,
-  descri TEXT,
-  pourcentage NUMERIC
-);
+CREATE TABLE
+  probleme_statuts (
+    id_probleme_statuts SERIAL PRIMARY KEY,
+    libelle TEXT NOT NULL,
+    descri TEXT,
+    pourcentage NUMERIC
+  );
 
--- ----------------------
--- Table utilisateurs
--- ----------------------
-CREATE TABLE utilisateurs (
-  id_utilisateurs SERIAL PRIMARY KEY,
-  email TEXT UNIQUE,
-  github TEXT,
-  mot_de_passe TEXT,
-  date_naissance DATE,
-  profil_id INTEGER,
-  CONSTRAINT fk_utilisateurs_profil
-    FOREIGN KEY (profil_id)
-    REFERENCES profils(id_profils)
-    ON DELETE SET NULL
-);
+CREATE TABLE
+  utilisateurs (
+    id_utilisateurs SERIAL PRIMARY KEY,
+    email TEXT UNIQUE,
+    github TEXT,
+    mot_de_passe TEXT,
+    date_naissance DATE,
+    profil_id INTEGER,
+    CONSTRAINT fk_utilisateurs_profil FOREIGN KEY (profil_id) REFERENCES profils (id_profils) ON DELETE SET NULL
+  );
 
--- ----------------------
--- Table points
--- ----------------------
-CREATE TABLE points (
-  id_points SERIAL PRIMARY KEY,
-  xy geometry(Point, 4326),
-  ville_id INTEGER,
-  CONSTRAINT fk_points_ville
-    FOREIGN KEY (ville_id)
-    REFERENCES villes(id_villes)
-    ON DELETE SET NULL
-);
+CREATE TABLE
+  points (
+    id_points SERIAL PRIMARY KEY,
+    xy geometry (Point, 4326),
+    ville_id INTEGER,
+    CONSTRAINT fk_points_ville FOREIGN KEY (ville_id) REFERENCES villes (id_villes) ON DELETE SET NULL
+  );
 
--- ----------------------
--- Table signalements
--- ----------------------
-CREATE TABLE signalements (
-  id_signalements SERIAL PRIMARY KEY,
-  description TEXT,
-  utilisateur_id INTEGER,
-  point_id INTEGER,
-  signalement_statut_id INTEGER,
-  CONSTRAINT fk_signalements_utilisateur
-    FOREIGN KEY (utilisateur_id)
-    REFERENCES utilisateurs(id_utilisateurs)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_signalements_point
-    FOREIGN KEY (point_id)
-    REFERENCES points(id_points)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_signalements_statut
-    FOREIGN KEY (signalement_statut_id)
-    REFERENCES signalement_statuts(id_signalement_statuts)
-    ON DELETE SET NULL
-);
+CREATE TABLE
+  signalements (
+    id_signalements SERIAL PRIMARY KEY,
+    description TEXT,
+    utilisateur_id INTEGER,
+    point_id INTEGER,
+    signalement_statut_id INTEGER,
+    CONSTRAINT fk_signalements_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id_utilisateurs) ON DELETE SET NULL,
+    CONSTRAINT fk_signalements_point FOREIGN KEY (point_id) REFERENCES points (id_points) ON DELETE SET NULL,
+    CONSTRAINT fk_signalements_statut FOREIGN KEY (signalement_statut_id) REFERENCES signalement_statuts (id_signalement_statuts) ON DELETE SET NULL
+  );
 
--- ----------------------
--- Table problemes
--- ----------------------
-CREATE TABLE problemes (
-  id_problemes SERIAL PRIMARY KEY,
-  surface NUMERIC,
-  budget NUMERIC,
-  entreprise_id INTEGER,
-  signalement_id INTEGER,
-  probleme_statut_id INTEGER,
-  CONSTRAINT fk_problemes_entreprise
-    FOREIGN KEY (entreprise_id)
-    REFERENCES entreprises(id_entreprises)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_problemes_signalement
-    FOREIGN KEY (signalement_id)
-    REFERENCES signalements(id_signalements)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_problemes_statut
-    FOREIGN KEY (probleme_statut_id)
-    REFERENCES probleme_statuts(id_probleme_statuts)
-    ON DELETE SET NULL
-);
+CREATE TABLE
+  problemes (
+    id_problemes SERIAL PRIMARY KEY,
+    surface NUMERIC,
+    budget NUMERIC,
+    entreprise_id INTEGER,
+    signalement_id INTEGER,
+    probleme_statut_id INTEGER,
+    CONSTRAINT fk_problemes_entreprise FOREIGN KEY (entreprise_id) REFERENCES entreprises (id_entreprises) ON DELETE SET NULL,
+    CONSTRAINT fk_problemes_signalement FOREIGN KEY (signalement_id) REFERENCES signalements (id_signalements) ON DELETE SET NULL,
+    CONSTRAINT fk_problemes_statut FOREIGN KEY (probleme_statut_id) REFERENCES probleme_statuts (id_probleme_statuts) ON DELETE SET NULL
+  );
 
--- ----------------------
--- Table signalement_historiques
--- ----------------------
-CREATE TABLE signalement_historiques (
-  id_signalement_historiques SERIAL PRIMARY KEY,
-  date_historique TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
-  utilisateur_id INTEGER,
-  signalement_id INTEGER,
-  signalement_statut_id INTEGER,
-  CONSTRAINT fk_sh_utilisateur
-    FOREIGN KEY (utilisateur_id)
-    REFERENCES utilisateurs(id_utilisateurs)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_sh_signalement
-    FOREIGN KEY (signalement_id)
-    REFERENCES signalements(id_signalements)
-    ON DELETE CASCADE,
-  CONSTRAINT fk_sh_statut
-    FOREIGN KEY (signalement_statut_id)
-    REFERENCES signalement_statuts(id_signalement_statuts)
-    ON DELETE SET NULL
-);
+CREATE TABLE
+  signalement_historiques (
+    id_signalement_historiques SERIAL PRIMARY KEY,
+    date_historique TIMESTAMP WITHOUT TIME ZONE DEFAULT now (),
+    utilisateur_id INTEGER,
+    signalement_id INTEGER,
+    signalement_statut_id INTEGER,
+    CONSTRAINT fk_sh_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id_utilisateurs) ON DELETE SET NULL,
+    CONSTRAINT fk_sh_signalement FOREIGN KEY (signalement_id) REFERENCES signalements (id_signalements) ON DELETE CASCADE,
+    CONSTRAINT fk_sh_statut FOREIGN KEY (signalement_statut_id) REFERENCES signalement_statuts (id_signalement_statuts) ON DELETE SET NULL
+  );
 
--- ----------------------
--- Table probleme_historiques
--- ----------------------
-CREATE TABLE probleme_historiques (
-  id_probleme_historiques SERIAL PRIMARY KEY,
-  date_historique TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
-  surface NUMERIC,
-  budget NUMERIC,
-  utilisateur_id INTEGER,
-  probleme_statut_id INTEGER,
-  probleme_id INTEGER,
-  CONSTRAINT fk_ph_utilisateur
-    FOREIGN KEY (utilisateur_id)
-    REFERENCES utilisateurs(id_utilisateurs)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_ph_statut
-    FOREIGN KEY (probleme_statut_id)
-    REFERENCES probleme_statuts(id_probleme_statuts)
-    ON DELETE SET NULL,
-  CONSTRAINT fk_ph_probleme
-    FOREIGN KEY (probleme_id)
-    REFERENCES problemes(id_problemes)
-    ON DELETE CASCADE
-);
+CREATE TABLE
+  probleme_historiques (
+    id_probleme_historiques SERIAL PRIMARY KEY,
+    date_historique TIMESTAMP WITHOUT TIME ZONE DEFAULT now (),
+    surface NUMERIC,
+    budget NUMERIC,
+    utilisateur_id INTEGER,
+    probleme_statut_id INTEGER,
+    probleme_id INTEGER,
+    CONSTRAINT fk_ph_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id_utilisateurs) ON DELETE SET NULL,
+    CONSTRAINT fk_ph_statut FOREIGN KEY (probleme_statut_id) REFERENCES probleme_statuts (id_probleme_statuts) ON DELETE SET NULL,
+    CONSTRAINT fk_ph_probleme FOREIGN KEY (probleme_id) REFERENCES problemes (id_problemes) ON DELETE CASCADE
+  );

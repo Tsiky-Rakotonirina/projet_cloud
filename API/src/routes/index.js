@@ -1,14 +1,9 @@
 const express = require('express');
 const authRoutes = require('./auth.routes');
-const userRoutes = require('./user.routes');
 
 const router = express.Router();
 
-// Routes d'authentification
 router.use('/auth', authRoutes);
-
-// Routes utilisateur
-router.use('/users', userRoutes);
 
 /**
  * @swagger
