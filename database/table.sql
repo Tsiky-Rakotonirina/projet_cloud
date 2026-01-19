@@ -122,3 +122,10 @@ CREATE TABLE
     CONSTRAINT fk_utilisateur_statuts_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id_utilisateurs) ON DELETE CASCADE,
     CONSTRAINT fk_utilisateur_statuts_statut FOREIGN KEY (statut_id) REFERENCES statuts (id_statut) ON DELETE RESTRICT
   );
+
+CREATE TABLE
+  historique_synchronisations (
+    id_historique_synchronisation SERIAL PRIMARY KEY,
+    date_synchronisation TIMESTAMP WITHOUT TIME ZONE DEFAULT now (),
+    description TEXT
+  );
