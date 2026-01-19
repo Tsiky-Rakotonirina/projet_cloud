@@ -1,0 +1,83 @@
+# ================================
+# GITIGNORE UNIFIÉ - Projet Cloud
+# ================================
+
+# ----------------
+# Node.js & npm
+# ----------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ----------------
+# Build & Distribution
+# ----------------
+dist/
+dist-ssr/
+build/
+/coverage
+/www
+
+# ----------------
+# Environnement
+# ----------------
+.env
+.env.local
+.env.*.local
+*.local
+
+# ----------------
+# Logs
+# ----------------
+logs/
+*.log
+log.txt
+
+# ----------------
+# IDE & Éditeurs
+# ----------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# ----------------
+# Ionic/Capacitor (mobile)
+# ----------------
+/.ionic
+/.sass-cache
+/.sourcemaps
+/.versions
+/platforms
+/plugins
+UserInterfaceState.xcuserstate
+$RECYCLE.BIN/
+
+# ----------------
+# Temporaire
+# ----------------
+.tmp
+*.tmp
+*.tmp.*
+tmp/
+temp/
+*.sublime-project
+*.sublime-workspace
+
+# ----------------
+# Docker (optionnel)
+# ----------------
+# Décommentez si nécessaire
+# docker-compose.override.yml
