@@ -123,3 +123,19 @@ CREATE TABLE
     CONSTRAINT fk_ph_statut FOREIGN KEY (probleme_statut_id) REFERENCES probleme_statuts (id_probleme_statuts) ON DELETE SET NULL,
     CONSTRAINT fk_ph_probleme FOREIGN KEY (probleme_id) REFERENCES problemes (id_problemes) ON DELETE CASCADE
   );
+
+CREATE TABLE
+  statuts (
+    id_statut SERIAL PRIMARY KEY,
+    libelle TEXT NOT NULL UNIQUE
+  );
+
+CREATE TABLE
+  utilisateur_statuts (
+    id_utilisateur_statut SERIAL PRIMARY KEY,
+    utilisateur_id INTEGER NOT NULL,
+    statut_id INTEGER NOT NULL,
+    date_statut TIMESTAMP WITHOUT TIME ZONE DEFAULT now (),
+    CONSTRAINT fk_utilisateur_statuts_utilisateur FOREIGN KEY (utilisateur_id) REFERENCES utilisateurs (id_utilisateurs) ON DELETE CASCADE,
+    CONSTRAINT fk_utilisateur_statuts_statut FOREIGN KEY (statut_id) REFERENCES statuts (id_statut) ON DELETE RESTRICT
+  );
