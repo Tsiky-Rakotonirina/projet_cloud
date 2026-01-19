@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   db:
-    image: postgis/postgis:16-3
+    image: postgis/postgis:16-3.5
     container_name: bdd
     restart: unless-stopped
     environment:
@@ -14,12 +12,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  backend:
-    image: node:latest
-    container_name: backend
+  API:
+    image: node:20-alpine
+    container_name: API
     working_dir: /app
     volumes:
-      - ./backend:/app
+      - ./API:/app
+      - /app/node_modules
     command: sh -c "npm install && npm run dev"
     ports:
       - "3000:3000"
@@ -32,33 +31,35 @@ services:
     depends_on:
       - db
 
-  vue_ionic:
-    image: vuejs:latest
+  mobile:
+    image: node:22-alpine
     container_name: mobile
     working_dir: /app
     volumes:
-      - ./vue-ionic:/app
-    command: sh -c "npm install && npm run dev"
+      - ./mobile:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "5001:5001"
     environment:
-      VITE_API_URL: http://backend:3000
+      VITE_API_URL: http://API:3000
     depends_on:
-      - backend
+      - API
 
-  react:
-    image: react:latest
+  web:
+    image: node:20-alpine
     container_name: web
     working_dir: /app
     volumes:
       - ./web:/app
-    command: sh -c "npm install && npm run dev -- --host"
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
     ports:
       - "5002:5173"
     environment:
-      VITE_API_URL: http://backend:3000
+      VITE_API_URL: http://API:3000
     depends_on:
-      - backend
+      - API
 
   tileserver:
     image: maptiler/tileserver-gl
@@ -70,7 +71,6 @@ services:
       - "3001:80"
     environment:
       - NODE_ENV=production
-    # pas de depends_on nécessaire mais tu peux l'ajouter si tu veux que db soit prêt avant
 
 volumes:
   pgdata:
