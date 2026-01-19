@@ -51,8 +51,8 @@ services:
     container_name: web
     working_dir: /app
     volumes:
-      - ./react:/app
-    command: npm run dev -- --host
+      - ./web:/app
+    command: sh -c "npm install && npm install axios recharts lucide-react && npm install --save-dev eslint && npm run dev -- --host"
     ports:
       - "5002:5173"
     environment:
