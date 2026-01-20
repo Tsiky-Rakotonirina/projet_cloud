@@ -8,13 +8,12 @@ const mapService = {
         'id_signalements',
         'description',
         [
-          db.sequelize.sequelize.fn(
+          db.sequelize.fn(
             'ST_AsGeoJSON',
-            db.sequelize.col('Point.xy')
+            db.sequelize.col('point.xy')
           ),
           'geometry',
         ],
-        'createdAt',
       ],
       include: [
         {
@@ -25,7 +24,7 @@ const mapService = {
         },
         {
           model: db.SignalementStatut,
-          as: 'signalement_statut',
+          as: 'statut',
           attributes: ['id_signalement_statuts', 'libelle'],
         },
         {
@@ -41,9 +40,8 @@ const mapService = {
       id_signalements: s.id_signalements,
       description: s.description,
       geometry: s.geometry ? JSON.parse(s.geometry) : null,
-      statut: s['signalement_statut.libelle'],
+      statut: s['statut.libelle'],
       email_utilisateur: s['utilisateur.email'],
-      date: s.createdAt,
     }));
   },
 
@@ -61,7 +59,7 @@ const mapService = {
         },
         {
           model: db.SignalementStatut,
-          as: 'signalement_statut',
+          as: 'statut',
           attributes: ['id_signalement_statuts', 'libelle', 'descri'],
         },
         {
@@ -89,9 +87,9 @@ const mapService = {
         'surface',
         'budget',
         [
-          db.sequelize.sequelize.fn(
+          db.sequelize.fn(
             'ST_AsGeoJSON',
-            db.sequelize.col('Signalement.Point.xy')
+            db.sequelize.col('signalement.point.xy')
           ),
           'geometry',
         ],

@@ -1,7 +1,44 @@
+-- ==============================
+-- DONNÉES D'AUTHENTIFICATION
+-- ==============================
 
+-- Profils des utilisateurs (IMPORTANT pour l'authentification)
 INSERT INTO profils (libelle, descri) VALUES 
   ('admin', 'Administrateur du système'),
   ('utilisateur', 'Utilisateur standard');
+
+-- Statuts utilisateurs (IMPORTANT pour la gestion des comptes)
+INSERT INTO statuts (libelle) VALUES 
+  ('actif'),
+  ('bloque'),
+  ('suspendu'),
+  ('inactif');
+
+-- Utilisateurs (IMPORTANT pour la connexion)
+-- Mot de passe pour TOUS les utilisateurs: admin123
+-- Hash bcrypt: $2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi
+INSERT INTO utilisateurs (email, mot_de_passe, date_naissance, profil_id) VALUES 
+  ('admin@route.mg', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1990-01-15', 1), -- ADMIN
+  ('jean.dupont@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1995-03-22', 2),
+  ('marie.martin@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1992-07-10', 2),
+  ('pierre.bernard@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1988-11-05', 2),
+  ('sophie.laurent@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1998-02-14', 2);
+
+-- Statuts initiaux des utilisateurs (tous actifs par défaut)
+INSERT INTO utilisateur_statuts (utilisateur_id, statut_id, date_statut) VALUES 
+  (1, 1, NOW() - INTERVAL '6 months'), -- Admin actif
+  (2, 1, NOW() - INTERVAL '5 months'),
+  (3, 1, NOW() - INTERVAL '4 months'),
+  (4, 1, NOW() - INTERVAL '3 months'),
+  (5, 1, NOW() - INTERVAL '2 months');
+
+-- ==============================
+-- DONNÉES DE RÉFÉRENCE
+-- ==============================
+
+-- ==============================
+-- DONNÉES DE RÉFÉRENCE
+-- ==============================
 
 -- Villes: Antananarivo (capitale de Madagascar)
 INSERT INTO villes (nom, xy) VALUES 
@@ -31,20 +68,13 @@ INSERT INTO probleme_statuts (libelle, descri, pourcentage) VALUES
   ('suspendu', 'Travaux suspendus temporairement', 25),
   ('planifie', 'Travaux planifiés', 10);
 
--- Statuts utilisateurs
-INSERT INTO statuts (libelle) VALUES 
-  ('actif'),
-  ('bloque'),
-  ('suspendu'),
-  ('inactif');
+-- ==============================
+-- DONNÉES GÉOGRAPHIQUES
+-- ==============================
 
--- Utilisateurs
-INSERT INTO utilisateurs (email, mot_de_passe, date_naissance, profil_id) VALUES 
-  ('admin@route.mg', '$2b$10$rTKd4ydS/KM6R6Y1U5ZoUuLVFkQzJ.tELGdJOZvUJr3G4WV.O6Ehe', '1990-01-15', 1),
-  ('jean.dupont@gmail.com', '$2b$10$rTKd4ydS/KM6R6Y1U5ZoUuLVFkQzJ.tELGdJOZvUJr3G4WV.O6Ehe', '1995-03-22', 2),
-  ('marie.martin@gmail.com', '$2b$10$rTKd4ydS/KM6R6Y1U5ZoUuLVFkQzJ.tELGdJOZvUJr3G4WV.O6Ehe', '1992-07-10', 2),
-  ('pierre.bernard@gmail.com', '$2b$10$rTKd4ydS/KM6R6Y1U5ZoUuLVFkQzJ.tELGdJOZvUJr3G4WV.O6Ehe', '1988-11-05', 2),
-  ('sophie.laurent@gmail.com', '$2b$10$rTKd4ydS/KM6R6Y1U5ZoUuLVFkQzJ.tELGdJOZvUJr3G4WV.O6Ehe', '1998-02-14', 2);
+-- ==============================
+-- DONNÉES GÉOGRAPHIQUES
+-- ==============================
 
 -- Points: Emplacements des signalements à Antananarivo
 INSERT INTO points (xy, ville_id) VALUES 
@@ -55,6 +85,10 @@ INSERT INTO points (xy, ville_id) VALUES
   (ST_GeomFromText('POINT(47.5100 18.8820)', 4326), 1),
   (ST_GeomFromText('POINT(47.5270 18.8900)', 4326), 1);
 
+-- ==============================
+-- DONNÉES OPÉRATIONNELLES
+-- ==============================
+
 -- Signalements: Rapports de dégâts
 INSERT INTO signalements (description, utilisateur_id, point_id, signalement_statut_id) VALUES 
   ('Nid de poule sur Avenue de l''Indépendance - très dangereux', 2, 1, 1),
@@ -63,15 +97,6 @@ INSERT INTO signalements (description, utilisateur_id, point_id, signalement_sta
   ('Trous multiples sur Route de l''Est - risque d''accident', 5, 4, 1),
   ('Nid de poule grave au croisement Avenue/Route Circulaire', 2, 5, 1),
   ('Déformation de la chaussée - perte de revêtement', 3, 6, 1);
-
--- Historiques des signalements (statut nouveau)
-INSERT INTO signalement_historiques (utilisateur_id, signalement_id, signalement_statut_id, date_historique) VALUES 
-  (2, 1, 1, NOW() - INTERVAL '5 days'),
-  (3, 2, 1, NOW() - INTERVAL '4 days'),
-  (4, 3, 1, NOW() - INTERVAL '3 days'),
-  (5, 4, 1, NOW() - INTERVAL '2 days'),
-  (2, 5, 1, NOW() - INTERVAL '1 day'),
-  (3, 6, 1, NOW());
 
 -- Problèmes: Travaux correspondant aux signalements
 INSERT INTO problemes (surface, budget, entreprise_id, signalement_id, probleme_statut_id) VALUES 
@@ -82,6 +107,19 @@ INSERT INTO problemes (surface, budget, entreprise_id, signalement_id, probleme_
   (42.25, 10000, 3, 5, 5),
   (55.5, 13000, 3, 6, 1);
 
+-- ==============================
+-- HISTORIQUES
+-- ==============================
+
+-- Historiques des signalements (statut nouveau)
+INSERT INTO signalement_historiques (utilisateur_id, signalement_id, signalement_statut_id, date_historique) VALUES 
+  (2, 1, 1, NOW() - INTERVAL '5 days'),
+  (3, 2, 1, NOW() - INTERVAL '4 days'),
+  (4, 3, 1, NOW() - INTERVAL '3 days'),
+  (5, 4, 1, NOW() - INTERVAL '2 days'),
+  (2, 5, 1, NOW() - INTERVAL '1 day'),
+  (3, 6, 1, NOW());
+
 -- Historiques des problèmes (statuts)
 INSERT INTO probleme_historiques (surface, budget, utilisateur_id, probleme_statut_id, probleme_id, date_historique) VALUES 
   (25.5, 5000, 1, 1, 1, NOW() - INTERVAL '5 days'),
@@ -90,11 +128,3 @@ INSERT INTO probleme_historiques (surface, budget, utilisateur_id, probleme_stat
   (60.0, 15000, 1, 1, 4, NOW() - INTERVAL '2 days'),
   (42.25, 10000, 1, 5, 5, NOW() - INTERVAL '1 day'),
   (55.5, 13000, 1, 1, 6, NOW());
-
--- Statuts des utilisateurs
-INSERT INTO utilisateur_statuts (utilisateur_id, statut_id, date_statut) VALUES 
-  (1, 1, NOW() - INTERVAL '6 months'),
-  (2, 1, NOW() - INTERVAL '5 months'),
-  (3, 1, NOW() - INTERVAL '4 months'),
-  (4, 1, NOW() - INTERVAL '3 months'),
-  (5, 1, NOW() - INTERVAL '2 months');

@@ -71,6 +71,21 @@ const adminController = {
       next(error);
     }
   },
+
+  async registerUser(req, res, next) {
+    try {
+      const { email, password, date_naissance, profil_id } = req.body;
+
+      const result = await adminService.registerUser(email, password, date_naissance, profil_id);
+
+      return res.sendSuccess('Utilisateur enregistré avec succès', result, 201);
+    } catch (error) {
+      if (error.code) {
+        return res.sendError(error.message, { code: error.code }, error.status || 400);
+      }
+      next(error);
+    }
+  },
 };
 
 module.exports = adminController;

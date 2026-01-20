@@ -113,7 +113,7 @@ const Navbar = () => {
         <Button 
           variant="outline" 
           size="small"
-          onClick={() => navigate('/login')}
+          onClick={() => navigate('/manager/login')}
         >
           Se connecter
         </Button>

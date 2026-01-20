@@ -8,10 +8,10 @@ import { Lock, Mail, LogIn, ArrowLeft, AlertCircle } from 'lucide-react';
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('admin@route.mg');
+  const [password, setPassword] = useState('admin123');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +23,9 @@ const Login = () => {
       login(response.user, response.token);
       navigate('/manager/synchronisation');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur de connexion');
+      // Rester sur /manager/login en cas d'erreur
+      setError(err.response?.data?.message || 'Email ou mot de passe incorrect');
+      navigate('/manager/login');
     } finally {
       setLoading(false);
     }

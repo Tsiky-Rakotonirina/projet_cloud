@@ -5,6 +5,7 @@ const mapRoutes = require('./map.routes');
 const visiteurRoutes = require('./visiteur.routes');
 const signalementRoutes = require('./signalement.routes');
 const entrepriseRoutes = require('./entreprise.routes');
+const syncRoutes = require('./sync.routes');
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.use('/map', mapRoutes);
 router.use('/visiteur', visiteurRoutes);
 router.use('/signalement', signalementRoutes);
 router.use('/entreprises', entrepriseRoutes);
+router.use('/sync', syncRoutes);
 
 /**
  * @swagger

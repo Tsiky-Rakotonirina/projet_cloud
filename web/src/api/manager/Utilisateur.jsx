@@ -1,12 +1,5 @@
 import { callApi } from '@util/api';
 
-// Données par défaut pour l'affichage
-const defaultUsers = [
-  { id: 1, email: 'user1@example.com', githubName: 'user1_github', age: 25 },
-  { id: 2, email: 'blocked@test.com', githubName: 'blocked_user', age: 32 },
-  { id: 3, email: 'spam@mail.com', githubName: 'spammer123', age: 19 },
-];
-
 /**
  * API pour la gestion des utilisateurs
  */
@@ -15,80 +8,60 @@ export const utilisateurApi = {
    * Récupérer tous les utilisateurs
    */
   getAll: async (params) => {
-    try {
-      const data = await callApi('/api/utilisateurs', 'GET', null, params);
-      return Array.isArray(data) ? data : defaultUsers;
-    } catch (error) {
-      console.warn('API Utilisateurs indisponible, données de démonstration utilisées');
-      return defaultUsers;
-    }
+    const response = await callApi('/api/admin/blocked-users', 'GET', null, params);
+    return response.data || [];
   },
 
   /**
    * Récupérer les utilisateurs bloqués
    */
   getBlocked: async () => {
-    try {
-      const data = await callApi('/api/utilisateurs/blocked', 'GET');
-      return Array.isArray(data) ? data : defaultUsers;
-    } catch (error) {
-      console.warn('API Utilisateurs bloqués indisponible, données de démonstration utilisées');
-      return defaultUsers;
-    }
+    const response = await callApi('/api/admin/blocked-users', 'GET');
+    return response.data || [];
   },
 
   /**
    * Récupérer un utilisateur par ID
    */
   getById: async (id) => {
-    try {
-      return await callApi(`/api/utilisateurs/${id}`, 'GET');
-    } catch (error) {
-      return defaultUsers.find(u => u.id === id) || null;
-    }
+    const response = await callApi(`/api/admin/user-status/${id}`, 'GET');
+    return response.data || null;
   },
 
   /**
-   * Créer un nouvel utilisateur
+   * Bloquer un utilisateur
    */
-  create: async (userData) => {
-    return await callApi('/api/utilisateurs', 'POST', userData);
-  },
-
-  /**
-   * Mettre à jour un utilisateur
-   */
-  update: async (id, userData) => {
-    return await callApi(`/api/utilisateurs/${id}`, 'PUT', userData);
-  },
-
-  /**
-   * Supprimer un utilisateur
-   */
-  delete: async (id) => {
-    return await callApi(`/api/utilisateurs/${id}`, 'DELETE');
+  block: async (utilisateur_id, raison) => {
+    const response = await callApi('/api/admin/block', 'POST', { utilisateur_id, raison });
+    return response.data;
   },
 
   /**
    * Débloquer un utilisateur
    */
-  unblock: async (id) => {
-    return await callApi(`/api/utilisateurs/${id}/unblock`, 'PATCH');
+  unblock: async (utilisateur_id) => {
+    const response = await callApi('/api/admin/unblock', 'POST', { utilisateur_id });
+    return response.data;
   },
 
   /**
-   * Changer le statut d'un utilisateur
+   * Obtenir le statut d'un utilisateur
    */
-  changeStatus: async (id, status) => {
-    return await callApi(`/api/utilisateurs/${id}/status`, 'PATCH', { status });
+  getStatus: async (utilisateur_id) => {
+    const response = await callApi(`/api/admin/user-status/${utilisateur_id}`, 'GET');
+    return response.data;
   },
-
   /**
-   * Changer le rôle d'un utilisateur
+   * Inscrire un nouvel utilisateur (admin only)
    */
-  changeRole: async (id, role) => {
-    return await callApi(`/api/utilisateurs/${id}/role`, 'PATCH', { role });
-  }
-};
+  register: async (email, password, date_naissance = null, profil_id = 2) => {
+    const response = await callApi('/api/admin/register', 'POST', { 
+      email, 
+      password, 
+      date_naissance, 
+      profil_id 
+    });
+    return response.data;
+  },};
 
 export default utilisateurApi;

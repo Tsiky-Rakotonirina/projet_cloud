@@ -5,6 +5,7 @@ import Login from '@pages/manager/Login';
 import Synchronisation from '@pages/manager/Synchronisation';
 import GestionUtilisateur from '@pages/manager/GestionUtilisateur';
 import GestionSignalement from '@pages/manager/GestionSignalement';
+import CarteWrapper from '@pages/manager/CarteWrapper';
 
 /**
  * Composant pour protéger les routes manager
@@ -38,6 +39,15 @@ const ManagerRoute = () => {
         element={
           <ProtectedRoute>
             <GestionUtilisateur />
+          </ProtectedRoute>
+        }
+      />
+      
+      <Route
+        path="/carte"
+        element={
+          <ProtectedRoute>
+            <CarteWrapper />
           </ProtectedRoute>
         }
       />

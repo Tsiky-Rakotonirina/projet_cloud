@@ -197,6 +197,58 @@ const adminService = {
       date_statut: currentStatus.date_statut,
     };
   },
+
+  async registerUser(email, password, dateNaissance, profilId = 2) {
+    if (!email || !password) {
+      const error = new Error('Email et mot de passe sont requis');
+      error.code = 'MISSING_FIELDS';
+      error.status = 400;
+      throw error;
+    }
+
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await db.Utilisateur.findOne({
+      where: { email },
+    });
+
+    if (existingUser) {
+      const error = new Error('Un utilisateur avec cet email existe déjà');
+      error.code = 'USER_EXISTS';
+      error.status = 409;
+      throw error;
+    }
+
+    // Hasher le mot de passe
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Créer l'utilisateur
+    const newUser = await db.Utilisateur.create({
+      email,
+      mot_de_passe: hashedPassword,
+      date_naissance: dateNaissance || null,
+      profil_id: profilId,
+    });
+
+    // Créer le statut initial (actif)
+    const statutActif = await db.Statut.findOne({
+      where: { libelle: 'actif' },
+    });
+
+    if (statutActif) {
+      await db.UtilisateurStatut.create({
+        utilisateur_id: newUser.id_utilisateurs,
+        statut_id: statutActif.id_statut,
+      });
+    }
+
+    return {
+      id_utilisateurs: newUser.id_utilisateurs,
+      email: newUser.email,
+      profil_id: newUser.profil_id,
+      message: 'Utilisateur créé avec succès',
+    };
+  },
 };
 
 module.exports = adminService;
+

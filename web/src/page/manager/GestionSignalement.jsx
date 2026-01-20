@@ -45,20 +45,10 @@ const GestionSignalement = () => {
       setSignalementsVides(vides || []);
       setSignalementsComplets(complets || []);
     } catch (err) {
-      console.error(err);
-      // Données de démonstration
-      setSignalements([
-        { id: 1, point: { lat: -18.9137, lng: 47.5361 }, email: 'user1@mail.com', description: 'Route endommagée près du marché' },
-        { id: 2, point: { lat: -18.9200, lng: 47.5400 }, email: 'user2@mail.com', description: 'Nid de poule dangereux' },
-      ]);
-      setSignalementsVides([
-        { id: 3, point: { lat: -18.9100, lng: 47.5300 }, email: 'user3@mail.com', description: 'Tronçon à réhabiliter' },
-        { id: 4, point: { lat: -18.9050, lng: 47.5450 }, email: 'user4@mail.com', description: 'Carrefour problématique' },
-      ]);
-      setSignalementsComplets([
-        { id: 5, point: { lat: -18.9180, lng: 47.5380 }, description: 'Réfection complète', budget: 50000000, surface: 1200, entreprise: 'Colas Madagascar', statut: 'planifié' },
-        { id: 6, point: { lat: -18.9220, lng: 47.5420 }, description: 'Élargissement route', budget: 120000000, surface: 3500, entreprise: 'SOGEA SATOM', statut: 'en_cours' },
-      ]);
+      console.error('Erreur lors du chargement des signalements:', err);
+      setSignalements([]);
+      setSignalementsVides([]);
+      setSignalementsComplets([]);
     } finally {
       setLoading(false);
     }
@@ -66,21 +56,23 @@ const GestionSignalement = () => {
 
   const handleApprouver = async (id) => {
     try {
-      await signalementApi.approuver(id);
+      // Changer le statut à "en_cours" (statut_id 2) - utilisateur admin id 1
+      await signalementApi.changeStatus(id, 2, 1);
       await loadData();
     } catch (err) {
-      console.error(err);
-      setSignalements(prev => prev.filter(s => s.id !== id));
+      console.error('Erreur lors de l\'approbation:', err);
+      alert('Erreur lors de l\'approbation du signalement');
     }
   };
 
   const handleRefuser = async (id) => {
     try {
-      await signalementApi.refuser(id);
+      // Changer le statut à "rejete" (statut_id 4) - utilisateur admin id 1
+      await signalementApi.changeStatus(id, 4, 1);
       await loadData();
     } catch (err) {
-      console.error(err);
-      setSignalements(prev => prev.filter(s => s.id !== id));
+      console.error('Erreur lors du refus:', err);
+      alert('Erreur lors du refus du signalement');
     }
   };
 
@@ -92,30 +84,24 @@ const GestionSignalement = () => {
 
   const handleSubmitInfos = async () => {
     try {
-      await signalementApi.mettreInfos(selectedSignalement.id, modalData);
+      await signalementApi.update(selectedSignalement.id, modalData);
       await loadData();
+      setShowModal(false);
+      setSelectedSignalement(null);
     } catch (err) {
-      console.error(err);
-      setSignalementsVides(prev => prev.filter(s => s.id !== selectedSignalement.id));
-      setSignalementsComplets(prev => [...prev, {
-        ...selectedSignalement,
-        ...modalData,
-        statut: 'planifié'
-      }]);
+      console.error('Erreur lors de la mise à jour:', err);
+      alert('Erreur lors de la mise à jour des informations');
     }
-    setShowModal(false);
-    setSelectedSignalement(null);
   };
 
   const handleUpgrade = async (id) => {
     try {
-      await signalementApi.upgrade(id);
+      // Changer le statut à "en_cours" (statut_id 2) - utilisateur admin id 1
+      await signalementApi.changeStatus(id, 2, 1);
       await loadData();
     } catch (err) {
-      console.error(err);
-      setSignalementsComplets(prev => prev.map(s => 
-        s.id === id ? { ...s, statut: 'en_cours' } : s
-      ));
+      console.error('Erreur lors de l\'upgrade:', err);
+      alert('Erreur lors de la mise à jour du statut');
     }
   };
 

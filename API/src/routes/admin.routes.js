@@ -222,4 +222,62 @@ router.get('/blocked-users', adminController.getBlockedUsers);
  */
 router.get('/user-status/:utilisateur_id', adminController.getCurrentUserStatus);
 
+/**
+ * @swagger
+ * /api/admin/register:
+ *   post:
+ *     tags:
+ *       - Admin
+ *     summary: Inscrire un nouvel utilisateur (admin only)
+ *     description: Permet à l'administrateur d'inscrire un nouvel utilisateur avec email et mot de passe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, password]
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: nouveau@exemple.com
+ *               password:
+ *                 type: string
+ *                 example: motdepasse123
+ *               date_naissance:
+ *                 type: string
+ *                 format: date
+ *                 example: 1995-06-15
+ *               profil_id:
+ *                 type: integer
+ *                 example: 2
+ *                 description: 1=admin, 2=utilisateur (défaut)
+ *     responses:
+ *       201:
+ *         description: Utilisateur créé avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id_utilisateurs:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *                     profil_id:
+ *                       type: integer
+ *       409:
+ *         description: L'utilisateur existe déjà
+ *       400:
+ *         description: Données manquantes
+ */
+router.post('/register', adminController.registerUser);
+
 module.exports = router;

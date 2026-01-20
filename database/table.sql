@@ -129,3 +129,15 @@ CREATE TABLE
     date_synchronisation TIMESTAMP WITHOUT TIME ZONE DEFAULT now (),
     description TEXT
   );
+
+CREATE TABLE
+  firebase_mapping (
+    id SERIAL PRIMARY KEY,
+    entity_type VARCHAR(50) NOT NULL, -- user, signalement, statut, etc.
+    postgres_id INT NOT NULL,
+    firebase_id VARCHAR(128) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE (entity_type, postgres_id),
+    UNIQUE (entity_type, firebase_id)
+  );

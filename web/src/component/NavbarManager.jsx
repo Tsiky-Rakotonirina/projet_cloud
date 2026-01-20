@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { colors } from '@assets/colors';
 import Button from '@components/Button';
 import { useAuth } from '@context/AuthContext';
-import { RefreshCw, Users, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Users, AlertTriangle, Map } from 'lucide-react';
 
 /**
  * Composant Navbar pour les managers
@@ -91,8 +91,8 @@ const NavbarManager = () => {
   return (
     <nav style={navStyle}>
       <div style={containerStyle}>
-        {/* Logo */}
-        <div style={logoStyle} onClick={() => navigate('/')}>
+        {/* Logo - Sans lien */}
+        <div style={logoStyle}>
           <img src="/logo.svg" alt="Logo" style={{ width: '32px', height: '32px' }} />
           <span>Lalan-tsara Admin</span>
         </div>
@@ -125,7 +125,7 @@ const NavbarManager = () => {
             onMouseEnter={() => setHoveredLink('users')}
             onMouseLeave={() => setHoveredLink(null)}
           >
-            <Users size={18} /> Gestion Utilisateurs
+            <Users size={18} /> Utilisateurs
           </div>
           <div
             style={{
@@ -139,7 +139,21 @@ const NavbarManager = () => {
             onMouseEnter={() => setHoveredLink('reports')}
             onMouseLeave={() => setHoveredLink(null)}
           >
-            <AlertTriangle size={18} /> Gestion Signalements
+            <AlertTriangle size={18} /> Signalements
+          </div>
+          <div
+            style={{
+              ...linkStyle(isActive('/manager/carte')),
+              ...(hoveredLink === 'map' && !isActive('/manager/carte') ? {
+                backgroundColor: `${colors.secondary}15`,
+                color: colors.secondary
+              } : {})
+            }}
+            onClick={() => navigate('/manager/carte')}
+            onMouseEnter={() => setHoveredLink('map')}
+            onMouseLeave={() => setHoveredLink(null)}
+          >
+            <Map size={18} /> Voir la Carte
           </div>
         </div>
 
