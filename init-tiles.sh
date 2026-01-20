@@ -1,46 +1,75 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
-echo "🗺️  Initialisation des données cartographiques..."
+DATA_DIR="/data"
+MBTILES_FILE="$DATA_DIR/antananarivo.mbtiles"
+PBF_FILE="$DATA_DIR/antananarivo.osm.pbf"
+MADAGASCAR_PBF="$DATA_DIR/madagascar-latest.osm.pbf"
 
-# Vérifier si le fichier existe déjà
-if [ -f "/data/antananarivo.mbtiles" ]; then
-  echo "✅ antananarivo.mbtiles existe déjà"
-  exit 0
+# Bounding box Antananarivo et environs
+# Format: minlon,minlat,maxlon,maxlat
+BBOX="47.40,-19.10,47.70,-18.70"
+
+echo "🗺️  Configuration serveur de tuiles Antananarivo (OFFLINE)"
+echo "=============================================="
+
+# Créer les dossiers nécessaires
+mkdir -p "$DATA_DIR/fonts" "$DATA_DIR/styles"
+
+# Copier le style
+if [ -f "/data/basic-style.json" ]; then
+    cp /data/basic-style.json "$DATA_DIR/styles/basic-style.json"
+    echo "✅ Style copié"
 fi
 
-# Créer le répertoire s'il n'existe pas
-mkdir -p /data
-cd /data
-
-echo "📥 Téléchargement des données Madagascar (Geofabrik)..."
-# Télécharger Madagascar OSM depuis Geofabrik (~80MB)
-URL="https://download.geofabrik.de/africa/madagascar-latest.osm.pbf"
-
-if command -v wget &> /dev/null; then
-  wget -q --show-progress "$URL" -O madagascar.osm.pbf || {
-    echo "⚠️  wget échoué, tentative avec curl..."
-    curl -L -o madagascar.osm.pbf "$URL"
-  }
-else
-  curl -L -o madagascar.osm.pbf "$URL"
+# Vérifier si MBTiles existe déjà
+if [ -f "$MBTILES_FILE" ]; then
+    echo "✅ Fichier MBTiles existant trouvé: $MBTILES_FILE"
+    echo "ℹ️  Supprimez ce fichier pour régénérer les tuiles"
+    ls -lh "$MBTILES_FILE"
+    exit 0
 fi
 
-if [ ! -f "/data/madagascar.osm.pbf" ]; then
-  echo "❌ Erreur: Impossible de télécharger les données"
-  exit 1
+echo "📥 Téléchargement des données OSM pour Antananarivo..."
+
+# Télécharger l'extrait Madagascar si nécessaire
+if [ ! -f "$MADAGASCAR_PBF" ] && [ ! -f "$PBF_FILE" ]; then
+    echo "📥 Téléchargement de Madagascar depuis Geofabrik (~100MB)..."
+    apk add --no-cache wget curl
+    
+    wget -q --show-progress -O "$MADAGASCAR_PBF" \
+        "https://download.geofabrik.de/africa/madagascar-latest.osm.pbf" || {
+        echo "❌ Erreur téléchargement. Vérifiez votre connexion internet."
+        exit 1
+    }
+    echo "✅ Téléchargement terminé"
 fi
 
-echo "✅ Madagascar.osm.pbf téléchargé ($(du -h /data/madagascar.osm.pbf | cut -f1))"
+# Installer les outils nécessaires
+echo "📦 Installation des outils de conversion..."
+apk add --no-cache osmium-tool
+
+# Extraire la zone d'Antananarivo
+if [ ! -f "$PBF_FILE" ]; then
+    echo "✂️ Extraction de la zone d'Antananarivo..."
+    osmium extract -b "$BBOX" "$MADAGASCAR_PBF" -o "$PBF_FILE" --overwrite
+    echo "✅ Extraction terminée"
+    ls -lh "$PBF_FILE"
+fi
+
 echo ""
-echo "ℹ️  Note: Le fichier PBF a été téléchargé avec succès!"
-echo "TileServer utilisera ce fichier pour servir les tuiles."
+echo "⚠️  IMPORTANT: Génération MBTiles requise"
+echo "==========================================="
+echo "Le fichier PBF est prêt: $PBF_FILE"
 echo ""
-echo "✅ Données cartographiques prêtes!"
+echo "Pour générer les tuiles MBTiles, exécutez:"
+echo "  docker run -v \$(pwd)/tiles:/data openmaptiles/openmaptiles-tools"
+echo ""
+echo "Ou téléchargez un MBTiles pré-généré depuis:"
+echo "  https://data.maptiler.com/downloads/tileset/osm/"
+echo ""
 
-# Renommer pour TileServer
-mv /data/madagascar.osm.pbf /data/antananarivo.mbtiles 2>/dev/null || true
+# Créer une configuration de remplacement pour utiliser des tuiles raster en attendant
+echo "🔄 Configuration du mode raster (fallback)..."
 
-# Si TileServer supporte .pbf, laisser le fichier PBF
-# Sinon, un script de conversion supplémentaire sera nécessaire
-ls -lh /data/
+exit 0

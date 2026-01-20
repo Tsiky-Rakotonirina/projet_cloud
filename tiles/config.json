@@ -1,18 +1,22 @@
 {
-  "port": 80,
-  "host": "0.0.0.0",
-  "basePath": "/",
-  "styles": {
-    "osm-bright": {
-      "tilejson": "2.0.0",
-      "name": "OSM Bright",
-      "style": "mapbox://styles/mapbox/bright-v9",
-      "attribution": "© OpenMapTiles © OpenStreetMap contributors"
+  "options": {
+    "paths": {
+      "root": "/data",
+      "fonts": "fonts",
+      "styles": "styles",
+      "mbtiles": "/data"
     }
   },
   "data": {
     "antananarivo": {
       "mbtiles": "antananarivo.mbtiles"
+    }
+  },
+  "styles": {
+    "basic": {
+      "style": "basic-style.json",
+      "serve_data": true,
+      "serve_rendered": true
     }
   }
 }

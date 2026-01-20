@@ -81,3 +81,5 @@ temp/
 # ----------------
 # Décommentez si nécessaire
 # docker-compose.override.yml
+
+tiles/*.osm.pbf

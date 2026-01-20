@@ -149,3 +149,5 @@ router.get('/point/:pointId', visiteurController.getPointWithProbleme);
  *                       example: 25
  */
 router.get('/stats', visiteurController.getSummaryStats);
+
+module.exports = router;

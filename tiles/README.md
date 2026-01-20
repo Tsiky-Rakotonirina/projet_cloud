@@ -1,76 +1,122 @@
-# TileServer Data
+# Serveur de Tuiles Offline - Antananarivo
 
-Ce dossier contient les données cartographiques pour TileServer GL.
+Serveur de tuiles cartographiques pour usage **offline** basé sur OpenStreetMap.
 
-## Structure
+## 🚀 Démarrage rapide
 
-- `config.json` - Configuration du serveur TileServer
-- `*.mbtiles` - Fichiers de tuiles cartographiques (MBTiles format)
+### Avec Docker Compose (recommandé)
 
-## Installation des données
-
-### Antananarivo (Madagascar)
-
-**Option 1 - OpenMapTiles Madagascar complet (~150MB)**
 ```bash
-wget https://files.openmaptiles.org/releases/madagascar-latest.mbtiles
-mv madagascar-latest.mbtiles antananarivo.mbtiles
+# Depuis le dossier racine du projet
+docker-compose up -d tileserver
 ```
 
-**Option 2 - Geofabrik Madagascar (~80MB)**
-1. Télécharger: `https://download.geofabrik.de/africa/madagascar-latest.osm.pbf`
-2. Convertir en MBTiles avec tilemaker:
+Le serveur sera accessible sur `http://localhost:3001`
+
+### Manuellement
+
 ```bash
-docker run --rm -v $(pwd):/data jamesandariese/tilemaker \
-  tilemaker \
-  --input /data/madagascar-latest.osm.pbf \
-  --output /data/antananarivo.mbtiles \
-  --process /resources/process-openmaptiles.lua \
-  --config /resources/config-openmaptiles.json
+cd tiles
+npm install
+npm start
 ```
 
-**Option 3 - Juste Antananarivo (5-10MB)**
-1. Télécharger Madagascar: `https://download.geofabrik.de/africa/madagascar-latest.osm.pbf`
-2. Extraire avec osmium:
-```bash
-osmium extract -b 47.4,18.7,47.6,19.0 madagascar-latest.osm.pbf -o antananarivo.osm.pbf
-```
-3. Convertir: (voir Option 2)
+## 📍 Endpoints disponibles
 
-## Utilisation
+| Endpoint | Description |
+|----------|-------------|
+| `GET /` | Page de démonstration avec carte Leaflet |
+| `GET /tiles/{z}/{x}/{y}.png` | Tuiles OSM (avec cache automatique) |
+| `GET /config` | Configuration JSON pour Leaflet |
+| `GET /stats` | Statistiques du cache |
+| `GET /health` | Health check |
 
-Une fois le fichier `.mbtiles` placé ici:
-```bash
-docker-compose up tileserver
-```
+## 🗺️ Utilisation avec Leaflet
 
-Accès: http://localhost:3001
-
-## Pour voir les cartes
-
-- Tuiles raster: `http://localhost:3001/data/antananarivo/{z}/{x}/{y}.png`
-- API TileJSON: `http://localhost:3001/data/antananarivo.json`
-- Interface web: `http://localhost:3001/` (voir les styles)
-
-## Intégration Leaflet (Front-end)
+### JavaScript
 
 ```javascript
-// Raster tiles
-L.tileLayer('http://localhost:3001/data/antananarivo/{z}/{x}/{y}.png', {
-  attribution: '© OpenMapTiles © OpenStreetMap',
-  maxZoom: 16,
-  minZoom: 0
-}).addTo(map);
+// Récupérer la configuration
+const configResponse = await fetch('http://localhost:3001/config');
+const config = await configResponse.json();
 
-// Vector tiles (avec MapLibre GL)
-L.maplibreGL({
-  style: 'http://localhost:3001/styles/osm-bright/style.json',
-  attribution: '© OpenMapTiles © OpenStreetMap'
+// Initialiser la carte
+const map = L.map('map').setView(config.center, config.defaultZoom);
+
+// Ajouter le layer de tuiles locales
+L.tileLayer('http://localhost:3001/tiles/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: config.attribution
 }).addTo(map);
 ```
 
-## Conseils Performance
+### React/Vue/Angular
 
-- **Offline complet**: Télécharger juste Antananarivo (~10-20MB)
-- **Qualité**: Préférer OpenMapTiles pour vector tiles
-- **Cache**: Service Worker pour stocker localement
+```javascript
+const TILE_SERVER_URL = 'http://localhost:3001';
+
+// URL des tuiles pour Leaflet
+const tileUrl = `${TILE_SERVER_URL}/tiles/{z}/{x}/{y}.png`;
+
+// Centre sur Antananarivo
+const center = [-18.8792, 47.5079];
+```
+
+## 📥 Pré-télécharger les tuiles pour usage 100% offline
+
+Pour fonctionner sans connexion internet, téléchargez les tuiles à l'avance:
+
+```bash
+# Télécharger les tuiles zoom 10-16 (Antananarivo)
+docker exec tileserver node download-tiles.js 10 16
+
+# Ou manuellement
+cd tiles
+npm run download
+```
+
+### Estimation de la taille
+
+| Zoom | Tuiles | Taille approx. |
+|------|--------|----------------|
+| 10-14 | ~500 | ~10 MB |
+| 10-16 | ~8000 | ~150 MB |
+| 10-18 | ~130000 | ~2.5 GB |
+
+## 🔧 Configuration
+
+Variables d'environnement:
+
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| `PORT` | 8080 | Port du serveur |
+| `CACHE_DIR` | ./cache | Dossier de cache |
+| `DEFAULT_CENTER_LAT` | -18.8792 | Latitude centre |
+| `DEFAULT_CENTER_LON` | 47.5079 | Longitude centre |
+| `DEFAULT_ZOOM` | 12 | Zoom par défaut |
+
+## 🏗️ Architecture
+
+```
+tiles/
+├── Dockerfile          # Image Docker
+├── server.js           # Serveur Express
+├── download-tiles.js   # Script pré-téléchargement
+├── package.json        # Dépendances
+└── cache/              # Cache des tuiles (créé automatiquement)
+    └── {z}/{x}/{y}.png
+```
+
+## 💡 Comment ça marche
+
+1. **Première requête**: Le serveur télécharge la tuile depuis OSM et la sauvegarde en cache
+2. **Requêtes suivantes**: La tuile est servie depuis le cache local
+3. **Mode offline**: Si les tuiles sont pré-téléchargées, aucune connexion n'est nécessaire
+
+## 🔍 Zone couverte
+
+- **Centre**: Antananarivo (-18.8792, 47.5079)
+- **Bounding Box**: 
+  - Min: -19.10, 47.40
+  - Max: -18.70, 47.70
+- **Inclut**: Antananarivo ville, Ivato, Talatamaty, Ambohidratrimo, etc.
