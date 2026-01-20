@@ -616,19 +616,19 @@ const GestionUtilisateur = () => {
                   <tr>
                     <th style={styles.th}>Email</th>
                     <th style={styles.th}>GitHub Name</th>
-                    <th style={styles.th}>Âge</th>
+                    <th style={styles.th}>Profil</th>
                     <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.map((user) => (
-                    <tr key={user.id}>
+                    <tr key={user.utilisateur_id}>
                       <td style={{ ...styles.td, ...styles.emailCell }}>{user.email}</td>
                       <td style={{ ...styles.td, ...styles.githubCell }}>{user.githubName}</td>
-                      <td style={{ ...styles.td, ...styles.ageCell }}>{user.age} ans</td>
+                      <td style={{ ...styles.td, ...styles.ageCell }}>{user.profil}</td>
                       <td style={{ ...styles.td, textAlign: 'center' }}>
                         <button
-                          onClick={() => handleDebloquer(user.id)}
+                          onClick={() => handleDebloquer(user.utilisateur_id)}
                           style={styles.actionBtn}
                           onMouseEnter={(e) => {
                             e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.25)';

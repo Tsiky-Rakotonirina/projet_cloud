@@ -9,46 +9,50 @@ import {
 
 const GestionSignalement = () => {
   const [signalements, setSignalements] = useState([]);
-  const [signalementsVides, setSignalementsVides] = useState([]);
-  const [signalementsComplets, setSignalementsComplets] = useState([]);
+  const [signalementsEnCours, setSignalementsEnCours] = useState([]);
+  const [signalementsResolus, setSignalementsResolus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('nouveaux');
   const [showModal, setShowModal] = useState(false);
   const [selectedSignalement, setSelectedSignalement] = useState(null);
+  const [entreprises, setEntreprises] = useState([]);
   const [modalData, setModalData] = useState({
-    entreprise: '',
+    entreprise_id: '',
     budget: '',
     surface: ''
   });
 
-  const entreprises = [
-    'Colas Madagascar',
-    'SOGEA SATOM',
-    'RAZEL-BEC',
-    'ENTREPRISE JEAN LEFEBVRE',
-    'BOUYGUES TP'
-  ];
-
   useEffect(() => {
     loadData();
+    loadEntreprises();
   }, []);
+
+  const loadEntreprises = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/entreprise');
+      const data = await response.json();
+      setEntreprises(data.data || []);
+    } catch (err) {
+      console.error('Erreur lors du chargement des entreprises:', err);
+    }
+  };
 
   const loadData = async () => {
     try {
       setLoading(true);
-      const [nouveaux, vides, complets] = await Promise.all([
+      const [nouveaux, enCours, resolus] = await Promise.all([
         signalementApi.getNouveaux(),
-        signalementApi.getVides(),
-        signalementApi.getComplets()
+        signalementApi.getEnCours(),
+        signalementApi.getResolus()
       ]);
       setSignalements(nouveaux || []);
-      setSignalementsVides(vides || []);
-      setSignalementsComplets(complets || []);
+      setSignalementsEnCours(enCours || []);
+      setSignalementsResolus(resolus || []);
     } catch (err) {
       console.error('Erreur lors du chargement des signalements:', err);
       setSignalements([]);
-      setSignalementsVides([]);
-      setSignalementsComplets([]);
+      setSignalementsEnCours([]);
+      setSignalementsResolus([]);
     } finally {
       setLoading(false);
     }
@@ -78,19 +82,36 @@ const GestionSignalement = () => {
 
   const handleMettreInfos = (signalement) => {
     setSelectedSignalement(signalement);
-    setModalData({ entreprise: '', budget: '', surface: '' });
+    setModalData({ entreprise_id: '', budget: '', surface: '' });
     setShowModal(true);
   };
 
   const handleSubmitInfos = async () => {
     try {
-      await signalementApi.update(selectedSignalement.id, modalData);
+      // Créer un problème pour le signalement
+      const response = await fetch('http://localhost:3000/api/probleme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          surface: parseFloat(modalData.surface),
+          budget: parseFloat(modalData.budget),
+          entreprise_id: parseInt(modalData.entreprise_id),
+          signalement_id: selectedSignalement.id_signalements,
+          probleme_statut_id: 1 // Statut par défaut
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Erreur lors de la création du problème');
+      }
+      
       await loadData();
       setShowModal(false);
       setSelectedSignalement(null);
+      alert('Informations ajoutées avec succès!');
     } catch (err) {
       console.error('Erreur lors de la mise à jour:', err);
-      alert('Erreur lors de la mise à jour des informations');
+      alert('Erreur lors de la mise à jour des informations: ' + err.message);
     }
   };
 
@@ -480,29 +501,29 @@ const GestionSignalement = () => {
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>Point</th>
-              <th style={styles.th}>Email Utilisateur</th>
+              <th style={styles.th}>Ville</th>
+              <th style={styles.th}>Email</th>
               <th style={styles.th}>Description</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {signalements.map((s) => (
-              <tr key={s.id}>
+              <tr key={s.id_signalements}>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
                     <MapPin size={14} />
-                    {formatCoords(s.point)}
+                    {s.ville || 'N/A'}
                   </span>
                 </td>
-                <td style={styles.td}>{s.email}</td>
+                <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.description}</td>
                 <td style={styles.td}>
                   <div style={styles.actionBtns}>
-                    <button style={styles.btnApprouver} onClick={() => handleApprouver(s.id)}>
+                    <button style={styles.btnApprouver} onClick={() => handleApprouver(s.id_signalements)}>
                       <Check size={14} /> Approuver
                     </button>
-                    <button style={styles.btnRefuser} onClick={() => handleRefuser(s.id)}>
+                    <button style={styles.btnRefuser} onClick={() => handleRefuser(s.id_signalements)}>
                       <X size={14} /> Refuser
                     </button>
                   </div>
@@ -515,39 +536,43 @@ const GestionSignalement = () => {
     </div>
   );
 
-  const renderVides = () => (
+  const renderEnCours = () => (
     <div style={styles.card}>
       <div style={styles.cardHeader}>
-        <h3 style={styles.cardTitle}>Signalements sans informations</h3>
+        <h3 style={styles.cardTitle}>Signalements en cours de traitement</h3>
         <span style={{ ...styles.badge, color: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.2)' }}>
-          {signalementsVides.length} signalement(s)
+          {signalementsEnCours.length} signalement(s)
         </span>
       </div>
-      {signalementsVides.length === 0 ? (
+      {signalementsEnCours.length === 0 ? (
         <div style={styles.emptyState}>
-          <p style={styles.emptyText}>Tous les signalements ont des informations</p>
+          <p style={styles.emptyText}>Aucun signalement en cours</p>
         </div>
       ) : (
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>Point</th>
+              <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email Utilisateur</th>
               <th style={styles.th}>Description</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Budget</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {signalementsVides.map((s) => (
-              <tr key={s.id}>
+            {signalementsEnCours.map((s) => (
+              <tr key={s.id_signalements}>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
                     <MapPin size={14} />
-                    {formatCoords(s.point)}
+                    {s.ville || 'N/A'}
                   </span>
                 </td>
-                <td style={styles.td}>{s.email}</td>
+                <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.description}</td>
+                <td style={{ ...styles.td, textAlign: 'center' }}>
+                  {s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}
+                </td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
                   <button style={styles.btnInfo} onClick={() => handleMettreInfos(s)}>
                     <Edit3 size={14} /> Mettre Infos
@@ -561,53 +586,45 @@ const GestionSignalement = () => {
     </div>
   );
 
-  const renderComplets = () => (
+  const renderResolus = () => (
     <div style={styles.card}>
       <div style={styles.cardHeader}>
-        <h3 style={styles.cardTitle}>Signalements complets</h3>
+        <h3 style={styles.cardTitle}>Signalements résolus</h3>
         <span style={{ ...styles.badge, color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.2)' }}>
-          {signalementsComplets.length} signalement(s)
+          {signalementsResolus.length} signalement(s)
         </span>
       </div>
-      {signalementsComplets.length === 0 ? (
+      {signalementsResolus.length === 0 ? (
         <div style={styles.emptyState}>
-          <p style={styles.emptyText}>Aucun signalement complet</p>
+          <p style={styles.emptyText}>Aucun signalement résolu</p>
         </div>
       ) : (
         <table style={styles.table}>
           <thead>
             <tr>
-              <th style={styles.th}>Point</th>
+              <th style={styles.th}>Ville</th>
               <th style={styles.th}>Description</th>
+              <th style={styles.th}>Email</th>
               <th style={styles.th}>Budget</th>
               <th style={styles.th}>Surface</th>
-              <th style={styles.th}>Entreprise</th>
               <th style={styles.th}>Statut</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {signalementsComplets.map((s) => (
-              <tr key={s.id}>
+            {signalementsResolus.map((s) => (
+              <tr key={s.id_signalements}>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
                     <MapPin size={14} />
-                    {formatCoords(s.point)}
+                    {s.ville || 'N/A'}
                   </span>
                 </td>
                 <td style={styles.td}>{s.description}</td>
-                <td style={styles.td}>{formatBudget(s.budget)}</td>
-                <td style={styles.td}>{s.surface} m²</td>
-                <td style={styles.td}>{s.entreprise}</td>
+                <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
+                <td style={styles.td}>{s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}</td>
+                <td style={styles.td}>{s.total_surface ? `${s.total_surface} m²` : 'N/A'}</td>
                 <td style={styles.td}>
                   <span style={getStatutStyle(s.statut)}>{s.statut?.replace('_', ' ')}</span>
-                </td>
-                <td style={{ ...styles.td, textAlign: 'center' }}>
-                  {s.statut !== 'en_cours' && s.statut !== 'terminé' && (
-                    <button style={styles.btnUpgrade} onClick={() => handleUpgrade(s.id)}>
-                      <ArrowUpCircle size={14} /> Avancement
-                    </button>
-                  )}
                 </td>
               </tr>
             ))}
@@ -640,16 +657,16 @@ const GestionSignalement = () => {
               Nouveaux ({signalements.length})
             </button>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'vides' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('vides')}
+              style={{ ...styles.tab, ...(activeTab === 'en_cours' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('en_cours')}
             >
-              Sans infos ({signalementsVides.length})
+              En cours ({signalementsEnCours.length})
             </button>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'complets' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('complets')}
+              style={{ ...styles.tab, ...(activeTab === 'resolus' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('resolus')}
             >
-              Complets ({signalementsComplets.length})
+              Résolus ({signalementsResolus.length})
             </button>
           </div>
 
@@ -660,8 +677,8 @@ const GestionSignalement = () => {
           ) : (
             <>
               {activeTab === 'nouveaux' && renderNouveaux()}
-              {activeTab === 'vides' && renderVides()}
-              {activeTab === 'complets' && renderComplets()}
+              {activeTab === 'en_cours' && renderEnCours()}
+              {activeTab === 'resolus' && renderResolus()}
             </>
           )}
         </div>
@@ -685,13 +702,13 @@ const GestionSignalement = () => {
                 <label style={styles.label}>Entreprise</label>
                 <div style={styles.selectWrapper}>
                   <select
-                    value={modalData.entreprise}
-                    onChange={(e) => setModalData({ ...modalData, entreprise: e.target.value })}
+                    value={modalData.entreprise_id}
+                    onChange={(e) => setModalData({ ...modalData, entreprise_id: e.target.value })}
                     style={styles.select}
                   >
                     <option value="">Sélectionner une entreprise</option>
                     {entreprises.map((e) => (
-                      <option key={e} value={e}>{e}</option>
+                      <option key={e.id_entreprises} value={e.id_entreprises}>{e.nom}</option>
                     ))}
                   </select>
                   <ChevronDown size={18} style={styles.selectIcon} />
@@ -725,7 +742,7 @@ const GestionSignalement = () => {
               <button 
                 style={styles.btnSubmit} 
                 onClick={handleSubmitInfos}
-                disabled={!modalData.entreprise || !modalData.budget || !modalData.surface}
+                disabled={!modalData.entreprise_id || !modalData.budget || !modalData.surface}
               >
                 Enregistrer
               </button>

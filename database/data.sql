@@ -22,15 +22,22 @@ INSERT INTO utilisateurs (email, mot_de_passe, date_naissance, profil_id) VALUES
   ('jean.dupont@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1995-03-22', 2),
   ('marie.martin@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1992-07-10', 2),
   ('pierre.bernard@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1988-11-05', 2),
-  ('sophie.laurent@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1998-02-14', 2);
+  ('sophie.laurent@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1998-02-14', 2),
+  -- Utilisateurs BLOQUÉS
+  ('user.bloque1@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1991-06-20', 2),
+  ('user.bloque2@gmail.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1993-09-15', 2),
+  ('spammer@test.com', '$2b$10$SlKsM14r9AEFia2NvF5Ec.R5VtZdte/X1aZ/GEDWga6D/UHOVsMTi', '1987-12-01', 2);
 
--- Statuts initiaux des utilisateurs (tous actifs par défaut)
+-- Statuts initiaux des utilisateurs (certains bloqués)
 INSERT INTO utilisateur_statuts (utilisateur_id, statut_id, date_statut) VALUES 
   (1, 1, NOW() - INTERVAL '6 months'), -- Admin actif
-  (2, 1, NOW() - INTERVAL '5 months'),
-  (3, 1, NOW() - INTERVAL '4 months'),
-  (4, 1, NOW() - INTERVAL '3 months'),
-  (5, 1, NOW() - INTERVAL '2 months');
+  (2, 1, NOW() - INTERVAL '5 months'), -- Actif
+  (3, 1, NOW() - INTERVAL '4 months'), -- Actif
+  (4, 1, NOW() - INTERVAL '3 months'), -- Actif
+  (5, 1, NOW() - INTERVAL '2 months'), -- Actif
+  (6, 2, NOW() - INTERVAL '1 week'),   -- BLOQUÉ
+  (7, 2, NOW() - INTERVAL '3 days'),   -- BLOQUÉ
+  (8, 2, NOW() - INTERVAL '1 day');    -- BLOQUÉ
 
 -- ==============================
 -- DONNÉES DE RÉFÉRENCE

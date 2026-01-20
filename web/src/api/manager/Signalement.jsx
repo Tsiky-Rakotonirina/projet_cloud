@@ -21,18 +21,26 @@ export const signalementApi = {
   },
 
   /**
-   * Récupérer les signalements sans informations
+   * Récupérer les signalements en cours de traitement
    */
-  getVides: async () => {
-    const response = await callApi('/api/signalement/statut/vide', 'GET');
+  getEnCours: async () => {
+    const response = await callApi('/api/signalement/statut/en_cours', 'GET');
     return response.data || [];
   },
 
   /**
-   * Récupérer les signalements complets
+   * Récupérer les signalements résolus
    */
-  getComplets: async () => {
-    const response = await callApi('/api/signalement/statut/complet', 'GET');
+  getResolus: async () => {
+    const response = await callApi('/api/signalement/statut/resolu', 'GET');
+    return response.data || [];
+  },
+  
+  /**
+   * Récupérer les signalements rejetés
+   */
+  getRejetes: async () => {
+    const response = await callApi('/api/signalement/statut/rejete', 'GET');
     return response.data || [];
   },
 

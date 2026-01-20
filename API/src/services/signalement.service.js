@@ -6,13 +6,13 @@ const signalementService = {
       where: { signalement_id: signalementId },
       include: {
         model: db.SignalementStatut,
-        as: 'signalement_statut',
+        as: 'statut',
         attributes: ['libelle', 'descri'],
       },
       order: [['date_historique', 'DESC']],
     });
 
-    return historique ? historique.signalement_statut : null;
+    return historique ? historique.statut : null;
   },
 
   async getSignalementWithDetails(signalementId) {
@@ -78,7 +78,6 @@ const signalementService = {
     return {
       id_signalements: signalement.id_signalements,
       description: signalement.description,
-      date: signalement.createdAt,
       statut: statut
         ? {
             libelle: statut.libelle,
@@ -133,7 +132,6 @@ const signalementService = {
           attributes: ['id_problemes', 'surface', 'budget'],
         },
       ],
-      order: [['createdAt', 'DESC']],
     });
 
     const result = await Promise.all(
@@ -142,7 +140,6 @@ const signalementService = {
         return {
           id_signalements: s.id_signalements,
           description: s.description,
-          date: s.createdAt,
           ville: s.point?.ville?.nom || null,
           email_utilisateur: s.utilisateur?.email || null,
           statut: statut?.libelle || null,
@@ -197,7 +194,7 @@ const signalementService = {
       include: [
         {
           model: db.SignalementStatut,
-          as: 'signalement_statut',
+          as: 'statut',
           attributes: ['libelle', 'descri'],
         },
         {
@@ -211,7 +208,7 @@ const signalementService = {
 
     return historiques.map((h) => ({
       date: h.date_historique,
-      statut: h.signalement_statut?.libelle || null,
+      statut: h.statut?.libelle || null,
       utilisateur: h.utilisateur?.email || null,
     }));
   },
@@ -251,7 +248,6 @@ const signalementService = {
           attributes: ['surface', 'budget'],
         },
       ],
-      order: [['createdAt', 'DESC']],
     });
 
     const filtered = [];
@@ -261,7 +257,6 @@ const signalementService = {
         filtered.push({
           id_signalements: s.id_signalements,
           description: s.description,
-          date: s.createdAt,
           ville: s.point?.ville?.nom || null,
           email_utilisateur: s.utilisateur?.email || null,
           statut: currentStatut.libelle,

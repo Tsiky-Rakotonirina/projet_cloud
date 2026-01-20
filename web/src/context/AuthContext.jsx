@@ -25,10 +25,14 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('token');
       const storedUser = localStorage.getItem('user');
       
-      if (storedToken && storedUser) {
+      if (storedToken && storedUser && storedUser !== 'undefined') {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
         setIsAuthenticated(true);
+      } else {
+        // Nettoyer les données invalides
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
     } catch (error) {
       console.error('Erreur lors de la vérification de l\'authentification:', error);

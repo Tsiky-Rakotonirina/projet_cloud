@@ -4,9 +4,12 @@ const { Utilisateur, UtilisateurStatut, Statut, Signalement, SignalementStatut, 
 const admin = require('firebase-admin');
 const serviceAccount = require('../config/firebase-admin-sdk.json');
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
+// Vérifier si Firebase n'est pas déjà initialisé
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+}
 
 const firebaseDB = admin.firestore();
 
