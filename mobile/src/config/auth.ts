@@ -1,16 +1,8 @@
-/**
- * Configuration de l'authentification
- * Tous les paramètres liés à la sécurité et aux sessions
- */
-
-// Configuration de la durée de vie des sessions
 export const SESSION_CONFIG = {
   // Durée d'inactivité avant déconnexion automatique (en millisecondes)
-  // Par défaut : 30 minutes
   TIMEOUT_INACTIVITY: 30 * 60 * 1000, // 30 minutes
 
   // Durée maximale de session (en millisecondes)
-  // Par défaut : 8 heures
   MAX_SESSION_DURATION: 8 * 60 * 60 * 1000, // 8 heures
 };
 
@@ -20,11 +12,9 @@ export const LOGIN_ATTEMPTS_CONFIG = {
   MAX_ATTEMPTS: 3,
 
   // Durée du blocage après dépassement des tentatives (en millisecondes)
-  // Par défaut : 15 minutes
   BLOCK_DURATION: 15 * 60 * 1000, // 15 minutes
 
   // Durée avant réinitialisation des tentatives (en millisecondes)
-  // Par défaut : 24 heures
   RESET_ATTEMPTS_AFTER: 24 * 60 * 60 * 1000, // 24 heures
 };
 

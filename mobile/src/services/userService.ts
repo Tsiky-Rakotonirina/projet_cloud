@@ -246,3 +246,81 @@ export const checkAndUnblockExpiredAccounts = async (email: string): Promise<boo
     return false;
   }
 };
+
+// Désactiver un compte utilisateur (après 3 tentatives échouées)
+export const disableUserAccount = async (email: string): Promise<boolean> => {
+  try {
+    const usersRef = collection(db, "utilisateurs");
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.error("Utilisateur non trouvé pour désactivation");
+      return false;
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    await updateDoc(doc(db, "utilisateurs", userDoc.id), {
+      disabled: true,
+      disabledAt: new Date().toISOString(),
+      disabledReason: "3 tentatives de connexion échouées"
+    });
+
+    console.log(`Compte désactivé pour ${email}`);
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la désactivation du compte :", error);
+    return false;
+  }
+};
+
+// Réactiver un compte utilisateur (fonction manager)
+export const enableUserAccount = async (email: string, managerId: string): Promise<boolean> => {
+  try {
+    const usersRef = collection(db, "utilisateurs");
+    const q = query(usersRef, where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      console.error("Utilisateur non trouvé pour réactivation");
+      return false;
+    }
+
+    const userDoc = querySnapshot.docs[0];
+    await updateDoc(doc(db, "utilisateurs", userDoc.id), {
+      disabled: false,
+      disabledAt: null,
+      disabledReason: null,
+      reactivatedAt: new Date().toISOString(),
+      reactivatedBy: managerId
+    });
+
+    // Réinitialiser aussi les tentatives de connexion
+    await updateDoc(doc(db, "utilisateurs", userDoc.id), {
+      loginAttempts: 0,
+      blocked: false,
+      lastFailedLogin: null
+    });
+
+    console.log(`Compte réactivé pour ${email} par le manager ${managerId}`);
+    return true;
+  } catch (error) {
+    console.error("Erreur lors de la réactivation du compte :", error);
+    return false;
+  }
+};
+
+// Vérifier si un utilisateur est un manager/admin
+export const isUserManager = async (uid: string): Promise<boolean> => {
+  try {
+    const userDoc = await getDoc(doc(db, "utilisateurs", uid));
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as UserProfile;
+      return userData.role === 'manager' || userData.role === 'admin';
+    }
+    return false;
+  } catch (error) {
+    console.error("Erreur lors de la vérification du rôle manager :", error);
+    return false;
+  }
+};

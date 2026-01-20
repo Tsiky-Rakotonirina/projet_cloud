@@ -9,4 +9,10 @@ export interface UserProfile {
   lastFailedLogin?: string;
   displayName?: string;
   telephone?: string;
+  disabled?: boolean;
+  disabledAt?: string;
+  disabledReason?: string;
+  reactivatedAt?: string;
+  reactivatedBy?: string;
+  role?: string;
 }

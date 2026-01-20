@@ -4,13 +4,13 @@ import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDIWOJvZx9RTmPQ5Cs_HIhDkhsupOHRH1Q",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "tp-firebase-b195d.firebaseapp.com",
   projectId: "tp-firebase-b195d",
   storageBucket: "tp-firebase-b195d.firebasestorage.app",
-  messagingSenderId: "79410079282",
-  appId: "1:79410079282:web:79ea5bb57d79bbc7ae7e2b",
-  measurementId: "G-2CL6MR5X2T"
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);

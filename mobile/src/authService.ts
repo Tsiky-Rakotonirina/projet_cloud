@@ -10,16 +10,16 @@ import {
 import { ref } from "vue";
 import {
   SESSION_CONFIG,
-  setSessionTimeout as configSetSessionTimeout,
-  getSessionTimeout
+  setSessionTimeout as configSetSessionTimeout
 } from "@/config/auth";
 import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts } from "@/services/userService";
+import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
 
 // État global de l'utilisateur
 export const currentUser = ref<User | null>(null);
 
 // Variables pour la gestion de session
-let inactivityTimer: NodeJS.Timeout | null = null;
+let inactivityTimer: number | null = null;
 let sessionStartTime: number = 0;
 
 // Fonction pour se connecter
@@ -74,6 +74,25 @@ export const register = async (email: string, password: string) => {
   } catch (err: any) {
     console.error("Erreur register :", err.code, err.message);
     throw new Error(translateAuthError(err.code));
+  }
+};
+
+// Fonction pour se connecter avec GitHub
+export const loginWithGithub = async () => {
+  try {
+    const provider = new GithubAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    console.log("Connecté avec GitHub :", result.user);
+    currentUser.value = result.user;
+
+    // Réinitialiser les tentatives de connexion après une connexion réussie (si applicable)
+    // Note: GitHub login ne nécessite pas de vérification d'email spécifique, mais on peut gérer si nécessaire
+
+    startInactivityTimer(); // Démarrer le timer de session
+    return result.user;
+  } catch (error: any) {
+    console.error("Erreur GitHub auth :", error);
+    throw new Error(translateAuthError(error.code) || "Erreur lors de la connexion avec GitHub");
   }
 };
 
@@ -189,7 +208,11 @@ const translateAuthError = (code: string): string => {
     "auth/user-not-found": "Utilisateur non trouvé",
     "auth/wrong-password": "Mot de passe incorrect",
     "auth/invalid-email": "Email invalide",
-    "auth/invalid-credential": "Email ou mot de passe incorrect"
+    "auth/invalid-credential": "Email ou mot de passe incorrect",
+    "auth/popup-closed-by-user": "Fenêtre de connexion fermée par l'utilisateur",
+    "auth/cancelled-popup-request": "Demande de connexion annulée",
+    "auth/popup-blocked": "Fenêtre popup bloquée par le navigateur",
+    "auth/account-exists-with-different-credential": "Un compte existe déjà avec cet email via un autre fournisseur"
   };
   return errors[code] || "Une erreur est survenue. Réessayez.";
 };

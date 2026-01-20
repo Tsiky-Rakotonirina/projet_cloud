@@ -218,12 +218,9 @@ onMounted(() => {
     zoom: 13,
   });
 
-  // URL du serveur de tuiles offline local
-  const TILE_SERVER_URL = import.meta.env.VITE_TILE_SERVER_URL || 'http://localhost:3001';
-
-  // Ajouter le layer de tuiles depuis le serveur offline local
-  L.tileLayer(`${TILE_SERVER_URL}/tiles/{z}/{x}/{y}.png`, {
-    attribution: '© OpenStreetMap | Serveur Offline Antananarivo',
+  // Ajouter le layer de tuiles OpenStreetMap standard
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
     maxZoom: 19,
   }).addTo(map);
 

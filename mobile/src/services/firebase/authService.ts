@@ -1,49 +1,91 @@
-// src/authService.ts
+// services/firebase/authService.ts
 import { auth } from "./firebase";
 import {
   onAuthStateChanged,
   signOut,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  User
+  User,
+  updateProfile,
+  getIdTokenResult
 } from "firebase/auth";
 import { ref } from "vue";
+import {
+  SESSION_CONFIG,
+  setSessionTimeout as configSetSessionTimeout
+} from "@/config/auth";
+import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts, disableUserAccount, enableUserAccount } from "@/services/userService";
+import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
 
 // État global de l'utilisateur
 export const currentUser = ref<User | null>(null);
 
-// Configuration de la durée de vie de session (en millisecondes)
-// Par défaut : 30 minutes d'inactivité
-let sessionTimeout: number = 30 * 60 * 1000; // 30 minutes
-let inactivityTimer: NodeJS.Timeout | null = null;
+// Variables pour la gestion de session
+let inactivityTimer: number | null = null;
+let sessionStartTime: number = 0;
 
 // Fonction pour se connecter
 export const login = async (email: string, password: string) => {
   try {
     console.log("Tentative de connexion avec :", email);
+
+    // Vérifier si le compte est bloqué (et essayer de le débloquer automatiquement)
+    const userProfile = await getUserByEmail(email);
+    if (userProfile?.blocked) {
+      // Essayer de débloquer automatiquement
+      const unblocked = await checkAndUnblockExpiredAccounts(email);
+      if (!unblocked) {
+        throw new Error("Votre compte est temporairement bloqué en raison de trop nombreuses tentatives de connexion échouées. Veuillez réessayer plus tard.");
+      }
+    }
+
+    // Vérifier si le compte est désactivé par un manager
+    if (userProfile?.disabled) {
+      throw new Error("Votre compte a été désactivé. Contactez un administrateur pour le réactiver.");
+    }
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log("Connecté :", userCredential.user.email);
     currentUser.value = userCredential.user;
+
+    // Réinitialiser les tentatives de connexion après une connexion réussie
+    await resetLoginAttempts(email);
+
     startInactivityTimer(); // Démarrer le timer de session
     return userCredential.user;
   } catch (err: any) {
     console.error("Erreur login :", err.code, err.message);
+
+    // Incrémenter les tentatives de connexion échouées
+    if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+      const result = await incrementLoginAttempts(email);
+      
+      // Si c'est la 3ème tentative, désactiver le compte
+      if (result.attempts >= 3 && !result.blocked) {
+        await disableUserAccount(email);
+        throw new Error("Votre compte a été désactivé après 3 tentatives de connexion échouées. Contactez un administrateur pour le réactiver.");
+      }
+    }
+
     throw new Error(translateAuthError(err.code));
   }
 };
 
-// Fonction pour s'inscrire
-export const register = async (email: string, password: string) => {
+// Fonction pour se connecter avec GitHub
+export const loginWithGithub = async () => {
   try {
-    console.log("Tentative d'inscription avec :", email);
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log("Inscrit :", userCredential.user.email);
-    currentUser.value = userCredential.user;
+    const provider = new GithubAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    console.log("Connecté avec GitHub :", result.user);
+    currentUser.value = result.user;
+
+    // Réinitialiser les tentatives de connexion après une connexion réussie (si applicable)
+    // Note: GitHub login ne nécessite pas de vérification d'email spécifique, mais on peut gérer si nécessaire
+
     startInactivityTimer(); // Démarrer le timer de session
-    return userCredential.user;
-  } catch (err: any) {
-    console.error("Erreur register :", err.code, err.message);
-    throw new Error(translateAuthError(err.code));
+    return result.user;
+  } catch (error: any) {
+    console.error("Erreur GitHub auth :", error);
+    throw new Error(translateAuthError(error.code) || "Erreur lors de la connexion avec GitHub");
   }
 };
 
@@ -88,10 +130,33 @@ export const getCurrentUser = () => {
   return auth.currentUser;
 };
 
+// Fonction pour réactiver un compte utilisateur (réservé aux managers)
+export const reactivateUserAccount = async (email: string): Promise<boolean> => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      throw new Error("Aucun utilisateur connecté");
+    }
+
+    // Vérifier si l'utilisateur actuel est un manager
+    const { isUserManager } = await import("@/services/userService");
+    const isManager = await isUserManager(currentUser.uid);
+    
+    if (!isManager) {
+      throw new Error("Seul un manager peut réactiver un compte");
+    }
+
+    const success = await enableUserAccount(email, currentUser.uid);
+    return success;
+  } catch (error) {
+    console.error("Erreur lors de la réactivation du compte :", error);
+    throw error;
+  }
+};
+
 // Fonction pour définir la durée de vie de session (en minutes)
 export const setSessionTimeout = (minutes: number) => {
-  sessionTimeout = minutes * 60 * 1000;
-  console.log(`Durée de session définie à ${minutes} minutes`);
+  configSetSessionTimeout(minutes);
   // Redémarrer le timer si un utilisateur est connecté
   if (currentUser.value) {
     resetInactivityTimer();
@@ -100,7 +165,7 @@ export const setSessionTimeout = (minutes: number) => {
 
 // Fonction pour obtenir la durée de session actuelle (en minutes)
 export const getSessionTimeout = () => {
-  return sessionTimeout / (60 * 1000);
+  return SESSION_CONFIG.TIMEOUT_INACTIVITY / (60 * 1000);
 };
 
 // Déconnexion automatique après inactivité
@@ -108,13 +173,13 @@ const startInactivityTimer = () => {
   if (inactivityTimer) {
     clearTimeout(inactivityTimer);
   }
-  
+
   inactivityTimer = setTimeout(async () => {
     console.log("Session expirée par inactivité");
     await logout();
     // Optionnel : émettre un événement ou rediriger
     window.dispatchEvent(new CustomEvent('session-expired'));
-  }, sessionTimeout);
+  }, SESSION_CONFIG.TIMEOUT_INACTIVITY);
 };
 
 // Réinitialiser le timer d'inactivité
@@ -160,7 +225,11 @@ const translateAuthError = (code: string): string => {
     "auth/user-not-found": "Utilisateur non trouvé",
     "auth/wrong-password": "Mot de passe incorrect",
     "auth/invalid-email": "Email invalide",
-    "auth/invalid-credential": "Email ou mot de passe incorrect"
+    "auth/invalid-credential": "Email ou mot de passe incorrect",
+    "auth/popup-closed-by-user": "Fenêtre de connexion fermée par l'utilisateur",
+    "auth/cancelled-popup-request": "Demande de connexion annulée",
+    "auth/popup-blocked": "Fenêtre popup bloquée par le navigateur",
+    "auth/account-exists-with-different-credential": "Un compte existe déjà avec cet email via un autre fournisseur"
   };
   return errors[code] || "Une erreur est survenue. Réessayez.";
 };
