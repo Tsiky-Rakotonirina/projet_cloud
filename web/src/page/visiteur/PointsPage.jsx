@@ -1,129 +1,64 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import L from 'leaflet';
 import Navbar from '@components/Navbar';
 import { colors } from '@assets/colors';
-import { Map, Layers, ZoomIn, ZoomOut, Locate, Info, X } from 'lucide-react';
-import 'maplibre-gl/dist/maplibre-gl.css';
-import maplibregl from 'maplibre-gl';
+import { Map as MapIcon, Locate, X } from 'lucide-react';
+import 'leaflet/dist/leaflet.css';
+
+// Fix icônes Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+// URL du serveur de tuiles offline
+const TILE_SERVER_URL = import.meta.env.VITE_TILE_SERVER_URL || 'http://localhost:3001';
+
+// Coordonnées Antananarivo
+const ANTANANARIVO = {
+  lat: -18.8792,
+  lng: 47.5079,
+  zoom: 13
+};
+
+// Créer une icône personnalisée
+const createCustomIcon = (color) => {
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      width: 24px;
+      height: 24px;
+      background-color: ${color};
+      border: 3px solid white;
+      border-radius: 50%;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+};
 
 const PointsPage = () => {
-  const mapContainer = useRef(null);
-  const map = useRef(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
-  const [showInfo, setShowInfo] = useState(false);
 
-  // Coordonnées Antananarivo
-  const ANTANANARIVO = {
-    lng: 47.5079,
-    lat: -18.8792,
-    zoom: 12
-  };
+  // Points de démo
+  const demoPoints = [
+    { id: 1, lng: 47.5161, lat: -18.8883, name: 'Route RN7 - Km 5', status: 'en_cours' },
+    { id: 2, lng: 47.5250, lat: -18.8750, name: 'Carrefour Analakely', status: 'planifie' },
+    { id: 3, lng: 47.4950, lat: -18.8950, name: 'Boulevard de l\'Indépendance', status: 'termine' },
+    { id: 4, lng: 47.5350, lat: -18.8650, name: 'Route vers Ivato', status: 'en_cours' },
+  ];
 
-  // URL du TileServer
-  const TILESERVER_URL = 'http://localhost:3001';
-
-  useEffect(() => {
-    if (map.current) return;
-
-    map.current = new maplibregl.Map({
-      container: mapContainer.current,
-      style: {
-        version: 8,
-        sources: {
-          'raster-tiles': {
-            type: 'raster',
-            tiles: [`${TILESERVER_URL}/styles/basic/{z}/{x}/{y}.png`],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors'
-          }
-        },
-        layers: [
-          {
-            id: 'raster-layer',
-            type: 'raster',
-            source: 'raster-tiles',
-            minzoom: 0,
-            maxzoom: 19
-          }
-        ]
-      },
-      center: [ANTANANARIVO.lng, ANTANANARIVO.lat],
-      zoom: ANTANANARIVO.zoom,
-      maxZoom: 18,
-      minZoom: 5
-    });
-
-    map.current.on('load', () => {
-      setMapLoaded(true);
-      
-      // Ajouter les contrôles de navigation
-      map.current.addControl(new maplibregl.NavigationControl(), 'bottom-right');
-      map.current.addControl(new maplibregl.ScaleControl(), 'bottom-left');
-
-      // Exemple de points (à remplacer par vos données)
-      const demoPoints = [
-        { id: 1, lng: 47.5161, lat: -18.8883, name: 'Route RN7 - Km 5', status: 'en_cours' },
-        { id: 2, lng: 47.5250, lat: -18.8750, name: 'Carrefour Analakely', status: 'planifie' },
-        { id: 3, lng: 47.4950, lat: -18.8950, name: 'Boulevard de l\'Indépendance', status: 'termine' },
-        { id: 4, lng: 47.5350, lat: -18.8650, name: 'Route vers Ivato', status: 'en_cours' },
-      ];
-
-      // Ajouter les marqueurs
-      demoPoints.forEach(point => {
-        const markerColor = point.status === 'termine' ? '#10B981' : 
-                           point.status === 'en_cours' ? '#F59E0B' : colors.primary;
-        
-        const el = document.createElement('div');
-        el.className = 'custom-marker';
-        el.style.cssText = `
-          width: 32px;
-          height: 32px;
-          background-color: ${markerColor};
-          border: 3px solid white;
-          border-radius: 50%;
-          cursor: pointer;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-          transition: transform 0.2s;
-        `;
-        el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.2)';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = 'scale(1)';
-        });
-        el.addEventListener('click', () => {
-          setSelectedPoint(point);
-        });
-
-        new maplibregl.Marker({ element: el })
-          .setLngLat([point.lng, point.lat])
-          .addTo(map.current);
-      });
-    });
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
-  }, []);
-
-  const handleZoomIn = () => {
-    if (map.current) map.current.zoomIn();
-  };
-
-  const handleZoomOut = () => {
-    if (map.current) map.current.zoomOut();
-  };
-
-  const handleLocate = () => {
-    if (map.current) {
-      map.current.flyTo({
-        center: [ANTANANARIVO.lng, ANTANANARIVO.lat],
-        zoom: ANTANANARIVO.zoom,
-        duration: 1500
-      });
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'termine': return '#10B981';
+      case 'en_cours': return '#F59E0B';
+      default: return colors.primary;
     }
   };
 
@@ -136,11 +71,49 @@ const PointsPage = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'termine': return '#10B981';
-      case 'en_cours': return '#F59E0B';
-      default: return colors.primary;
+  // Initialiser la carte
+  useEffect(() => {
+    if (!mapInstanceRef.current && mapRef.current) {
+      // Créer la carte
+      mapInstanceRef.current = L.map(mapRef.current, {
+        zoomControl: false
+      }).setView([ANTANANARIVO.lat, ANTANANARIVO.lng], ANTANANARIVO.zoom);
+
+      // Ajouter les tuiles depuis le serveur offline local
+      L.tileLayer(`${TILE_SERVER_URL}/tiles/{z}/{x}/{y}.png`, {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap | Serveur Offline Antananarivo'
+      }).addTo(mapInstanceRef.current);
+
+      // Ajouter les marqueurs
+      demoPoints.forEach((point) => {
+        const marker = L.marker([point.lat, point.lng], {
+          icon: createCustomIcon(getStatusColor(point.status))
+        }).addTo(mapInstanceRef.current);
+
+        marker.bindPopup(`<strong>${point.name}</strong><br/>Statut: ${getStatusLabel(point.status)}`);
+        
+        marker.on('click', () => {
+          setSelectedPoint(point);
+        });
+
+        markersRef.current.push(marker);
+      });
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleLocate = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([ANTANANARIVO.lat, ANTANANARIVO.lng], ANTANANARIVO.zoom, {
+        duration: 1
+      });
     }
   };
 
@@ -162,8 +135,7 @@ const PointsPage = () => {
     },
     mapContainer: {
       width: '100%',
-      height: '100%',
-      minHeight: 'calc(100vh - 120px)'
+      height: 'calc(100vh - 120px)'
     },
     controls: {
       position: 'absolute',
@@ -172,7 +144,7 @@ const PointsPage = () => {
       display: 'flex',
       flexDirection: 'column',
       gap: '8px',
-      zIndex: 10
+      zIndex: 1000
     },
     controlBtn: {
       display: 'flex',
@@ -199,7 +171,7 @@ const PointsPage = () => {
       backgroundColor: colors.dark,
       borderRadius: '12px',
       border: `1px solid ${colors.primary}30`,
-      zIndex: 10
+      zIndex: 1000
     },
     headerIcon: {
       display: 'flex',
@@ -223,13 +195,13 @@ const PointsPage = () => {
     },
     legend: {
       position: 'absolute',
-      bottom: '60px',
+      bottom: '30px',
       left: '16px',
       padding: '16px',
       backgroundColor: colors.dark,
       borderRadius: '12px',
       border: `1px solid ${colors.primary}30`,
-      zIndex: 10
+      zIndex: 1000
     },
     legendTitle: {
       fontSize: '12px',
@@ -264,7 +236,7 @@ const PointsPage = () => {
       borderRadius: '16px',
       border: `1px solid ${colors.primary}30`,
       overflow: 'hidden',
-      zIndex: 10
+      zIndex: 1000
     },
     infoPanelHeader: {
       display: 'flex',
@@ -312,22 +284,6 @@ const PointsPage = () => {
       fontSize: '12px',
       fontWeight: '600',
       borderRadius: '20px'
-    },
-    loadingOverlay: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.darker,
-      zIndex: 20
-    },
-    loadingText: {
-      fontSize: '15px',
-      color: 'rgba(255,255,255,0.6)'
     }
   };
 
@@ -336,58 +292,24 @@ const PointsPage = () => {
       <Navbar />
       <div style={styles.page}>
         <div style={styles.mapWrapper}>
-          <div ref={mapContainer} style={styles.mapContainer} />
-
-          {!mapLoaded && (
-            <div style={styles.loadingOverlay}>
-              <span style={styles.loadingText}>Chargement de la carte...</span>
-            </div>
-          )}
+          {/* Container de la carte */}
+          <div ref={mapRef} style={styles.mapContainer} />
 
           {/* Header */}
           <div style={styles.header}>
             <div style={styles.headerIcon}>
-              <Map size={20} color={colors.primary} />
+              <MapIcon size={20} color={colors.primary} />
             </div>
             <div>
               <h2 style={styles.headerTitle}>Points d'Intérêt</h2>
-              <p style={styles.headerSubtitle}>Région Antananarivo</p>
+              <p style={styles.headerSubtitle}>Région Antananarivo - Serveur Offline</p>
             </div>
           </div>
 
           {/* Controls */}
           <div style={styles.controls}>
-            <button
-              style={styles.controlBtn}
-              onClick={handleZoomIn}
-              onMouseEnter={(e) => e.target.style.borderColor = colors.primary}
-              onMouseLeave={(e) => e.target.style.borderColor = `${colors.primary}30`}
-            >
-              <ZoomIn size={20} />
-            </button>
-            <button
-              style={styles.controlBtn}
-              onClick={handleZoomOut}
-              onMouseEnter={(e) => e.target.style.borderColor = colors.primary}
-              onMouseLeave={(e) => e.target.style.borderColor = `${colors.primary}30`}
-            >
-              <ZoomOut size={20} />
-            </button>
-            <button
-              style={styles.controlBtn}
-              onClick={handleLocate}
-              onMouseEnter={(e) => e.target.style.borderColor = colors.primary}
-              onMouseLeave={(e) => e.target.style.borderColor = `${colors.primary}30`}
-            >
+            <button style={styles.controlBtn} onClick={handleLocate} title="Recentrer">
               <Locate size={20} />
-            </button>
-            <button
-              style={styles.controlBtn}
-              onClick={() => setShowInfo(!showInfo)}
-              onMouseEnter={(e) => e.target.style.borderColor = colors.primary}
-              onMouseLeave={(e) => e.target.style.borderColor = `${colors.primary}30`}
-            >
-              <Layers size={20} />
             </button>
           </div>
 

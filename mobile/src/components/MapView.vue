@@ -218,9 +218,12 @@ onMounted(() => {
     zoom: 13,
   });
 
-  // Ajouter le layer de tuiles OpenStreetMap
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  // URL du serveur de tuiles offline local
+  const TILE_SERVER_URL = import.meta.env.VITE_TILE_SERVER_URL || 'http://localhost:3001';
+
+  // Ajouter le layer de tuiles depuis le serveur offline local
+  L.tileLayer(`${TILE_SERVER_URL}/tiles/{z}/{x}/{y}.png`, {
+    attribution: '© OpenStreetMap | Serveur Offline Antananarivo',
     maxZoom: 19,
   }).addTo(map);
 

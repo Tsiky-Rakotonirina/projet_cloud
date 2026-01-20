@@ -1,6 +1,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDIWOJvZx9RTmPQ5Cs_HIhDkhsupOHRH1Q",
@@ -15,6 +16,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 
 // Configuration de la persistance de session
 // LOCAL : session persiste même après fermeture du navigateur

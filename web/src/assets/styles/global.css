@@ -55,6 +55,27 @@
   --transition-slow: 0.3s ease;
 }
 
+/* ============ LEAFLET MAP STYLES ============ */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  z-index: 1;
+}
+
+.map-wrapper {
+  height: 500px;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.map-fullscreen {
+  height: calc(100vh - 200px);
+  min-height: 400px;
+}
+
 /* ============ RESET & BASE ============ */
 *, *::before, *::after {
   box-sizing: border-box;
