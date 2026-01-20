@@ -1,0 +1,349 @@
+/* ============================================
+   LALAN-TSARA - Design System Global CSS
+   Structuré | Harmonieux | Professionnel
+   ============================================ */
+
+/* ============ VARIABLES CSS ============ */
+:root {
+  /* Couleurs principales */
+  --color-primary: #87BCDE;
+  --color-secondary: #805E73;
+  --color-tertiary: #4E4D5C;
+  --color-dark: #2D4654;
+  --color-darker: #243B4A;
+  
+  /* Couleurs dérivées */
+  --color-primary-light: #87BCDE20;
+  --color-primary-border: #87BCDE30;
+  --color-secondary-light: #805E7320;
+  
+  /* Espacements harmonieux (multiples de 8) */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  
+  /* Typographie */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 24px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 48px;
+  
+  /* Bordures */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-full: 50%;
+  
+  /* Ombres (subtiles, pas de glow) */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* ============ RESET & BASE ============ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  line-height: 1.6;
+  color: var(--color-dark);
+  background-color: var(--color-darker);
+}
+
+/* ============ UTILITAIRES D'ALIGNEMENT ============ */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+/* ============ COMPOSANTS FORMULAIRE ============ */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 100%;
+}
+
+.form-label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-dark);
+  letter-spacing: 0.3px;
+}
+
+.form-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px 14px 48px;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family);
+  color: var(--color-dark);
+  background-color: white;
+  border: 2px solid var(--color-primary-border);
+  border-radius: var(--radius-lg);
+  outline: none;
+  transition: border-color var(--transition-base);
+}
+
+.form-input:focus {
+  border-color: var(--color-primary);
+}
+
+.form-input::placeholder {
+  color: var(--color-tertiary);
+  opacity: 0.6;
+}
+
+.form-icon {
+  position: absolute;
+  left: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-primary);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ============ BOUTONS ============ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 14px var(--space-lg);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  font-family: var(--font-family);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-darker);
+}
+
+.btn-primary:hover {
+  background-color: #6fa8cc;
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: white;
+  border: 2px solid var(--color-primary);
+}
+
+.btn-outline:hover {
+  background-color: var(--color-primary-light);
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--color-primary);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.btn-ghost:hover {
+  opacity: 0.7;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn-lg {
+  padding: 16px var(--space-xl);
+  font-size: var(--font-size-lg);
+}
+
+/* ============ CARTES ============ */
+.card {
+  background-color: white;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-primary-border);
+}
+
+.card-padding {
+  padding: var(--space-2xl);
+}
+
+/* ============ ICÔNES DÉCORATIVES ============ */
+.icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background-color: var(--color-primary-light);
+  border-radius: var(--radius-xl);
+}
+
+.icon-box-lg {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-2xl);
+}
+
+/* ============ LOGO CONTAINER ============ */
+.logo-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 2px solid var(--color-primary-border);
+  border-radius: var(--radius-2xl);
+}
+
+.logo-img {
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+/* ============ TITRES ============ */
+.title-hero {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+.title-section {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-dark);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: var(--font-size-base);
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+}
+
+/* ============ SÉPARATEURS ============ */
+.divider {
+  height: 1px;
+  background-color: var(--color-primary-border);
+  width: 100%;
+}
+
+/* ============ MESSAGES D'ERREUR ============ */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-md);
+}
+
+/* ============ ANIMATIONS D'ENTRÉE ============ */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease forwards;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+.animate-delay-4 { animation-delay: 0.4s; }
+
+/* ============ ARRIÈRE-PLANS DÉCORATIFS ============ */
+.bg-shape {
+  position: absolute;
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-shape-primary {
+  background-color: rgba(135, 188, 222, 0.1);
+}
+
+.bg-shape-secondary {
+  background-color: rgba(128, 94, 115, 0.1);
+}
+
+.bg-circle-outline {
+  border: 1px solid rgba(135, 188, 222, 0.1);
+  background: transparent;
+}

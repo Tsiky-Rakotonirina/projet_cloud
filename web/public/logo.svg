@@ -1,0 +1,46 @@
+<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Beige background texture -->
+    <filter id="texture">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+      <feDiffuseLighting in="noise" lighting-color="#E8E4D8" surfaceScale="1">
+        <feDistantLight azimuth="45" elevation="60"/>
+      </feDiffuseLighting>
+    </filter>
+  </defs>
+  
+  <!-- Beige textured background -->
+  <rect width="300" height="300" rx="25" ry="25" fill="#E8E4D8"/>
+  <rect width="300" height="300" rx="25" ry="25" fill="#E8E4D8" opacity="0.3" filter="url(#texture)"/>
+  
+  <!-- Monogram symbol - L intertwined -->
+  <g transform="translate(150, 115)">
+    <!-- Rounded square container -->
+    <rect x="-32" y="-32" width="64" height="64" rx="11" ry="11" 
+          fill="none" stroke="#2D4654" stroke-width="2.5"/>
+    
+    <!-- Letter L (left) -->
+    <path d="M -18,-18 L -18,11 L -7,11" 
+          fill="none" stroke="#2D4654" stroke-width="3.5" 
+          stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Letter L (middle - interlaced) -->
+    <path d="M -6,-11 L -6,14 L 6,14" 
+          fill="none" stroke="#2D4654" stroke-width="3.5" 
+          stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Letter L (right) -->
+    <path d="M 7,-18 L 7,11 L 18,11" 
+          fill="none" stroke="#2D4654" stroke-width="3.5" 
+          stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  
+  <!-- Brand name - LALANTSARA -->
+  <text x="150" y="200" 
+        font-family="Georgia, serif" 
+        font-size="30" 
+        font-weight="400"
+        fill="#2D4654" 
+        text-anchor="middle"
+        letter-spacing="2">LALANTSARA</text>
+</svg>
