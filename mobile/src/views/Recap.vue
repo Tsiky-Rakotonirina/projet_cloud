@@ -1,104 +1,105 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar class="recap-toolbar">
         <ion-buttons slot="start">
-          <ion-back-button default-href="/home"></ion-back-button>
+          <ion-back-button default-href="/home" text="" color="light"></ion-back-button>
         </ion-buttons>
         <ion-title>Tableau Récapitulatif</ion-title>
         <ion-buttons slot="end">
-          <ion-button v-if="currentUser" @click="handleLogout">
-            <ion-icon :icon="logOutOutline"></ion-icon>
+          <ion-button v-if="currentUser" @click="handleLogout" fill="clear" color="light">
+            <i class="fas fa-sign-out-alt"></i>
           </ion-button>
-          <ion-button v-else @click="goToLogin">
-            <ion-icon :icon="logInOutline"></ion-icon>
+          <ion-button v-else @click="goToLogin" fill="clear" color="light">
+            <i class="fas fa-sign-in-alt"></i>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
     
-    <ion-content :fullscreen="true" class="ion-padding">
+    <ion-content :fullscreen="true">
       <div v-if="loading" class="loading-container">
-        <ion-spinner name="crescent"></ion-spinner>
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
         <p>Chargement des données...</p>
       </div>
 
       <div v-else class="recap-container">
-        <h1 class="page-title">📊 Récapitulatif des Problèmes Routiers</h1>
+        <!-- Page Title -->
+        <div class="page-header">
+          <i class="fas fa-chart-pie"></i>
+          <h1>Récapitulatif des Problèmes Routiers</h1>
+        </div>
         
-        <ion-grid>
-          <ion-row>
-            <ion-col size="12" size-md="6">
-              <ion-card class="stat-card">
-                <ion-card-content>
-                  <div class="stat-icon">📍</div>
-                  <div class="stat-value">{{ stats.nombreProblemes }}</div>
-                  <div class="stat-label">Points signalés</div>
-                </ion-card-content>
-              </ion-card>
-            </ion-col>
-            
-            <ion-col size="12" size-md="6">
-              <ion-card class="stat-card">
-                <ion-card-content>
-                  <div class="stat-icon">📐</div>
-                  <div class="stat-value">{{ stats.surfaceTotale.toLocaleString('fr-FR') }}</div>
-                  <div class="stat-label">m² de surface totale</div>
-                </ion-card-content>
-              </ion-card>
-            </ion-col>
-            
-            <ion-col size="12" size-md="6">
-              <ion-card class="stat-card">
-                <ion-card-content>
-                  <div class="stat-icon">📈</div>
-                  <div class="stat-value">{{ stats.avancementMoyen.toFixed(1) }}%</div>
-                  <div class="stat-label">Avancement moyen</div>
-                  <div class="progress-bar">
-                    <div 
-                      class="progress-fill" 
-                      :style="{ width: stats.avancementMoyen + '%' }"
-                    ></div>
-                  </div>
-                </ion-card-content>
-              </ion-card>
-            </ion-col>
-            
-            <ion-col size="12" size-md="6">
-              <ion-card class="stat-card">
-                <ion-card-content>
-                  <div class="stat-icon">💰</div>
-                  <div class="stat-value">{{ stats.budgetTotal.toLocaleString('fr-FR') }}</div>
-                  <div class="stat-label">Ariary de budget total</div>
-                </ion-card-content>
-              </ion-card>
-            </ion-col>
-          </ion-row>
-        </ion-grid>
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-primary">
+              <i class="fas fa-map-marker-alt"></i>
+            </div>
+            <div class="stat-value">{{ stats.nombreProblemes }}</div>
+            <div class="stat-label">Points signalés</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-secondary">
+              <i class="fas fa-ruler-combined"></i>
+            </div>
+            <div class="stat-value">{{ stats.surfaceTotale.toLocaleString('fr-FR') }}</div>
+            <div class="stat-label">m² de surface totale</div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-success">
+              <i class="fas fa-tasks"></i>
+            </div>
+            <div class="stat-value">{{ stats.avancementMoyen.toFixed(1) }}%</div>
+            <div class="stat-label">Avancement moyen</div>
+            <div class="progress-bar">
+              <div 
+                class="progress-fill" 
+                :style="{ width: stats.avancementMoyen + '%' }"
+              ></div>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-icon stat-icon-warning">
+              <i class="fas fa-coins"></i>
+            </div>
+            <div class="stat-value">{{ formatBudget(stats.budgetTotal) }}</div>
+            <div class="stat-label">Budget total (Ar)</div>
+          </div>
+        </div>
 
-        <ion-card class="details-card">
-          <ion-card-header>
-            <ion-card-title>Détails par statut</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-list>
-              <ion-item v-for="stat in stats.parStatut" :key="stat.statut">
-                <ion-label>
-                  <h3>{{ stat.statut }}</h3>
-                  <p>{{ stat.count }} problème(s) - {{ stat.pourcentage }}%</p>
-                </ion-label>
-                <ion-badge slot="end" :color="getStatutColor(stat.statut)">
-                  {{ stat.count }}
-                </ion-badge>
-              </ion-item>
-            </ion-list>
-          </ion-card-content>
-        </ion-card>
+        <!-- Details Card -->
+        <div class="details-card">
+          <div class="card-header">
+            <i class="fas fa-list-ul"></i>
+            <h3>Détails par statut</h3>
+          </div>
+          
+          <div class="status-list">
+            <div 
+              class="status-item" 
+              v-for="stat in stats.parStatut" 
+              :key="stat.statut"
+            >
+              <div class="status-info">
+                <span class="status-name">{{ stat.statut }}</span>
+                <span class="status-count">{{ stat.count }} problème(s) - {{ stat.pourcentage }}%</span>
+              </div>
+              <div class="status-badge" :class="getStatutColorClass(stat.statut)">
+                {{ stat.count }}
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <ion-button expand="block" @click="goToMap" class="action-button">
-          <ion-icon :icon="mapOutline" slot="start"></ion-icon>
+        <!-- Action Button -->
+        <button class="btn btn-primary" @click="goToMap">
+          <i class="fas fa-map"></i>
           Voir sur la carte
-        </ion-button>
+        </button>
       </div>
     </ion-content>
   </ion-page>
@@ -115,22 +116,9 @@ import {
   IonContent,
   IonButtons,
   IonButton,
-  IonIcon,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonGrid,
-  IonRow,
-  IonCol,
   IonSpinner,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonBadge,
   IonBackButton,
 } from '@ionic/vue';
-import { mapOutline, logOutOutline, logInOutline } from 'ionicons/icons';
 import { getAllProblems } from '@/services/problemService';
 import { logout, currentUser } from '@/services/firebase/authService';
 
@@ -156,6 +144,17 @@ const stats = ref<Stats>({
   budgetTotal: 0,
   parStatut: []
 });
+
+const formatBudget = (value: number) => {
+  if (value >= 1000000000) {
+    return (value / 1000000000).toFixed(1) + ' Mrd';
+  } else if (value >= 1000000) {
+    return (value / 1000000).toFixed(1) + ' M';
+  } else if (value >= 1000) {
+    return (value / 1000).toFixed(1) + ' K';
+  }
+  return value.toLocaleString('fr-FR');
+};
 
 const loadStats = async () => {
   try {
@@ -200,12 +199,12 @@ const loadStats = async () => {
   }
 };
 
-const getStatutColor = (statut: string) => {
+const getStatutColorClass = (statut: string) => {
   const lower = statut.toLowerCase();
-  if (lower.includes('nouveau')) return 'warning';
-  if (lower.includes('en cours')) return 'primary';
-  if (lower.includes('terminé') || lower.includes('résolu')) return 'success';
-  return 'medium';
+  if (lower.includes('nouveau')) return 'badge-warning';
+  if (lower.includes('en cours')) return 'badge-primary';
+  if (lower.includes('terminé') || lower.includes('résolu')) return 'badge-success';
+  return 'badge-secondary';
 };
 
 const goToMap = () => {
@@ -231,81 +230,253 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.recap-toolbar {
+  --background: #2D4654;
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: 1rem;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .recap-container {
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
+  padding: 24px 16px;
 }
 
-.page-title {
+/* Page Header */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 32px;
   text-align: center;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-  color: var(--ion-color-primary);
+}
+
+.page-header i {
+  font-size: 28px;
+  color: #87BCDE;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
-  margin: 0;
-  height: 100%;
-}
-
-.stat-card ion-card-content {
+  background: #2D4654;
+  border-radius: 16px;
+  padding: 20px;
   text-align: center;
-  padding: 1.5rem;
 }
 
 .stat-icon {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
 }
 
+.stat-icon i {
+  font-size: 24px;
+}
+
+.stat-icon-primary {
+  background: rgba(135, 188, 222, 0.15);
+}
+.stat-icon-primary i { color: #87BCDE; }
+
+.stat-icon-secondary {
+  background: rgba(128, 94, 115, 0.15);
+}
+.stat-icon-secondary i { color: #805E73; }
+
+.stat-icon-success {
+  background: rgba(16, 185, 129, 0.15);
+}
+.stat-icon-success i { color: #10B981; }
+
+.stat-icon-warning {
+  background: rgba(245, 158, 11, 0.15);
+}
+.stat-icon-warning i { color: #F59E0B; }
+
 .stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--ion-color-primary);
-  margin-bottom: 0.5rem;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: var(--ion-color-medium);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .progress-bar {
-  margin-top: 0.8rem;
-  background: var(--ion-color-light);
+  margin-top: 12px;
+  background: #243B4A;
   border-radius: 10px;
   height: 8px;
   overflow: hidden;
 }
 
 .progress-fill {
-  background: linear-gradient(90deg, var(--ion-color-primary), var(--ion-color-secondary));
+  background: linear-gradient(90deg, #87BCDE, #10B981);
   height: 100%;
+  border-radius: 10px;
   transition: width 0.5s ease;
 }
 
+/* Details Card */
 .details-card {
-  margin-top: 1rem;
+  background: #2D4654;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
 }
 
-.action-button {
-  margin-top: 1.5rem;
-  --background: var(--ion-color-primary);
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-ion-badge {
-  font-size: 1rem;
-  padding: 0.5rem 0.8rem;
+.card-header i {
+  font-size: 18px;
+  color: #87BCDE;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #243B4A;
+  border-radius: 12px;
+}
+
+.status-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.status-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+}
+
+.status-count {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.status-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.badge-primary {
+  background: rgba(135, 188, 222, 0.2);
+  color: #87BCDE;
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #F59E0B;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10B981;
+}
+
+.badge-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Action Button */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #87BCDE;
+  color: #243B4A;
+}
+
+.btn-primary:hover {
+  background: #6fa8cc;
+}
+
+/* Toolbar button */
+ion-toolbar ion-button i {
+  font-size: 18px;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-value {
+    font-size: 24px;
+  }
 }
 </style>

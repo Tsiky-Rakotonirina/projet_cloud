@@ -70,25 +70,6 @@ services:
       - API
       - tileserver
 
-  # ============================================
-  # APPLICATION MOBILE
-  # ============================================
-  mobile:
-    build:
-      context: ./mobile
-      dockerfile: Dockerfile
-    container_name: mobile
-    volumes:
-      - ./mobile/src:/app/src
-    ports:
-      - "5174:5174"
-    environment:
-      - VITE_API_URL=http://localhost:3000
-      - VITE_TILE_SERVER_URL=http://localhost:3001
-    depends_on:
-      - API
-      - tileserver
-
 volumes:
   pgdata:
   tiles-cache:

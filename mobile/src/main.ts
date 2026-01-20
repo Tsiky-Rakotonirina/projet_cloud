@@ -20,8 +20,14 @@ import '@ionic/vue/css/text-transformation.css'
 import '@ionic/vue/css/flex-utils.css'
 import '@ionic/vue/css/display.css'
 
+/* Theme variables - Design System */
+import './theme/variables.css'
+
 /* Leaflet CSS */
 import 'leaflet/dist/leaflet.css'
+
+/* Font Awesome */
+import '@fortawesome/fontawesome-free/css/all.min.css'
 
 const app = createApp(App)
   .use(IonicVue)

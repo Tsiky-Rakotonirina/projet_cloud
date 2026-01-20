@@ -4,21 +4,21 @@
       <ion-toolbar>
         <ion-buttons slot="start" v-if="currentUser">
           <ion-button @click="goToProfile">
-            <ion-icon :icon="personOutline"></ion-icon>
+            <i class="fas fa-user"></i>
           </ion-button>
         </ion-buttons>
-        <ion-title>Carte d'Antananarivo</ion-title>
+        <ion-title>Carte</ion-title>
         <ion-buttons slot="end">
-          <ion-button v-if="currentUser" @click="handleLogout">
-            <ion-icon :icon="logOutOutline"></ion-icon>
+          <ion-button v-if="currentUser" @click="handleLogout" color="danger">
+            <i class="fas fa-sign-out-alt"></i>
           </ion-button>
           <ion-button v-else @click="goToLogin">
-            <ion-icon :icon="logInOutline"></ion-icon>
+            <i class="fas fa-sign-in-alt"></i>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
       <!-- Barre de filtre pour les utilisateurs connectés -->
-      <ion-toolbar v-if="currentUser">
+      <ion-toolbar v-if="currentUser" class="filter-toolbar">
         <ion-segment v-model="filterMode" @ionChange="onFilterChange">
           <ion-segment-button value="all">
             <ion-label>Tous</ion-label>
@@ -37,22 +37,22 @@
       
       <!-- Bouton pour centrer sur Antananarivo -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-        <ion-fab-button @click="centerOnAntananarivo">
-          <ion-icon :icon="locateOutline"></ion-icon>
+        <ion-fab-button @click="centerOnAntananarivo" class="fab-locate">
+          <i class="fas fa-crosshairs"></i>
         </ion-fab-button>
       </ion-fab>
 
       <!-- Bouton pour le tableau récapitulatif -->
       <ion-fab vertical="bottom" horizontal="start" slot="fixed">
-        <ion-fab-button color="secondary" @click="goToRecap">
-          <ion-icon :icon="statsChartOutline"></ion-icon>
+        <ion-fab-button color="secondary" @click="goToRecap" class="fab-stats">
+          <i class="fas fa-chart-bar"></i>
         </ion-fab-button>
       </ion-fab>
 
       <!-- Bouton pour signaler un problème (visible uniquement si connecté) -->
       <ion-fab v-if="currentUser" vertical="top" horizontal="end" slot="fixed" style="margin-top: 110px;">
-        <ion-fab-button color="danger" @click="openSignalementModal">
-          <ion-icon :icon="addCircleOutline"></ion-icon>
+        <ion-fab-button color="danger" @click="openSignalementModal" class="fab-add">
+          <i class="fas fa-plus"></i>
         </ion-fab-button>
       </ion-fab>
     </ion-content>
@@ -63,45 +63,47 @@
         <ion-toolbar>
           <ion-title>Signaler un problème</ion-title>
           <ion-buttons slot="end">
-            <ion-button @click="closeSignalementModal">Fermer</ion-button>
+            <ion-button @click="closeSignalementModal">
+              <i class="fas fa-times"></i>
+            </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
-      <ion-content class="ion-padding">
+      <ion-content class="ion-padding modal-content-wrapper">
         <div class="modal-content">
-          <p class="instruction">
-            📍 Cliquez sur la carte pour sélectionner l'emplacement du problème
-          </p>
+          <div class="instruction-box">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Cliquez sur la carte pour sélectionner l'emplacement du problème</span>
+          </div>
 
           <div v-if="selectedPoint" class="selected-location">
-            <ion-chip color="success">
-              <ion-icon :icon="checkmarkCircleOutline"></ion-icon>
-              <ion-label>Position sélectionnée</ion-label>
-            </ion-chip>
+            <div class="location-badge">
+              <i class="fas fa-check-circle"></i>
+              <span>Position sélectionnée</span>
+            </div>
             <p class="coordinates">
               Lat: {{ selectedPoint.lat.toFixed(6) }}, Lng: {{ selectedPoint.lng.toFixed(6) }}
             </p>
           </div>
 
-          <ion-item>
-            <ion-label position="stacked">Description du problème *</ion-label>
-            <ion-textarea
+          <div class="form-group">
+            <label class="form-label">Description du problème</label>
+            <textarea
               v-model="signalementDescription"
+              class="form-textarea"
               placeholder="Ex: Nid-de-poule important, route endommagée..."
-              :rows="4"
-              required
-            ></ion-textarea>
-          </ion-item>
+              rows="4"
+            ></textarea>
+          </div>
 
-          <ion-button
-            expand="block"
+          <button
+            class="btn-submit"
             @click="submitSignalement"
             :disabled="!selectedPoint || !signalementDescription"
-            class="ion-margin-top"
           >
-            <ion-icon :icon="sendOutline" slot="start"></ion-icon>
-            Envoyer le signalement
-          </ion-button>
+            <i class="fas fa-paper-plane"></i>
+            <span>Envoyer le signalement</span>
+          </button>
         </div>
       </ion-content>
     </ion-modal>
@@ -119,29 +121,15 @@ import {
   IonContent,
   IonFab,
   IonFabButton,
-  IonIcon,
   IonButtons,
   IonButton,
   IonModal,
-  IonItem,
   IonLabel,
-  IonTextarea,
-  IonChip,
   IonSegment,
   IonSegmentButton,
   alertController,
   toastController
 } from '@ionic/vue';
-import { 
-  locateOutline, 
-  logOutOutline, 
-  logInOutline, 
-  statsChartOutline,
-  addCircleOutline,
-  sendOutline,
-  checkmarkCircleOutline,
-  personOutline
-} from 'ionicons/icons';
 import { logout, currentUser } from '@/services/firebase/authService';
 import { createSignalement } from '@/services/problemService';
 import MapView from '@/components/MapView.vue';
@@ -292,7 +280,7 @@ const submitSignalement = async () => {
               );
 
               const toast = await toastController.create({
-                message: '✅ Signalement envoyé avec succès !',
+                message: 'Signalement envoyé avec succès !',
                 duration: 3000,
                 color: 'success',
                 position: 'top'
@@ -308,7 +296,7 @@ const submitSignalement = async () => {
             } catch (error) {
               console.error('Erreur lors de la création du signalement:', error);
               const toast = await toastController.create({
-                message: '❌ Erreur lors de l\'envoi du signalement',
+                message: 'Erreur lors de l\'envoi du signalement',
                 duration: 3000,
                 color: 'danger',
                 position: 'top'
@@ -333,28 +321,150 @@ const submitSignalement = async () => {
   height: 100%;
 }
 
-.modal-content {
-  max-width: 600px;
-  margin: 0 auto;
+.filter-toolbar {
+  --background: #2D4654;
 }
 
-.instruction {
-  background: var(--ion-color-light);
-  padding: 1rem;
-  border-radius: 8px;
+/* FAB Buttons */
+ion-fab-button {
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+ion-fab-button i {
+  font-size: 20px;
+}
+
+/* Modal */
+.modal-content-wrapper {
+  --background: #243B4A;
+}
+
+.modal-content {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 8px 0;
+}
+
+.instruction-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: rgba(135, 188, 222, 0.1);
+  border: 1px solid rgba(135, 188, 222, 0.2);
+  padding: 16px;
+  border-radius: 12px;
   text-align: center;
-  font-weight: 500;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+}
+
+.instruction-box i {
+  font-size: 20px;
+  color: #87BCDE;
+}
+
+.instruction-box span {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .selected-location {
   text-align: center;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
+}
+
+.location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(16, 185, 129, 0.15);
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.location-badge i {
+  color: #10B981;
+}
+
+.location-badge span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #10B981;
 }
 
 .coordinates {
-  font-size: 0.85rem;
-  color: var(--ion-color-medium);
-  margin-top: 0.5rem;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.form-textarea {
+  width: 100%;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-family: inherit;
+  color: white;
+  background: #2D4654;
+  border: 2px solid rgba(135, 188, 222, 0.2);
+  border-radius: 12px;
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+  transition: border-color 0.2s;
+}
+
+.form-textarea:focus {
+  border-color: #87BCDE;
+}
+
+.form-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #243B4A;
+  background: #87BCDE;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #6fa8cc;
+}
+
+.btn-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Header buttons */
+ion-toolbar ion-button i {
+  font-size: 18px;
 }
 </style>

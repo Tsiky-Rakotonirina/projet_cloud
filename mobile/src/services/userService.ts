@@ -1,5 +1,5 @@
 import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, increment, query, where, getDocs } from "firebase/firestore";
-import { auth } from "@/services/firebase/firebase";
+import { auth, db } from "@/services/firebase/firebase";
 import type { UserProfile } from "@/types/user";
 import { LOGIN_ATTEMPTS_CONFIG } from "@/config/auth";
 

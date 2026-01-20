@@ -9,7 +9,7 @@ import { onMounted, onUnmounted, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { getAllProblems, getMySignalements } from '@/services/problemService';
-import type { Problem, Signalement } from '@/services/problemService';
+import type { Problem, Signalement } from '@/types/entities';
 import { auth } from '@/services/firebase/firebase';
 
 const props = defineProps<{
@@ -119,7 +119,7 @@ const loadProblems = async (filterByUser: boolean = false) => {
       allProblems.forEach(problem => {
         if (problem.signalement) {
           const { lat, lng } = problem.signalement.point;
-          const isMine = currentUserId && problem.signalement.utilisateurId === currentUserId;
+          const isMine = !!(currentUserId && problem.signalement.utilisateurId === currentUserId);
           const marker = L.marker([lat, lng], { icon: createProblemIcon(isMine) }).addTo(map!);
           problemMarkers.push(marker);
           

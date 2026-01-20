@@ -1,151 +1,175 @@
 <template>
   <ion-page>
     <ion-header>
-      <ion-toolbar>
+      <ion-toolbar class="profile-toolbar">
         <ion-buttons slot="start">
-          <ion-back-button default-href="/home"></ion-back-button>
+          <ion-back-button default-href="/home" text="" color="light"></ion-back-button>
         </ion-buttons>
         <ion-title>Mon Profil</ion-title>
         <ion-buttons slot="end">
-          <ion-button @click="handleLogout">
-            <ion-icon :icon="logOutOutline"></ion-icon>
+          <ion-button @click="handleLogout" fill="clear" color="light">
+            <i class="fas fa-sign-out-alt"></i>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
     
-    <ion-content :fullscreen="true" class="ion-padding">
+    <ion-content :fullscreen="true">
       <div v-if="loading" class="loading-container">
-        <ion-spinner name="crescent"></ion-spinner>
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
         <p>Chargement du profil...</p>
       </div>
 
       <div v-else class="profile-container">
         <!-- Avatar et Email -->
         <div class="profile-header">
-          <div class="avatar">
-            <ion-icon :icon="personCircleOutline"></ion-icon>
+          <div class="avatar-wrapper">
+            <div class="avatar">
+              <i class="fas fa-user"></i>
+            </div>
           </div>
-          <h2>{{ currentUser?.email }}</h2>
+          <h2 class="user-email">{{ currentUser?.email }}</h2>
+          <span class="user-badge">
+            <i class="fas fa-shield-alt"></i>
+            Membre actif
+          </span>
         </div>
 
         <!-- Formulaire de profil -->
-        <ion-card>
-          <ion-card-header>
-            <ion-card-title>Informations personnelles</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-list>
-              <ion-item>
-                <ion-label position="stacked">Nom d'affichage</ion-label>
-                <ion-input
-                  v-model="profile.displayName"
-                  placeholder="Votre nom"
-                  :disabled="!isEditing"
-                ></ion-input>
-              </ion-item>
+        <div class="form-card">
+          <div class="card-header">
+            <i class="fas fa-user-edit"></i>
+            <h3>Informations personnelles</h3>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Nom d'affichage</label>
+            <div class="input-wrapper">
+              <i class="fas fa-id-card"></i>
+              <input
+                type="text"
+                v-model="profile.displayName"
+                placeholder="Votre nom"
+                :disabled="!isEditing"
+                class="form-input"
+              />
+            </div>
+          </div>
 
-              <ion-item>
-                <ion-label position="stacked">Email</ion-label>
-                <ion-input
-                  :value="currentUser?.email"
-                  disabled
-                ></ion-input>
-              </ion-item>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <div class="input-wrapper">
+              <i class="fas fa-envelope"></i>
+              <input
+                type="email"
+                :value="currentUser?.email"
+                disabled
+                class="form-input"
+              />
+            </div>
+          </div>
 
-              <ion-item>
-                <ion-label position="stacked">Téléphone</ion-label>
-                <ion-input
-                  v-model="profile.telephone"
-                  type="tel"
-                  placeholder="+261 XX XXX XX"
-                  :disabled="!isEditing"
-                ></ion-input>
-              </ion-item>
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <div class="input-wrapper">
+              <i class="fas fa-phone"></i>
+              <input
+                type="tel"
+                v-model="profile.telephone"
+                placeholder="+261 XX XXX XX"
+                :disabled="!isEditing"
+                class="form-input"
+              />
+            </div>
+          </div>
 
-              <ion-item>
-                <ion-label position="stacked">GitHub</ion-label>
-                <ion-input
-                  v-model="profile.github"
-                  placeholder="votre-username"
-                  :disabled="!isEditing"
-                ></ion-input>
-              </ion-item>
+          <div class="form-group">
+            <label class="form-label">GitHub</label>
+            <div class="input-wrapper">
+              <i class="fab fa-github"></i>
+              <input
+                type="text"
+                v-model="profile.github"
+                placeholder="votre-username"
+                :disabled="!isEditing"
+                class="form-input"
+              />
+            </div>
+          </div>
 
-              <ion-item>
-                <ion-label position="stacked">Date de naissance</ion-label>
-                <ion-input
-                  v-model="profile.dateNaissance"
-                  type="date"
-                  :disabled="!isEditing"
-                ></ion-input>
-              </ion-item>
-            </ion-list>
-          </ion-card-content>
-        </ion-card>
+          <div class="form-group">
+            <label class="form-label">Date de naissance</label>
+            <div class="input-wrapper">
+              <i class="fas fa-calendar-alt"></i>
+              <input
+                type="date"
+                v-model="profile.dateNaissance"
+                :disabled="!isEditing"
+                class="form-input"
+              />
+            </div>
+          </div>
+        </div>
 
         <!-- Boutons d'action -->
         <div class="action-buttons">
-          <ion-button 
+          <button 
             v-if="!isEditing" 
-            expand="block" 
+            class="btn btn-primary"
             @click="startEditing"
           >
-            <ion-icon :icon="createOutline" slot="start"></ion-icon>
+            <i class="fas fa-edit"></i>
             Modifier le profil
-          </ion-button>
+          </button>
 
           <template v-else>
-            <ion-button 
-              expand="block" 
-              color="success"
+            <button 
+              class="btn btn-success"
               @click="saveProfile"
               :disabled="saving"
             >
               <ion-spinner v-if="saving" name="crescent"></ion-spinner>
               <template v-else>
-                <ion-icon :icon="checkmarkOutline" slot="start"></ion-icon>
+                <i class="fas fa-check"></i>
                 Enregistrer
               </template>
-            </ion-button>
+            </button>
             
-            <ion-button 
-              expand="block" 
-              color="medium"
+            <button 
+              class="btn btn-secondary"
               @click="cancelEditing"
             >
-              <ion-icon :icon="closeOutline" slot="start"></ion-icon>
+              <i class="fas fa-times"></i>
               Annuler
-            </ion-button>
+            </button>
           </template>
         </div>
 
         <!-- Section Mes Signalements -->
-        <ion-card class="ion-margin-top">
-          <ion-card-header>
-            <ion-card-title>Mes statistiques</ion-card-title>
-          </ion-card-header>
-          <ion-card-content>
-            <ion-list>
-              <ion-item>
-                <ion-icon :icon="alertCircleOutline" slot="start" color="warning"></ion-icon>
-                <ion-label>
-                  <h3>Signalements effectués</h3>
-                  <p>{{ mySignalementsCount }} signalement(s)</p>
-                </ion-label>
-              </ion-item>
-            </ion-list>
-            <ion-button 
-              expand="block" 
-              fill="outline"
-              @click="goToMySignalements"
-              class="ion-margin-top"
-            >
-              <ion-icon :icon="listOutline" slot="start"></ion-icon>
-              Voir mes signalements sur la carte
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
+        <div class="stats-card">
+          <div class="card-header">
+            <i class="fas fa-chart-bar"></i>
+            <h3>Mes statistiques</h3>
+          </div>
+          
+          <div class="stats-item">
+            <div class="stats-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stats-info">
+              <span class="stats-value">{{ mySignalementsCount }}</span>
+              <span class="stats-label">Signalement(s) effectué(s)</span>
+            </div>
+          </div>
+          
+          <button 
+            class="btn btn-outline"
+            @click="goToMySignalements"
+          >
+            <i class="fas fa-map-marked-alt"></i>
+            Voir mes signalements sur la carte
+          </button>
+        </div>
       </div>
     </ion-content>
   </ion-page>
@@ -162,30 +186,13 @@ import {
   IonContent,
   IonButtons,
   IonButton,
-  IonIcon,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonInput,
   IonSpinner,
   IonBackButton,
   toastController
 } from '@ionic/vue';
-import { 
-  logOutOutline, 
-  personCircleOutline,
-  createOutline,
-  checkmarkOutline,
-  closeOutline,
-  alertCircleOutline,
-  listOutline
-} from 'ionicons/icons';
 import { logout, currentUser } from '@/services/firebase/authService';
-import { getMyProfile, updateMyProfile, UserProfile } from '@/services/userService';
+import { getMyProfile, updateMyProfile } from '@/services/userService';
+import type { UserProfile } from '@/types/user';
 import { getMySignalements } from '@/services/problemService';
 
 const router = useRouter();
@@ -244,7 +251,7 @@ const saveProfile = async () => {
     await updateMyProfile(profile.value);
     
     const toast = await toastController.create({
-      message: '✅ Profil mis à jour avec succès !',
+      message: 'Profil mis à jour avec succès !',
       duration: 2000,
       color: 'success',
       position: 'top'
@@ -255,7 +262,7 @@ const saveProfile = async () => {
   } catch (error) {
     console.error('Erreur lors de la sauvegarde:', error);
     const toast = await toastController.create({
-      message: '❌ Erreur lors de la mise à jour du profil',
+      message: 'Erreur lors de la mise à jour du profil',
       duration: 2000,
       color: 'danger',
       position: 'top'
@@ -289,48 +296,268 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.profile-toolbar {
+  --background: #2D4654;
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: 1rem;
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .profile-container {
-  max-width: 600px;
+  max-width: 500px;
   margin: 0 auto;
+  padding: 24px 16px;
 }
 
+/* Header Section */
 .profile-header {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 32px;
+}
+
+.avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 16px;
 }
 
 .avatar {
-  font-size: 5rem;
-  color: var(--ion-color-primary);
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #87BCDE, #805E73);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(135, 188, 222, 0.3);
 }
 
-.avatar ion-icon {
-  font-size: 5rem;
+.avatar i {
+  font-size: 48px;
+  color: white;
 }
 
-.profile-header h2 {
-  margin-top: 0.5rem;
-  color: var(--ion-color-medium);
-  font-size: 1rem;
+.user-email {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 8px 0;
+  font-weight: 400;
 }
 
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(135, 188, 222, 0.15);
+  border-radius: 20px;
+  font-size: 12px;
+  color: #87BCDE;
+}
+
+.user-badge i {
+  font-size: 10px;
+}
+
+/* Form Card */
+.form-card,
+.stats-card {
+  background: #2D4654;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.card-header i {
+  font-size: 18px;
+  color: #87BCDE;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  background: #243B4A;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.input-wrapper:focus-within {
+  border-color: #87BCDE;
+}
+
+.input-wrapper i {
+  padding: 0 16px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+}
+
+.form-input {
+  flex: 1;
+  padding: 14px 16px 14px 0;
+  font-size: 15px;
+  color: white;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+.form-input:disabled {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* Action Buttons */
 .action-buttons {
-  margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-ion-card {
-  margin: 0;
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #87BCDE;
+  color: #243B4A;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #6fa8cc;
+}
+
+.btn-success {
+  background: #10B981;
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #059669;
+}
+
+.btn-secondary {
+  background: #4E4D5C;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #5d5c6d;
+}
+
+.btn-outline {
+  background: transparent;
+  color: #87BCDE;
+  border: 2px solid #87BCDE;
+}
+
+.btn-outline:hover {
+  background: rgba(135, 188, 222, 0.1);
+}
+
+/* Stats Card */
+.stats-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #243B4A;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.stats-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-icon i {
+  font-size: 20px;
+  color: #F59E0B;
+}
+
+.stats-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+}
+
+.stats-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Toolbar button */
+ion-toolbar ion-button i {
+  font-size: 18px;
 }
 </style>

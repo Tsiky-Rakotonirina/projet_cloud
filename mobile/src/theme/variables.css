@@ -1,0 +1,343 @@
+/* ============================================
+   LALAN-TSARA Mobile - Design System
+   Thème professionnel harmonisé avec le Web
+   ============================================ */
+
+/* ============ VARIABLES IONIC ============ */
+:root {
+  /* Couleurs principales - identiques au web */
+  --color-primary: #87BCDE;
+  --color-secondary: #805E73;
+  --color-tertiary: #4E4D5C;
+  --color-dark: #2D4654;
+  --color-darker: #243B4A;
+  
+  /* Couleurs dérivées */
+  --color-primary-light: rgba(135, 188, 222, 0.12);
+  --color-primary-border: rgba(135, 188, 222, 0.2);
+  --color-secondary-light: rgba(128, 94, 115, 0.12);
+  
+  /* Ionic Color Primary */
+  --ion-color-primary: #87BCDE;
+  --ion-color-primary-rgb: 135, 188, 222;
+  --ion-color-primary-contrast: #243B4A;
+  --ion-color-primary-contrast-rgb: 36, 59, 74;
+  --ion-color-primary-shade: #77a5c3;
+  --ion-color-primary-tint: #93c3e1;
+
+  /* Ionic Color Secondary */
+  --ion-color-secondary: #805E73;
+  --ion-color-secondary-rgb: 128, 94, 115;
+  --ion-color-secondary-contrast: #ffffff;
+  --ion-color-secondary-contrast-rgb: 255, 255, 255;
+  --ion-color-secondary-shade: #715365;
+  --ion-color-secondary-tint: #8d6e81;
+
+  /* Ionic Color Tertiary */
+  --ion-color-tertiary: #4E4D5C;
+  --ion-color-tertiary-rgb: 78, 77, 92;
+  --ion-color-tertiary-contrast: #ffffff;
+  --ion-color-tertiary-contrast-rgb: 255, 255, 255;
+  --ion-color-tertiary-shade: #454451;
+  --ion-color-tertiary-tint: #605f6c;
+
+  /* Ionic Color Dark */
+  --ion-color-dark: #2D4654;
+  --ion-color-dark-rgb: 45, 70, 84;
+  --ion-color-dark-contrast: #ffffff;
+  --ion-color-dark-contrast-rgb: 255, 255, 255;
+  --ion-color-dark-shade: #283e4a;
+  --ion-color-dark-tint: #425965;
+
+  /* Success, Warning, Danger */
+  --ion-color-success: #10B981;
+  --ion-color-success-rgb: 16, 185, 129;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #0ea372;
+  --ion-color-success-tint: #28c08e;
+
+  --ion-color-warning: #F59E0B;
+  --ion-color-warning-rgb: 245, 158, 11;
+  --ion-color-warning-contrast: #000000;
+  --ion-color-warning-contrast-rgb: 0, 0, 0;
+  --ion-color-warning-shade: #d88b0a;
+  --ion-color-warning-tint: #f6a823;
+
+  --ion-color-danger: #EF4444;
+  --ion-color-danger-rgb: 239, 68, 68;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d23c3c;
+  --ion-color-danger-tint: #f15757;
+
+  /* Light & Medium */
+  --ion-color-light: #f4f5f8;
+  --ion-color-light-rgb: 244, 245, 248;
+  --ion-color-light-contrast: #243B4A;
+  --ion-color-light-contrast-rgb: 36, 59, 74;
+  --ion-color-light-shade: #d7d8da;
+  --ion-color-light-tint: #f5f6f9;
+
+  --ion-color-medium: #92949c;
+  --ion-color-medium-rgb: 146, 148, 156;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #808289;
+  --ion-color-medium-tint: #9d9fa6;
+
+  /* Background & Text Colors */
+  --ion-background-color: #243B4A;
+  --ion-background-color-rgb: 36, 59, 74;
+  --ion-text-color: #ffffff;
+  --ion-text-color-rgb: 255, 255, 255;
+
+  /* Toolbar */
+  --ion-toolbar-background: #2D4654;
+  --ion-toolbar-color: #ffffff;
+
+  /* Card */
+  --ion-card-background: #2D4654;
+
+  /* Item */
+  --ion-item-background: #2D4654;
+  --ion-item-color: #ffffff;
+
+  /* Espacements */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Bordures */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+
+  /* Ombres */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.2s ease;
+}
+
+/* ============ GLOBAL STYLES ============ */
+ion-content {
+  --background: var(--color-darker);
+}
+
+ion-toolbar {
+  --background: var(--color-dark);
+  --color: white;
+  --border-color: var(--color-primary-border);
+}
+
+ion-header ion-toolbar:first-of-type {
+  padding-top: var(--ion-safe-area-top, 0);
+}
+
+/* ============ CARDS ============ */
+ion-card {
+  --background: var(--color-dark);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-primary-border);
+  margin: var(--space-md);
+  box-shadow: var(--shadow-md);
+}
+
+ion-card-header {
+  padding: var(--space-lg) var(--space-lg) var(--space-sm);
+}
+
+ion-card-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+ion-card-subtitle {
+  color: var(--color-primary);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+ion-card-content {
+  color: rgba(255, 255, 255, 0.8);
+  padding: var(--space-sm) var(--space-lg) var(--space-lg);
+}
+
+/* ============ BUTTONS ============ */
+ion-button {
+  --border-radius: var(--radius-lg);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  --padding-top: 14px;
+  --padding-bottom: 14px;
+}
+
+ion-button.button-solid {
+  --box-shadow: none;
+}
+
+/* ============ ITEMS & INPUTS ============ */
+ion-item {
+  --background: var(--color-darker);
+  --border-color: var(--color-primary-border);
+  --border-radius: var(--radius-lg);
+  --padding-start: var(--space-md);
+  --padding-end: var(--space-md);
+  --inner-padding-end: var(--space-md);
+  margin-bottom: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-primary-border);
+}
+
+ion-item.item-has-focus {
+  border-color: var(--color-primary);
+}
+
+ion-label {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-weight: 500;
+}
+
+ion-input, ion-textarea {
+  --color: white;
+  --placeholder-color: rgba(255, 255, 255, 0.4);
+  --placeholder-opacity: 1;
+}
+
+/* ============ FAB BUTTONS ============ */
+ion-fab-button {
+  --box-shadow: var(--shadow-lg);
+}
+
+/* ============ MODALS ============ */
+ion-modal {
+  --background: var(--color-darker);
+}
+
+ion-modal ion-toolbar {
+  --background: var(--color-dark);
+}
+
+ion-modal ion-content {
+  --background: var(--color-darker);
+}
+
+/* ============ CHIPS ============ */
+ion-chip {
+  --background: var(--color-primary-light);
+  --color: var(--color-primary);
+  border-radius: var(--radius-md);
+}
+
+/* ============ SEGMENTS ============ */
+ion-segment {
+  --background: var(--color-darker);
+}
+
+ion-segment-button {
+  --color: rgba(255, 255, 255, 0.6);
+  --color-checked: var(--color-primary);
+  --indicator-color: var(--color-primary);
+  --indicator-height: 3px;
+}
+
+/* ============ TOAST ============ */
+ion-toast {
+  --border-radius: var(--radius-lg);
+}
+
+/* ============ ALERT ============ */
+ion-alert {
+  --background: var(--color-dark);
+}
+
+ion-alert .alert-wrapper {
+  background: var(--color-dark);
+  border-radius: var(--radius-xl);
+}
+
+ion-alert .alert-head {
+  padding: var(--space-lg);
+}
+
+ion-alert .alert-title {
+  color: white;
+  font-weight: 600;
+}
+
+ion-alert .alert-message {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 0 var(--space-lg) var(--space-lg);
+}
+
+ion-alert .alert-button {
+  color: var(--color-primary);
+}
+
+/* ============ BACK BUTTON ============ */
+ion-back-button {
+  --color: var(--color-primary);
+}
+
+/* ============ SPINNER ============ */
+ion-spinner {
+  --color: var(--color-primary);
+}
+
+/* ============ TEXT COLORS ============ */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-secondary);
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.text-white {
+  color: white;
+}
+
+/* ============ LEAFLET MAP FIX ============ */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: var(--color-darker);
+}
+
+.map-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+/* ============ SCROLLBAR (WebKit) ============ */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-darker);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
