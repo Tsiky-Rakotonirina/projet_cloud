@@ -160,7 +160,11 @@ const handleLogin = async () => {
       error.value = 'Compte bloqué ! Trop de tentatives échouées.';
     } else if (result.attempts > 0) {
       const remaining = getMaxLoginAttempts() - result.attempts;
+      if (remaining <= 0) {
+        error.value = 'Votre compte a été bloqué. Contactez un administrateur pour le réactiver.';
+      } else {
       error.value = `${err.message || 'Erreur de connexion'} (${remaining} tentative(s) restante(s))`;
+      }
     } else {
       error.value = err.message || 'Erreur lors de la connexion';
     }

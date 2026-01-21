@@ -13,6 +13,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      input: path.resolve(__dirname, 'src/main.ts'), // <-- ton fichier d'entrée
+    },
+  },
   server: {
     host: '0.0.0.0',
     port: 5174

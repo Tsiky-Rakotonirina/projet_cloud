@@ -4,6 +4,7 @@ import {
   onAuthStateChanged,
   signOut,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   User,
   updateProfile,
   getIdTokenResult
@@ -28,17 +29,8 @@ export const login = async (email: string, password: string) => {
   try {
     console.log("Tentative de connexion avec :", email);
 
-    // Vérifier si le compte est bloqué (et essayer de le débloquer automatiquement)
-    const userProfile = await getUserByEmail(email);
-    if (userProfile?.blocked) {
-      // Essayer de débloquer automatiquement
-      const unblocked = await checkAndUnblockExpiredAccounts(email);
-      if (!unblocked) {
-        throw new Error("Votre compte est temporairement bloqué en raison de trop nombreuses tentatives de connexion échouées. Veuillez réessayer plus tard.");
-      }
-    }
-
     // Vérifier si le compte est désactivé par un manager
+    const userProfile = await getUserByEmail(email);
     if (userProfile?.disabled) {
       throw new Error("Votre compte a été désactivé. Contactez un administrateur pour le réactiver.");
     }
@@ -57,13 +49,31 @@ export const login = async (email: string, password: string) => {
 
     // Incrémenter les tentatives de connexion échouées
     if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-      const result = await incrementLoginAttempts(email);
-      
-      // Si c'est la 3ème tentative, désactiver le compte
-      if (result.attempts >= 3 && !result.blocked) {
-        await disableUserAccount(email);
-        throw new Error("Votre compte a été désactivé après 3 tentatives de connexion échouées. Contactez un administrateur pour le réactiver.");
+      const userProfile = await getUserByEmail(email);
+      // Si le compte est déjà désactivé et a 3+ tentatives, afficher seulement que le compte est bloqué
+      if (userProfile?.disabled && (userProfile.loginAttempts || 0) >= 3) {
+        throw new Error("Votre compte a été désactivé. Contactez un administrateur pour le réactiver.");
       }
+      const result = await incrementLoginAttempts(email);
+      // Désactiver le compte quand il ne reste plus de tentatives
+      if (result.remainingAttempts <= 0 && !userProfile?.disabled) {
+        await disableUserAccount(email);
+        throw new Error("Votre compte a été désactivé après avoir épuisé toutes vos tentatives de connexion. Contactez un administrateur pour le réactiver.");
+      }
+      // Afficher le nombre de tentatives restantes si le compte n'est pas bloqué
+      if (!userProfile?.disabled && result.remainingAttempts > 0) {
+        let msg = '';
+        if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          msg = `Mot de passe incorrect. Il vous reste ${result.remainingAttempts} tentative(s).`;
+        } else if (err.code === 'auth/user-not-found') {
+          msg = `Utilisateur non trouvé. Il vous reste ${result.remainingAttempts} tentative(s).`;
+        } else {
+          msg = translateAuthError(err.code);
+        }
+        throw new Error(msg);
+      }
+      // Si plus de tentatives, message générique
+      throw new Error(translateAuthError(err.code));
     }
 
     throw new Error(translateAuthError(err.code));

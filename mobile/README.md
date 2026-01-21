@@ -20,3 +20,10 @@ https://tp-firebase-b195d.firebaseapp.com/__/auth/handler
 FIRESTORE
 firebase init firestore
 firebase deploy --only firestore
+
+npm install -D ts-node typescript @types/node
+npm install -D ts-node typescript
+
+npm install --save-dev tsx
+
+npm run seed

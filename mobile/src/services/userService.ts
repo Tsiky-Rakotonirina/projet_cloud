@@ -82,7 +82,7 @@ export const isAccountBlocked = async (email: string): Promise<boolean> => {
 };
 
 // Incrémenter les tentatives de connexion échouées
-export const incrementLoginAttempts = async (email: string): Promise<{ blocked: boolean; attempts: number }> => {
+export const incrementLoginAttempts = async (email: string): Promise<{ blocked: boolean; attempts: number; remainingAttempts: number }> => {
   try {
     const usersRef = collection(db, "utilisateurs");
     const q = query(usersRef, where("email", "==", email));
@@ -90,29 +90,29 @@ export const incrementLoginAttempts = async (email: string): Promise<{ blocked: 
 
     if (querySnapshot.empty) {
       // L'utilisateur n'existe pas dans Firestore, on ne peut pas tracker
-      return { blocked: false, attempts: 0 };
+      return { blocked: false, attempts: 0, remainingAttempts: LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS };
     }
 
     const userDoc = querySnapshot.docs[0];
     const userData = userDoc.data() as UserProfile;
     const currentAttempts = (userData.loginAttempts || 0) + 1;
-    const shouldBlock = currentAttempts >= LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS;
+    const remainingAttempts = Math.max(0, LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS - currentAttempts);
 
     await updateDoc(doc(db, "utilisateurs", userDoc.id), {
       loginAttempts: currentAttempts,
-      lastFailedLogin: new Date().toISOString(),
-      blocked: shouldBlock
+      lastFailedLogin: new Date().toISOString()
     });
 
-    console.log(`Tentative ${currentAttempts}/${LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS} pour ${email}`);
+    console.log(`Tentative ${currentAttempts}/${LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS} pour ${email} (${remainingAttempts} restantes)`);
     
     return { 
-      blocked: shouldBlock, 
-      attempts: currentAttempts 
+      blocked: false, // Plus de blocage temporaire
+      attempts: currentAttempts,
+      remainingAttempts: remainingAttempts
     };
   } catch (error) {
     console.error("Erreur lors de l'incrémentation des tentatives :", error);
-    return { blocked: false, attempts: 0 };
+    return { blocked: false, attempts: 0, remainingAttempts: LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS };
   }
 };
 
