@@ -12,6 +12,12 @@ if (!admin.apps.length) {
 }
 
 const firebaseDB = admin.firestore();
+// Ensure Firestore ignores undefined properties when updating documents
+try {
+  firebaseDB.settings({ ignoreUndefinedProperties: true });
+} catch (e) {
+  // ignore if settings not supported in this environment
+}
 
 const syncService = {
   /**
@@ -44,10 +50,19 @@ const syncService = {
             // UPDATE: L'utilisateur existe déjà dans PostgreSQL
             const user = await Utilisateur.findByPk(existingMapping.postgres_id);
             if (user) {
+              // Normalize date_naissance coming from Firebase
+              let dateNaissance = null;
+              if (firebaseData.date_naissance) {
+                const d = new Date(firebaseData.date_naissance);
+                if (!isNaN(d.getTime())) {
+                  dateNaissance = d;
+                }
+              }
+
               await user.update({
                 email: firebaseData.email,
                 mot_de_passe: firebaseData.password_hash,
-                date_naissance: firebaseData.date_naissance,
+                date_naissance: dateNaissance,
                 profil_id: firebaseData.profil_id || 2, // Par défaut: utilisateur
               });
 
@@ -58,10 +73,19 @@ const syncService = {
             }
           } else {
             // INSERT: Nouvel utilisateur
+            // Normalize date_naissance coming from Firebase
+            let dateNaissanceNew = null;
+            if (firebaseData.date_naissance) {
+              const d2 = new Date(firebaseData.date_naissance);
+              if (!isNaN(d2.getTime())) {
+                dateNaissanceNew = d2;
+              }
+            }
+
             const newUser = await Utilisateur.create({
               email: firebaseData.email,
               mot_de_passe: firebaseData.password_hash,
-              date_naissance: firebaseData.date_naissance,
+              date_naissance: dateNaissanceNew,
               profil_id: firebaseData.profil_id || 2,
             });
 
