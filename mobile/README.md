@@ -14,3 +14,16 @@ npm install @capacitor/core@7 @capacitor/push-notifications@7 --legacy-peer-deps
 
 ## Project
 npm install leaflet @types/leaflet
+
+https://tp-firebase-b195d.firebaseapp.com/__/auth/handler
+
+FIRESTORE
+firebase init firestore
+firebase deploy --only firestore
+
+npm install -D ts-node typescript @types/node
+npm install -D ts-node typescript
+
+npm install --save-dev tsx
+
+npm run seed

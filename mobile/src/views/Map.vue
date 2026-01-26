@@ -24,7 +24,8 @@
             <ion-label>Tous</ion-label>
           </ion-segment-button>
           <ion-segment-button value="mine">
-            <ion-label>Mes signalements</ion-label>
+            <ion-label>Mes signalements <br>
+              <span>(Cliques sur la carte pour signaler)</span></ion-label>
           </ion-segment-button>
         </ion-segment>
       </ion-toolbar>
@@ -32,7 +33,7 @@
     
     <ion-content :fullscreen="true">
       <div class="map-wrapper">
-        <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" />
+        <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" @mapClicked="onMapClicked" />
       </div>
       
       <!-- Bouton pour centrer sur Antananarivo -->
@@ -49,10 +50,21 @@
         </ion-fab-button>
       </ion-fab>
 
-      <!-- Bouton pour signaler un problème (visible uniquement si connecté) -->
-      <ion-fab v-if="currentUser" vertical="top" horizontal="end" slot="fixed" style="margin-top: 110px;">
-        <ion-fab-button color="danger" @click="openSignalementModal" class="fab-add">
-          <i class="fas fa-plus"></i>
+      <!-- Bouton pour signaler depuis un clic sur la carte -->
+      <ion-fab 
+        v-if="clickedPoint && currentUser" 
+        slot="fixed"
+        :style="clickedPixelPos ? {
+          position: 'absolute',
+          left: (clickedPixelPos.x - 28) + 'px',
+          top: (clickedPixelPos.y - 28) + 'px',
+          right: 'auto',
+          bottom: 'auto'
+        } : {}"
+      >
+        <ion-fab-button color="warning" @click="openSignalementFromMapClick" class="fab-signal">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>Signaler</span>
         </ion-fab-button>
       </ion-fab>
     </ion-content>
@@ -73,7 +85,11 @@
         <div class="modal-content">
           <div class="instruction-box">
             <i class="fas fa-map-marker-alt"></i>
-            <span>Cliquez sur la carte pour sélectionner l'emplacement du problème</span>
+            <button class="btn-select-location" @click="activateMapSelection" v-if="!selectedPoint && !isSelectingLocation">
+              Sélectionner l'emplacement sur la carte
+            </button>
+            <span v-if="isSelectingLocation">Cliquez sur la carte pour choisir l'emplacement</span>
+            <span v-if="selectedPoint">Emplacement sélectionné ✔️</span>
           </div>
 
           <div v-if="selectedPoint" class="selected-location">
@@ -93,6 +109,7 @@
               class="form-textarea"
               placeholder="Ex: Nid-de-poule important, route endommagée..."
               rows="4"
+              :disabled="!selectedPoint"
             ></textarea>
           </div>
 
@@ -111,6 +128,22 @@
 </template>
 
 <script setup lang="ts">
+const isSelectingLocation = ref(false);
+const activateMapSelection = () => {
+  const map = mapViewRef.value?.getMap();
+  if (!map) {
+    toastController.create({
+      message: "La carte n'est pas encore prête. Réessayez dans quelques secondes.",
+      duration: 2500,
+      color: 'danger',
+      position: 'top'
+    }).then(toast => toast.present());
+    return;
+  }
+  isSelectingLocation.value = true;
+  enableMapClickSelection();
+  console.log('Mode sélection sur la carte activé');
+};
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { 
@@ -140,6 +173,8 @@ const mapViewRef = ref<InstanceType<typeof MapView> | null>(null);
 const isModalOpen = ref(false);
 const signalementDescription = ref('');
 const selectedPoint = ref<{ lat: number; lng: number } | null>(null);
+const clickedPoint = ref<{ lat: number; lng: number } | null>(null);
+const clickedPixelPos = ref<{ x: number; y: number } | null>(null);
 const filterMode = ref<'all' | 'mine'>('all');
 let tempMarker: any = null;
 
@@ -182,15 +217,39 @@ const handleLogout = async () => {
   }
 };
 
+const onMapClicked = (point: { lat: number; lng: number }) => {
+  if (isModalOpen.value) return;
+  clickedPoint.value = point;
+  const map = mapViewRef.value?.getMap();
+  if (map) {
+    const containerPoint = (map as any).latLngToContainerPoint([point.lat, point.lng]);
+    clickedPixelPos.value = { x: containerPoint.x, y: containerPoint.y };
+  }
+};
+
+const openSignalementFromMapClick = () => {
+  if (clickedPoint.value && currentUser.value) {
+    selectedPoint.value = clickedPoint.value;
+    signalementDescription.value = '';
+    isSelectingLocation.value = false;
+    isModalOpen.value = true;
+    clickedPoint.value = null;
+    clickedPixelPos.value = null;
+  } else if (!currentUser.value) {
+    toastController.create({
+      message: 'Vous devez être connecté pour signaler un problème.',
+      duration: 2500,
+      color: 'warning',
+      position: 'top'
+    }).then(toast => toast.present());
+  }
+};
+
 const openSignalementModal = () => {
   isModalOpen.value = true;
   selectedPoint.value = null;
   signalementDescription.value = '';
-  
-  // Activer le mode sélection sur la carte
-  setTimeout(() => {
-    enableMapClickSelection();
-  }, 300);
+  isSelectingLocation.value = false;
 };
 
 const closeSignalementModal = () => {
@@ -210,7 +269,7 @@ const enableMapClickSelection = () => {
     const map = mapViewRef.value.getMap();
     if (map) {
       map.on('click', handleMapClick);
-      map.getContainer().style.cursor = 'crosshair';
+      map.getContainer().style.cursor = 'pointer';
     }
   }
 };
@@ -226,9 +285,10 @@ const disableMapClickSelection = () => {
 };
 
 const handleMapClick = (e: any) => {
+  if (!isSelectingLocation.value) return;
   const { lat, lng } = e.latlng;
   selectedPoint.value = { lat, lng };
-  
+  isSelectingLocation.value = false;
   // Supprimer le marqueur temporaire précédent
   if (tempMarker && mapViewRef.value) {
     const map = mapViewRef.value.getMap();
@@ -236,7 +296,6 @@ const handleMapClick = (e: any) => {
       map.removeLayer(tempMarker);
     }
   }
-  
   // Ajouter un nouveau marqueur temporaire
   if (mapViewRef.value) {
     const L = (window as any).L;
@@ -256,6 +315,13 @@ const handleMapClick = (e: any) => {
 
 const submitSignalement = async () => {
   if (!selectedPoint.value || !signalementDescription.value) {
+    const toast = await toastController.create({
+      message: "Veuillez sélectionner un emplacement et décrire le problème.",
+      duration: 2500,
+      color: 'danger',
+      position: 'top'
+    });
+    await toast.present();
     return;
   }
 
@@ -272,12 +338,25 @@ const submitSignalement = async () => {
           text: 'Confirmer',
           handler: async () => {
             try {
-              await createSignalement(
+
+              // Utiliser l'ID de la ville d'Antananarivo si disponible
+              const villeId = 'villeId';
+              const id = await createSignalement(
                 signalementDescription.value,
                 selectedPoint.value!.lat,
                 selectedPoint.value!.lng,
-                'villeId'
+                villeId
               );
+              if (!id) {
+                const toast = await toastController.create({
+                  message: "Erreur lors de la création du signalement.",
+                  duration: 3000,
+                  color: 'danger',
+                  position: 'top'
+                });
+                await toast.present();
+                return;
+              }
 
               const toast = await toastController.create({
                 message: 'Signalement envoyé avec succès !',

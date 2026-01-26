@@ -11,12 +11,13 @@ import 'leaflet/dist/leaflet.css';
 import { getAllProblems, getMySignalements } from '@/services/problemService';
 import type { Problem, Signalement } from '@/types/entities';
 import { auth } from '@/services/firebase/firebase';
+import { createPopupContent } from '@/utils/popupUtils';
 
 const props = defineProps<{
   filterMine?: boolean;
 }>();
 
-const emit = defineEmits(['problemsLoaded']);
+const emit = defineEmits(['problemsLoaded', 'mapClicked']);
 
 const mapContainer = ref<HTMLElement | null>(null);
 let map: L.Map | null = null;
@@ -150,56 +151,8 @@ const loadProblems = async (filterByUser: boolean = false) => {
             offset: [0, -20]
           });
           
-          // Popup complet au clic
-          const popupContent = `
-            <div style="max-width: 250px; font-family: Arial, sans-serif;">
-              <div style="background: #FF6B6B; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
-                <b style="font-size: 14px;">⚠️ Problème Routier</b>
-              </div>
-              
-              <div style="margin-bottom: 8px;">
-                <p style="margin: 0; font-size: 13px; color: #333;">${problem.signalement.description}</p>
-              </div>
-              
-              <div style="background: #f8f9fa; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <b style="font-size: 12px;">Statut:</b>
-                  <span style="background: ${statutColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
-                    ${statutLibelle}
-                  </span>
-                </div>
-                <div style="margin-top: 4px;">
-                  <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
-                    <div style="background: ${statutColor}; height: 100%; width: ${pourcentage}%;"></div>
-                  </div>
-                  <small style="color: #6c757d;">${pourcentage}% complété</small>
-                </div>
-              </div>
-              
-              <div style="font-size: 12px; line-height: 1.6;">
-                <div style="margin-bottom: 4px;">
-                  <b>📅 Date:</b> ${new Date(problem.signalement.createdAt).toLocaleDateString('fr-FR', { 
-                    day: '2-digit', 
-                    month: 'long', 
-                    year: 'numeric' 
-                  })}
-                </div>
-                <div style="margin-bottom: 4px;">
-                  <b>📐 Surface:</b> <span style="color: #007bff;">${problem.surface} m²</span>
-                </div>
-                <div style="margin-bottom: 4px;">
-                  <b>💰 Budget:</b> <span style="color: #28a745; font-weight: bold;">${problem.budget.toLocaleString('fr-FR')} Ar</span>
-                </div>
-                ${problem.entreprise ? `
-                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6;">
-                    <b>🏢 Entreprise:</b> ${problem.entreprise.nom}<br/>
-                    <small style="color: #6c757d;">📍 ${problem.entreprise.adresse}</small><br/>
-                    <small style="color: #6c757d;">📞 ${problem.entreprise.telephone}</small>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          `;
+          // Générer le contenu de la popup avec le composant réutilisable
+          const popupContent = createPopupContent(problem);
           marker.bindPopup(popupContent, { maxWidth: 300 });
         }
       });
@@ -218,14 +171,17 @@ onMounted(() => {
     zoom: 13,
   });
 
-  // URL du serveur de tuiles offline local
-  const TILE_SERVER_URL = import.meta.env.VITE_TILE_SERVER_URL || 'http://localhost:3001';
-
-  // Ajouter le layer de tuiles depuis le serveur offline local
-  L.tileLayer(`${TILE_SERVER_URL}/tiles/{z}/{x}/{y}.png`, {
-    attribution: '© OpenStreetMap | Serveur Offline Antananarivo',
+  // Ajouter le layer de tuiles OpenStreetMap standard
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
     maxZoom: 19,
   }).addTo(map);
+
+  // Émettre un événement mapClicked quand on clique sur la carte
+  map.on('click', (e: L.LeafletMouseEvent) => {
+    const { lat, lng } = e.latlng;
+    emit('mapClicked', { lat, lng });
+  });
 
   // Ajouter un marqueur sur Antananarivo
   const marker = L.marker(ANTANANARIVO_CENTER).addTo(map);

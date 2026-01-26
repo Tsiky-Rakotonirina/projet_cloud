@@ -1,6 +1,7 @@
 export interface UserProfile {
   id: string;
   email: string;
+  password?: string;
   github?: string;
   dateNaissance?: string;
   profilId: string;
@@ -9,4 +10,10 @@ export interface UserProfile {
   lastFailedLogin?: string;
   displayName?: string;
   telephone?: string;
+  disabled?: boolean;
+  disabledAt?: string;
+  disabledReason?: string;
+  reactivatedAt?: string;
+  reactivatedBy?: string;
+  role?: string;
 }

@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "noEmit": false,       // IMPORTANT pour générer du JS en mémoire
+    "allowJs": true
+  },
+  "include": ["src/services/**/*.ts"]
+}

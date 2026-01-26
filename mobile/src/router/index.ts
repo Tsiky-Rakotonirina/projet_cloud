@@ -13,11 +13,6 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/Login.vue')
   },
   {
-    path: '/register',
-    name: 'register',
-    component: () => import('@/views/Register.vue')
-  },
-  {
     path: '/home',
     name: 'home',
     component: () => import('@/views/Home.vue')
@@ -36,6 +31,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/Profile.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/seed',
+    name: 'seed',
+    component: () => import('@/views/SeedView.vue'),
     meta: { requiresAuth: true }
   }
 ]
