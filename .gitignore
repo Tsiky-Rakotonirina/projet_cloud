@@ -83,3 +83,4 @@ temp/
 # docker-compose.override.yml
 
 tiles/*.osm.pbf
+tiles/*.mbtiles
