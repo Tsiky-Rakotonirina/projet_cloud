@@ -1,5 +1,7 @@
 {
   "name": "mobile",
-  "integrations": {},
-  "type": "vue"
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
 }
