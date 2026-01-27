@@ -2,6 +2,7 @@ const db = require('../models');
 
 const signalementService = {
   async getSignalementCurrentStatut(signalementId) {
+    // Chercher d'abord dans l'historique
     const historique = await db.SignalementHistorique.findOne({
       where: { signalement_id: signalementId },
       include: {
@@ -12,7 +13,20 @@ const signalementService = {
       order: [['date_historique', 'DESC']],
     });
 
-    return historique ? historique.statut : null;
+    if (historique) {
+      return historique.statut;
+    }
+
+    // Si pas d'historique, utiliser le statut actuel du signalement
+    const signalement = await db.Signalement.findByPk(signalementId, {
+      include: {
+        model: db.SignalementStatut,
+        as: 'statut',
+        attributes: ['libelle', 'descri'],
+      },
+    });
+
+    return signalement?.statut || null;
   },
 
   async getSignalementWithDetails(signalementId) {

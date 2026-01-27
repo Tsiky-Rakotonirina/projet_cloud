@@ -198,14 +198,23 @@ const syncService = {
           };
 
           if (existingMapping) {
-            // UPDATE: Le document existe déjà dans Firebase
+            // Vérifier si le document existe encore dans Firebase
             const firebaseId = existingMapping.firebase_id;
-            await firebaseDB.collection('users').doc(firebaseId).update(firebaseData);
-
-            // Mettre à jour le mapping
-            await existingMapping.update({ updated_at: new Date() });
-            stats.updated++;
-            console.log(`✅ Utilisateur ${user.email} mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            const docSnapshot = await firebaseDB.collection('users').doc(firebaseId).get();
+            
+            if (docSnapshot.exists) {
+              // UPDATE: Le document existe dans Firebase
+              await firebaseDB.collection('users').doc(firebaseId).update(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.updated++;
+              console.log(`✅ Utilisateur ${user.email} mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            } else {
+              // Le document n'existe plus dans Firebase, le recréer avec le même ID
+              await firebaseDB.collection('users').doc(firebaseId).set(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.inserted++;
+              console.log(`✅ Utilisateur ${user.email} recréé dans Firebase (Firebase ID: ${firebaseId})`);
+            }
           } else {
             // INSERT: Nouveau document dans Firebase
             const docRef = await firebaseDB.collection('users').add(firebaseData);
@@ -308,6 +317,13 @@ const syncService = {
               signalement_statut_id: firebaseData.statut_id || 1,
             });
 
+            // Créer une entrée dans l'historique avec le statut "nouveau"
+            await db.SignalementHistorique.create({
+              signalement_id: newSignalement.id_signalements,
+              signalement_statut_id: firebaseData.statut_id || 1,
+              date_historique: new Date(),
+            });
+
             // Créer le mapping
             await FirebaseMapping.create({
               entity_type: 'signalement',
@@ -316,7 +332,7 @@ const syncService = {
             });
 
             stats.inserted++;
-            console.log(`✅ Nouveau signalement créé (PG ID: ${newSignalement.id_signalements})`);
+            console.log(`✅ Nouveau signalement créé avec historique (PG ID: ${newSignalement.id_signalements})`);
           }
         } catch (error) {
           stats.errors.push({
@@ -410,13 +426,23 @@ const syncService = {
           };
 
           if (existingMapping) {
-            // UPDATE: Le document existe déjà dans Firebase
+            // Vérifier si le document existe encore dans Firebase
             const firebaseId = existingMapping.firebase_id;
-            await firebaseDB.collection('signalements').doc(firebaseId).update(firebaseData);
-
-            await existingMapping.update({ updated_at: new Date() });
-            stats.updated++;
-            console.log(`✅ Signalement mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            const docSnapshot = await firebaseDB.collection('signalements').doc(firebaseId).get();
+            
+            if (docSnapshot.exists) {
+              // UPDATE: Le document existe dans Firebase
+              await firebaseDB.collection('signalements').doc(firebaseId).update(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.updated++;
+              console.log(`✅ Signalement mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            } else {
+              // Le document n'existe plus dans Firebase, le recréer avec le même ID
+              await firebaseDB.collection('signalements').doc(firebaseId).set(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.inserted++;
+              console.log(`✅ Signalement recréé dans Firebase (Firebase ID: ${firebaseId})`);
+            }
           } else {
             // INSERT: Nouveau document dans Firebase
             const docRef = await firebaseDB.collection('signalements').add(firebaseData);
