@@ -3,15 +3,21 @@ const {
   UtilisateurStatut, 
   Statut, 
   Signalement, 
-  SignalementStatut, 
+  SignalementStatut,
+  SignalementHistorique,
   Point, 
   Profil, 
   FirebaseMapping,
   Entreprise,
   Probleme,
   ProblemeStatut,
-  Ville
+  Ville,
+  SyncSession,
+  SyncItemDetail
 } = require('../models');
+
+// Service de gestion des sessions de synchronisation
+const syncSessionService = require('./sync-session.service');
 
 // Configuration Firebase Admin SDK
 const admin = require('firebase-admin');
@@ -35,21 +41,44 @@ try {
 const syncService = {
   /**
    * PUSH: Synchronise les utilisateurs de Firebase vers PostgreSQL
+   * Firebase est la SOURCE DE VÉRITÉ - tous les champs sont synchronisés
+   * Inclut les statuts (disabled, blocked, loginAttempts, etc.)
+   * @param {string|null} sessionId - ID de session optionnel pour le suivi
    */
-  async pushUtilisateursToPostgres() {
+  async pushUtilisateursToPostgres(sessionId = null) {
+    let session = null;
     try {
-      const stats = { inserted: 0, updated: 0, errors: [], total: 0 };
+      const stats = { inserted: 0, updated: 0, errors: [], total: 0, statusUpdated: 0, users: [] };
 
-      // Récupérer tous les utilisateurs depuis Firebase
-      const firebaseUsers = await firebaseDB.collection('users').get();
+      // Récupérer tous les utilisateurs depuis Firebase (collection "utilisateurs")
+      const firebaseUsers = await firebaseDB.collection('utilisateurs').get();
       stats.total = firebaseUsers.docs.length;
 
-      console.log(`🔄 PUSH: ${stats.total} utilisateurs trouvés dans Firebase`);
+      // Mettre à jour la session si fournie
+      if (sessionId) {
+        await syncSessionService.updateProgress(sessionId, 0, 'Récupération des utilisateurs Firebase...');
+      }
 
+      console.log(`🔄 PUSH: ${stats.total} utilisateurs trouvés dans Firebase (source de vérité)`);
+
+      let processedCount = 0;
       for (const doc of firebaseUsers.docs) {
+        const firebaseData = doc.data();
+        const firebaseId = doc.id;
+        let action = 'update';
+        let status = 'success';
+        let errorMsg = null;
+        let targetId = null;
+
         try {
-          const firebaseData = doc.data();
-          const firebaseId = doc.id;
+          // Mettre à jour la progression
+          if (sessionId) {
+            await syncSessionService.updateProgress(
+              sessionId, 
+              processedCount, 
+              `Synchronisation de ${firebaseData.email || firebaseId}...`
+            );
+          }
 
           // Vérifier si un mapping existe déjà
           const existingMapping = await FirebaseMapping.findOne({
@@ -65,41 +94,76 @@ const syncService = {
             if (user) {
               // Normalize date_naissance coming from Firebase
               let dateNaissance = null;
-              if (firebaseData.date_naissance) {
-                const d = new Date(firebaseData.date_naissance);
+              if (firebaseData.dateNaissance || firebaseData.date_naissance) {
+                const d = new Date(firebaseData.dateNaissance || firebaseData.date_naissance);
                 if (!isNaN(d.getTime())) {
                   dateNaissance = d;
                 }
               }
 
+              // Extraire le profil_id depuis profilId (format: "profil_2" -> 2)
+              let profilId = 2;
+              if (firebaseData.profilId) {
+                const match = firebaseData.profilId.match(/profil_(\d+)/);
+                if (match) profilId = parseInt(match[1]);
+              }
+
               await user.update({
                 email: firebaseData.email,
-                mot_de_passe: firebaseData.password_hash,
+                mot_de_passe: firebaseData.password || firebaseData.password_hash,
                 date_naissance: dateNaissance,
-                profil_id: firebaseData.profil_id || 2, // Par défaut: utilisateur
+                profil_id: profilId,
               });
+
+              // Mettre à jour le statut utilisateur si disabled/blocked dans Firebase
+              if (firebaseData.disabled === true || firebaseData.blocked === true) {
+                // Vérifier si un statut "bloqué" existe déjà
+                const existingBlockedStatus = await UtilisateurStatut.findOne({
+                  where: {
+                    utilisateur_id: user.id_utilisateurs,
+                    statut_id: 2, // bloqué
+                  },
+                });
+                if (!existingBlockedStatus) {
+                  await UtilisateurStatut.create({
+                    utilisateur_id: user.id_utilisateurs,
+                    statut_id: 2, // bloqué
+                    date_statut: new Date(),
+                  });
+                  stats.statusUpdated++;
+                  console.log(`🔒 Statut "bloqué" ajouté pour ${firebaseData.email}`);
+                }
+              }
 
               // Mettre à jour le mapping
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;
+              action = 'update';
+              targetId = user.id_utilisateurs.toString();
               console.log(`✅ Utilisateur ${firebaseData.email} mis à jour (PG ID: ${user.id_utilisateurs})`);
             }
           } else {
             // INSERT: Nouvel utilisateur
-            // Normalize date_naissance coming from Firebase
             let dateNaissanceNew = null;
-            if (firebaseData.date_naissance) {
-              const d2 = new Date(firebaseData.date_naissance);
+            if (firebaseData.dateNaissance || firebaseData.date_naissance) {
+              const d2 = new Date(firebaseData.dateNaissance || firebaseData.date_naissance);
               if (!isNaN(d2.getTime())) {
                 dateNaissanceNew = d2;
               }
             }
 
+            // Extraire le profil_id
+            let profilId = 2;
+            if (firebaseData.profilId) {
+              const match = firebaseData.profilId.match(/profil_(\d+)/);
+              if (match) profilId = parseInt(match[1]);
+            }
+
             const newUser = await Utilisateur.create({
               email: firebaseData.email,
-              mot_de_passe: firebaseData.password_hash,
+              mot_de_passe: firebaseData.password || firebaseData.password_hash,
               date_naissance: dateNaissanceNew,
-              profil_id: firebaseData.profil_id || 2,
+              profil_id: profilId,
             });
 
             // Créer le mapping
@@ -109,13 +173,16 @@ const syncService = {
               firebase_id: firebaseId,
             });
 
-            // Créer le statut actif par défaut
+            // Créer le statut approprié
+            const statutId = (firebaseData.disabled === true || firebaseData.blocked === true) ? 2 : 1;
             await UtilisateurStatut.create({
               utilisateur_id: newUser.id_utilisateurs,
-              statut_id: 1, // actif
+              statut_id: statutId,
             });
 
             stats.inserted++;
+            action = 'insert';
+            targetId = newUser.id_utilisateurs.toString();
             console.log(`✅ Nouvel utilisateur ${firebaseData.email} créé (PG ID: ${newUser.id_utilisateurs})`);
           }
         } catch (error) {
@@ -123,13 +190,45 @@ const syncService = {
             firebase_id: doc.id,
             error: error.message,
           });
+          action = 'error';
+          status = 'failed';
+          errorMsg = error.message;
           console.error(`❌ Erreur pour l'utilisateur Firebase ${doc.id}:`, error.message);
         }
+
+        // Enregistrer le détail de l'utilisateur synchronisé
+        const userDetail = {
+          email: firebaseData.email,
+          firebaseId,
+          postgresId: targetId,
+          action,
+          status,
+          error: errorMsg
+        };
+        stats.users.push(userDetail);
+
+        // Enregistrer dans la session si fournie
+        if (sessionId) {
+          await syncSessionService.recordItem(sessionId, {
+            entityType: 'utilisateur',
+            entityId: firebaseId,
+            entityEmail: firebaseData.email,
+            entityLabel: firebaseData.email,
+            sourceId: firebaseId,
+            targetId: targetId,
+            action,
+            status,
+            syncDirection: 'firebase_to_postgres',
+            errorMessage: errorMsg
+          });
+        }
+
+        processedCount++;
       }
 
       return {
         success: true,
-        message: `PUSH utilisateurs: ${stats.inserted} créés, ${stats.updated} mis à jour`,
+        message: `PUSH utilisateurs: ${stats.inserted} créés, ${stats.updated} mis à jour, ${stats.statusUpdated} statuts mis à jour`,
         stats,
       };
     } catch (error) {
@@ -143,11 +242,16 @@ const syncService = {
   },
 
   /**
-   * PULL: Synchronise les utilisateurs de PostgreSQL vers Firebase
+   * PULL: Synchronise les utilisateurs de PostgreSQL vers Firebase (Firestore + Auth)
+   * Crée aussi les utilisateurs dans Firebase Authentication pour permettre la connexion mobile
+   * @param {string|null} sessionId - ID de session optionnel pour le suivi
    */
-  async pullUtilisateursToFirebase() {
+  async pullUtilisateursToFirebase(sessionId = null) {
     try {
-      const stats = { inserted: 0, updated: 0, errors: [], total: 0 };
+      const stats = { inserted: 0, updated: 0, authCreated: 0, authErrors: [], errors: [], total: 0, users: [] };
+
+      // Récupérer Firebase Auth
+      const firebaseAuth = admin.auth();
 
       // Récupérer tous les utilisateurs depuis PostgreSQL avec leurs statuts
       const users = await Utilisateur.findAll({
@@ -174,9 +278,28 @@ const syncService = {
       stats.total = users.length;
       console.log(`🔄 PULL: ${stats.total} utilisateurs trouvés dans PostgreSQL`);
 
+      // Mettre à jour la session si fournie
+      if (sessionId) {
+        await syncSessionService.updateProgress(sessionId, 0, 'Récupération des utilisateurs PostgreSQL...');
+      }
+
+      let processedCount = 0;
       for (const user of users) {
+        const postgresId = user.id_utilisateurs;
+        let action = 'update';
+        let status = 'success';
+        let errorMsg = null;
+        let targetId = null;
+
         try {
-          const postgresId = user.id_utilisateurs;
+          // Mettre à jour la progression
+          if (sessionId) {
+            await syncSessionService.updateProgress(
+              sessionId, 
+              processedCount, 
+              `Synchronisation de ${user.email || postgresId}...`
+            );
+          }
 
           // Vérifier si un mapping existe déjà
           const existingMapping = await FirebaseMapping.findOne({
@@ -185,6 +308,49 @@ const syncService = {
               postgres_id: postgresId,
             },
           });
+
+          // === ÉTAPE 1: Créer/Vérifier l'utilisateur dans Firebase Auth ===
+          let firebaseAuthUid = null;
+          
+          if (user.email) {
+            try {
+              // Vérifier si l'utilisateur existe déjà dans Firebase Auth
+              const existingAuthUser = await firebaseAuth.getUserByEmail(user.email);
+              firebaseAuthUid = existingAuthUser.uid;
+              console.log(`ℹ️ Utilisateur ${user.email} existe déjà dans Firebase Auth (UID: ${firebaseAuthUid})`);
+            } catch (authError) {
+              if (authError.code === 'auth/user-not-found') {
+                // L'utilisateur n'existe pas dans Firebase Auth, le créer
+                try {
+                  // Générer un mot de passe par défaut si non disponible
+                  // Note: Le mot de passe hashé ne peut pas être utilisé directement
+                  const tempPassword = 'admin123'; // Mot de passe par défaut pour les utilisateurs synchronisés
+                  
+                  const newAuthUser = await firebaseAuth.createUser({
+                    email: user.email,
+                    password: tempPassword,
+                    emailVerified: false,
+                    disabled: false,
+                  });
+                  firebaseAuthUid = newAuthUser.uid;
+                  stats.authCreated++;
+                  console.log(`✅ Utilisateur ${user.email} créé dans Firebase Auth (UID: ${firebaseAuthUid})`);
+                } catch (createError) {
+                  console.error(`❌ Erreur création Firebase Auth pour ${user.email}:`, createError.message);
+                  stats.authErrors.push({
+                    email: user.email,
+                    error: createError.message,
+                  });
+                }
+              } else {
+                console.error(`❌ Erreur vérification Firebase Auth pour ${user.email}:`, authError.message);
+              }
+            }
+          }
+
+          // === ÉTAPE 2: Créer/Mettre à jour dans Firestore ===
+          // Utiliser l'UID Firebase Auth comme ID du document Firestore si disponible
+          const firestoreDocId = firebaseAuthUid || (existingMapping ? existingMapping.firebase_id : null);
 
           // Préparer les données pour Firebase
           const firebaseData = {
@@ -200,40 +366,83 @@ const syncService = {
             synced_at: new Date().toISOString(),
           };
 
+          // Déterminer le statut de blocage depuis PostgreSQL
+          const currentStatut = user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif';
+          const isBlockedInPostgres = currentStatut === 'bloque';
+
           if (existingMapping) {
             // Vérifier si le document existe encore dans Firebase
-            const firebaseId = existingMapping.firebase_id;
+            const firebaseId = firestoreDocId || existingMapping.firebase_id;
             const docSnapshot = await firebaseDB.collection('utilisateurs').doc(firebaseId).get();
             
             if (docSnapshot.exists) {
-              // UPDATE: Le document existe dans Firebase - préserver les champs de blocage et tentatives
+              // UPDATE: Le document existe dans Firebase
+              // Synchroniser le statut de blocage DEPUIS PostgreSQL vers Firebase
               const existingData = docSnapshot.data();
-              await firebaseDB.collection('utilisateurs').doc(firebaseId).update({
+              const updateData = {
                 ...firebaseData,
-                // Préserver tous les champs relatifs au blocage
                 loginAttempts: existingData.loginAttempts || 0,
-                disabled: existingData.disabled || false,
-                disabledAt: existingData.disabledAt || null,
-                disabledReason: existingData.disabledReason || null,
                 lastFailedLogin: existingData.lastFailedLogin || null,
-                reactivatedAt: existingData.reactivatedAt || null,
-                reactivatedBy: existingData.reactivatedBy || null,
-                blocked: existingData.blocked || false,
-              });
-              await existingMapping.update({ updated_at: new Date() });
+                // IMPORTANT: Mettre à jour le statut de blocage depuis PostgreSQL
+                disabled: isBlockedInPostgres,
+                blocked: isBlockedInPostgres,
+              };
+              
+              // Si débloqué dans PostgreSQL, ajouter les infos de réactivation
+              if (!isBlockedInPostgres && existingData.disabled) {
+                updateData.reactivatedAt = new Date().toISOString();
+                updateData.reactivatedBy = 'admin_sync';
+                updateData.disabledAt = null;
+                updateData.disabledReason = null;
+              }
+              
+              // Si bloqué dans PostgreSQL, ajouter les infos de blocage
+              if (isBlockedInPostgres && !existingData.disabled) {
+                updateData.disabledAt = new Date().toISOString();
+                updateData.disabledReason = 'Bloqué par administrateur (synchronisé depuis PostgreSQL)';
+              }
+              
+              await firebaseDB.collection('utilisateurs').doc(firebaseId).update(updateData);
+              
+              // Mettre à jour le mapping si l'UID a changé
+              if (firebaseAuthUid && existingMapping.firebase_id !== firebaseAuthUid) {
+                await existingMapping.update({ firebase_id: firebaseAuthUid, updated_at: new Date() });
+              } else {
+                await existingMapping.update({ updated_at: new Date() });
+              }
               stats.updated++;
-              console.log(`✅ Utilisateur ${user.email} mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+              action = 'update';
+              targetId = firebaseId;
+              console.log(`✅ Utilisateur ${user.email} mis à jour dans Firestore (Firebase ID: ${firebaseId})`);
             } else {
-              // Le document n'existe plus dans Firebase, le recréer avec le même ID
-              await firebaseDB.collection('utilisateurs').doc(firebaseId).set(firebaseData);
-              await existingMapping.update({ updated_at: new Date() });
+              // Le document n'existe plus dans Firestore, le recréer avec l'UID Auth
+              const newDocId = firebaseAuthUid || existingMapping.firebase_id;
+              await firebaseDB.collection('utilisateurs').doc(newDocId).set(firebaseData);
+              
+              if (firebaseAuthUid && existingMapping.firebase_id !== firebaseAuthUid) {
+                await existingMapping.update({ firebase_id: firebaseAuthUid, updated_at: new Date() });
+              } else {
+                await existingMapping.update({ updated_at: new Date() });
+              }
               stats.inserted++;
-              console.log(`✅ Utilisateur ${user.email} recréé dans Firebase (Firebase ID: ${firebaseId})`);
+              action = 'insert';
+              targetId = newDocId;
+              console.log(`✅ Utilisateur ${user.email} recréé dans Firestore (Firebase ID: ${newDocId})`);
             }
           } else {
-            // INSERT: Nouveau document dans Firebase
-            const docRef = await firebaseDB.collection('utilisateurs').add(firebaseData);
-            const firebaseId = docRef.id;
+            // INSERT: Nouveau document dans Firestore
+            // Utiliser l'UID Firebase Auth comme ID du document pour cohérence
+            let firebaseId;
+            
+            if (firebaseAuthUid) {
+              // Utiliser l'UID Auth comme ID du document Firestore
+              await firebaseDB.collection('utilisateurs').doc(firebaseAuthUid).set(firebaseData);
+              firebaseId = firebaseAuthUid;
+            } else {
+              // Pas d'UID Auth disponible, créer avec ID auto-généré
+              const docRef = await firebaseDB.collection('utilisateurs').add(firebaseData);
+              firebaseId = docRef.id;
+            }
 
             // Créer le mapping
             await FirebaseMapping.create({
@@ -243,7 +452,9 @@ const syncService = {
             });
 
             stats.inserted++;
-            console.log(`✅ Nouvel utilisateur ${user.email} créé dans Firebase (Firebase ID: ${firebaseId})`);
+            action = 'insert';
+            targetId = firebaseId;
+            console.log(`✅ Nouvel utilisateur ${user.email} créé dans Firestore (Firebase ID: ${firebaseId})`);
           }
         } catch (error) {
           stats.errors.push({
@@ -251,13 +462,45 @@ const syncService = {
             email: user.email,
             error: error.message,
           });
+          action = 'error';
+          status = 'failed';
+          errorMsg = error.message;
           console.error(`❌ Erreur pour l'utilisateur PG ${user.id_utilisateurs}:`, error.message);
         }
+
+        // Enregistrer le détail de l'utilisateur synchronisé
+        const userDetail = {
+          email: user.email,
+          postgresId: postgresId.toString(),
+          firebaseId: targetId,
+          action,
+          status,
+          error: errorMsg
+        };
+        stats.users.push(userDetail);
+
+        // Enregistrer dans la session si fournie
+        if (sessionId) {
+          await syncSessionService.recordItem(sessionId, {
+            entityType: 'utilisateur',
+            entityId: postgresId.toString(),
+            entityEmail: user.email,
+            entityLabel: user.email,
+            sourceId: postgresId.toString(),
+            targetId: targetId,
+            action,
+            status,
+            syncDirection: 'postgres_to_firebase',
+            errorMessage: errorMsg
+          });
+        }
+
+        processedCount++;
       }
 
       return {
         success: true,
-        message: `PULL utilisateurs: ${stats.inserted} créés, ${stats.updated} mis à jour dans Firebase`,
+        message: `PULL utilisateurs: ${stats.inserted} créés, ${stats.updated} mis à jour dans Firebase, ${stats.authCreated} créés dans Firebase Auth`,
         stats,
       };
     } catch (error) {
@@ -297,12 +540,14 @@ const syncService = {
           });
 
           // Récupérer l'utilisateur PostgreSQL depuis le mapping
+          // Vérifier les deux formats possibles: utilisateur_firebase_id (sync API) ou utilisateurId (app mobile)
           let utilisateurId = null;
-          if (firebaseData.utilisateur_firebase_id) {
+          const userFirebaseId = firebaseData.utilisateur_firebase_id || firebaseData.utilisateurId;
+          if (userFirebaseId) {
             const userMapping = await FirebaseMapping.findOne({
               where: {
                 entity_type: 'utilisateur',
-                firebase_id: firebaseData.utilisateur_firebase_id,
+                firebase_id: userFirebaseId,
               },
             });
             utilisateurId = userMapping?.postgres_id;
@@ -333,7 +578,7 @@ const syncService = {
             });
 
             // Créer une entrée dans l'historique avec le statut "nouveau"
-            await db.SignalementHistorique.create({
+            await SignalementHistorique.create({
               signalement_id: newSignalement.id_signalements,
               signalement_statut_id: firebaseData.statut_id || 1,
               date_historique: new Date(),
@@ -1103,7 +1348,7 @@ const syncService = {
               });
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;
-              console.log(`✅ Statut utilisateur ${firebaseData.libelle} mis à jour (PG ID: ${statut.id_statuts})`);
+              console.log(`✅ Statut utilisateur ${firebaseData.libelle} mis à jour (PG ID: ${statut.id_statut})`);
             }
           } else {
             const newStatut = await Statut.create({
@@ -1111,11 +1356,11 @@ const syncService = {
             });
             await FirebaseMapping.create({
               entity_type: 'statut',
-              postgres_id: newStatut.id_statuts,
+              postgres_id: newStatut.id_statut,
               firebase_id: firebaseId,
             });
             stats.inserted++;
-            console.log(`✅ Nouveau statut utilisateur ${firebaseData.libelle} créé (PG ID: ${newStatut.id_statuts})`);
+            console.log(`✅ Nouveau statut utilisateur ${firebaseData.libelle} créé (PG ID: ${newStatut.id_statut})`);
           }
         } catch (error) {
           stats.errors.push({ firebase_id: doc.id, error: error.message });
@@ -1146,7 +1391,7 @@ const syncService = {
 
       for (const statut of statuts) {
         try {
-          const postgresId = statut.id_statuts;
+          const postgresId = statut.id_statut;
           const existingMapping = await FirebaseMapping.findOne({
             where: { entity_type: 'statut', postgres_id: postgresId },
           });
@@ -1174,8 +1419,8 @@ const syncService = {
             console.log(`✅ Nouveau statut utilisateur ${statut.libelle} créé dans Firebase (Firebase ID: ${firebaseId})`);
           }
         } catch (error) {
-          stats.errors.push({ postgres_id: statut.id_statuts, error: error.message });
-          console.error(`❌ Erreur pour le statut utilisateur PG ${statut.id_statuts}:`, error.message);
+          stats.errors.push({ postgres_id: statut.id_statut, error: error.message });
+          console.error(`❌ Erreur pour le statut utilisateur PG ${statut.id_statut}:`, error.message);
         }
       }
 

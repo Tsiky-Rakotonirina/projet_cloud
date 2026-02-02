@@ -4,7 +4,7 @@ import { colors } from '@assets/colors';
 import signalementApi from '@api/manager/Signalement';
 import { 
   Flag, Check, X, MapPin, Edit3, ArrowUpCircle, 
-  Search, RefreshCw, Building, ChevronDown 
+  Search, RefreshCw, Building, ChevronDown, CheckCircle 
 } from 'lucide-react';
 
 const GestionSignalement = () => {
@@ -123,6 +123,17 @@ const GestionSignalement = () => {
     } catch (err) {
       console.error('Erreur lors de l\'upgrade:', err);
       alert('Erreur lors de la mise à jour du statut');
+    }
+  };
+
+  const handleResoudre = async (id) => {
+    try {
+      // Changer le statut à "resolu" (statut_id 3) - utilisateur admin id 1
+      await signalementApi.changeStatus(id, 3, 1);
+      await loadData();
+    } catch (err) {
+      console.error('Erreur lors de la résolution:', err);
+      alert('Erreur lors de la résolution du signalement');
     }
   };
 
@@ -574,9 +585,14 @@ const GestionSignalement = () => {
                   {s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}
                 </td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
-                  <button style={styles.btnInfo} onClick={() => handleMettreInfos(s)}>
-                    <Edit3 size={14} /> Mettre Infos
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <button style={styles.btnInfo} onClick={() => handleMettreInfos(s)}>
+                      <Edit3 size={14} /> Mettre Infos
+                    </button>
+                    <button style={styles.btnApprouver} onClick={() => handleResoudre(s.id_signalements)}>
+                      <CheckCircle size={14} /> Résoudre
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

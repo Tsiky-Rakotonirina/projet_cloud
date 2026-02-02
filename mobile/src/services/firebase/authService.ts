@@ -14,7 +14,7 @@ import {
   SESSION_CONFIG,
   setSessionTimeout as configSetSessionTimeout
 } from "@/config/auth";
-import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts, disableUserAccount, enableUserAccount } from "@/services/userService";
+import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts, disableUserAccount, enableUserAccount, linkAuthWithFirestore } from "@/services/userService";
 import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
 
 // État global de l'utilisateur
@@ -29,7 +29,7 @@ export const login = async (email: string, password: string) => {
   try {
     console.log("Tentative de connexion avec :", email);
 
-    // Vérifier d'abord si le compte est désactivé
+    // Vérifier d'abord si le compte est désactivé dans Firestore
     const userProfile = await getUserByEmail(email);
     if (userProfile?.disabled) {
       throw new Error("Votre compte a été désactivé après 3 tentatives de connexion échouées. Contactez un administrateur pour le réactiver.");
@@ -38,6 +38,10 @@ export const login = async (email: string, password: string) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log("Connecté :", userCredential.user.email);
     currentUser.value = userCredential.user;
+
+    // IMPORTANT: Lier Firebase Auth avec Firestore en utilisant l'UID
+    // Cela assure que l'utilisateur Auth et le document Firestore sont synchronisés
+    await linkAuthWithFirestore(userCredential.user.uid, email);
 
     // Réinitialiser les tentatives de connexion après une connexion réussie
     await resetLoginAttempts(email);
@@ -91,8 +95,13 @@ export const loginWithGithub = async () => {
     console.log("Connecté avec GitHub :", result.user);
     currentUser.value = result.user;
 
-    // Réinitialiser les tentatives de connexion après une connexion réussie (si applicable)
-    // Note: GitHub login ne nécessite pas de vérification d'email spécifique, mais on peut gérer si nécessaire
+    // IMPORTANT: Lier Firebase Auth avec Firestore en utilisant l'UID
+    if (result.user.email) {
+      await linkAuthWithFirestore(result.user.uid, result.user.email, {
+        github: result.user.providerData[0]?.uid || undefined,
+        displayName: result.user.displayName || undefined
+      });
+    }
 
     startInactivityTimer(); // Démarrer le timer de session
     return result.user;

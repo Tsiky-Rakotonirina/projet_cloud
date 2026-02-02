@@ -3,6 +3,52 @@ import { auth, db } from "@/services/firebase/firebase";
 import type { UserProfile } from "@/types/user";
 import { LOGIN_ATTEMPTS_CONFIG } from "@/config/auth";
 
+/**
+ * Lier un utilisateur Firebase Auth avec son profil Firestore
+ * Utilise l'UID de Firebase Auth comme ID du document Firestore
+ * Cela assure la cohérence entre Auth et Firestore
+ */
+export const linkAuthWithFirestore = async (uid: string, email: string, additionalData?: Partial<UserProfile>): Promise<UserProfile> => {
+  try {
+    const docRef = doc(db, "utilisateurs", uid);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      // L'utilisateur existe déjà, mettre à jour l'email si différent
+      const existingData = docSnap.data() as UserProfile;
+      if (existingData.email !== email) {
+        await updateDoc(docRef, { 
+          email: email,
+          updatedAt: new Date().toISOString()
+        });
+      }
+      return { id: uid, ...existingData, email };
+    } else {
+      // Chercher si l'utilisateur existe par email (migration depuis ancien système)
+      const existingByEmail = await getUserByEmail(email);
+      
+      const newUserData: Partial<UserProfile> = {
+        email: email,
+        blocked: existingByEmail?.blocked || false,
+        disabled: existingByEmail?.disabled || false,
+        loginAttempts: existingByEmail?.loginAttempts || 0,
+        profilId: existingByEmail?.profilId || "profil_2",
+        role: existingByEmail?.role || "user",
+        createdAt: new Date().toISOString(),
+        ...additionalData
+      };
+
+      await setDoc(docRef, newUserData);
+      console.log(`Utilisateur ${email} lié à Firebase Auth (UID: ${uid})`);
+      
+      return { id: uid, ...newUserData } as UserProfile;
+    }
+  } catch (error) {
+    console.error("Erreur lors du lien Auth/Firestore :", error);
+    throw error;
+  }
+};
+
 // Récupérer le profil utilisateur par email
 export const getUserByEmail = async (email: string): Promise<UserProfile | null> => {
   try {

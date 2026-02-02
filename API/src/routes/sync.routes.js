@@ -258,6 +258,30 @@ router.post('/problemes/pull', syncController.pullProblemes);
  */
 router.post('/all', syncController.syncAll);
 
+// === ROUTES POUR ENTREPRISES ===
+router.post('/entreprises/push', syncController.pushEntreprises);
+router.post('/entreprises/pull', syncController.pullEntreprises);
+
+// === ROUTES POUR VILLES ===
+router.post('/villes/push', syncController.pushVilles);
+router.post('/villes/pull', syncController.pullVilles);
+
+// === ROUTES POUR PROFILS ===
+router.post('/profils/push', syncController.pushProfils);
+router.post('/profils/pull', syncController.pullProfils);
+
+// === ROUTES POUR STATUTS UTILISATEUR ===
+router.post('/statuts-utilisateur/push', syncController.pushStatutsUtilisateur);
+router.post('/statuts-utilisateur/pull', syncController.pullStatutsUtilisateur);
+
+// === ROUTES POUR STATUTS SIGNALEMENT ===
+router.post('/signalement-statuts/push', syncController.pushSignalementStatuts);
+router.post('/signalement-statuts/pull', syncController.pullSignalementStatuts);
+
+// === ROUTES POUR STATUTS PROBLÈME ===
+router.post('/probleme-statuts/push', syncController.pushProblemeStatuts);
+router.post('/probleme-statuts/pull', syncController.pullProblemeStatuts);
+
 /**
  * @swagger
  * /api/sync/status:
