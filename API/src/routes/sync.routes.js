@@ -161,6 +161,60 @@ router.post('/signalements/pull', syncController.pullSignalements);
 
 /**
  * @swagger
+ * /api/sync/problemes/push:
+ *   post:
+ *     tags:
+ *       - Synchronisation
+ *     summary: PUSH problèmes Firebase → PostgreSQL
+ *     description: Synchronise les problèmes et tables associées (entreprises, probleme_statuts) depuis Firebase vers PostgreSQL
+ *     responses:
+ *       200:
+ *         description: Synchronisation réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       500:
+ *         description: Erreur lors de la synchronisation
+ */
+router.post('/problemes/push', syncController.pushProblemes);
+
+/**
+ * @swagger
+ * /api/sync/problemes/pull:
+ *   post:
+ *     tags:
+ *       - Synchronisation
+ *     summary: PULL problèmes PostgreSQL → Firebase
+ *     description: Synchronise les problèmes et tables associées (entreprises, probleme_statuts) depuis PostgreSQL vers Firebase
+ *     responses:
+ *       200:
+ *         description: Synchronisation réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       500:
+ *         description: Erreur lors de la synchronisation
+ */
+router.post('/problemes/pull', syncController.pullProblemes);
+
+/**
+ * @swagger
  * /api/sync/all:
  *   post:
  *     tags:

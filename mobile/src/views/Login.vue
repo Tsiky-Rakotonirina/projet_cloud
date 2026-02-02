@@ -107,8 +107,7 @@ import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { IonPage, IonContent, IonSpinner, toastController, alertController } from '@ionic/vue';
 import { login, loginWithGithub } from '@/services/firebase/authService';
-import { isAccountBlocked, incrementLoginAttempts, resetLoginAttempts } from '@/services/userService';
-import { getMaxLoginAttempts } from '@/config/auth';
+import { isAccountBlocked, resetLoginAttempts } from '@/services/userService';
 
 const router = useRouter();
 const loading = ref(false);
@@ -154,17 +153,13 @@ const handleLogin = async () => {
 
     router.push({ name: 'home' });
   } catch (err: any) {
-    const result = await incrementLoginAttempts(formData.value.email);
+    // Ne PAS appeler incrementLoginAttempts ici car c'est déjà fait dans authService.login()
+    // Extraire le nombre de tentatives restantes du message d'erreur
+    const remainingMatch = err.message?.match(/(\d+)\s*tentative/i);
+    const remaining = remainingMatch ? parseInt(remainingMatch[1]) : 0;
     
-    if (result.blocked) {
-      error.value = 'Compte bloqué ! Trop de tentatives échouées.';
-    } else if (result.attempts > 0) {
-      const remaining = getMaxLoginAttempts() - result.attempts;
-      if (remaining <= 0) {
-        error.value = 'Votre compte a été bloqué. Contactez un administrateur pour le réactiver.';
-      } else {
-      error.value = `${err.message || 'Erreur de connexion'} (${remaining} tentative(s) restante(s))`;
-      }
+    if (err.message?.includes('désactivé') || err.message?.includes('bloqué')) {
+      error.value = 'Votre compte a été bloqué. Contactez un administrateur pour le réactiver.';
     } else {
       error.value = err.message || 'Erreur lors de la connexion';
     }

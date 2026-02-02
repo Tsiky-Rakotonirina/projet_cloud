@@ -82,22 +82,56 @@ export const isAccountBlocked = async (email: string): Promise<boolean> => {
 };
 
 // Incrémenter les tentatives de connexion échouées
-export const incrementLoginAttempts = async (email: string): Promise<{ blocked: boolean; attempts: number; remainingAttempts: number }> => {
+export const incrementLoginAttempts = async (email: string): Promise<{ blocked: boolean; attempts: number; remainingAttempts: number; shouldDisable: boolean }> => {
   try {
     const usersRef = collection(db, "utilisateurs");
     const q = query(usersRef, where("email", "==", email));
     const querySnapshot = await getDocs(q);
 
     if (querySnapshot.empty) {
-      // L'utilisateur n'existe pas dans Firestore, on ne peut pas tracker
-      return { blocked: false, attempts: 0, remainingAttempts: LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS };
+      // L'utilisateur n'existe pas dans Firestore, on le crée pour tracker les tentatives
+      console.log(`Utilisateur ${email} non trouvé dans Firestore, création d'un document de tracking...`);
+      
+      // Créer un nouveau document pour cet utilisateur
+      const newUserRef = doc(collection(db, "utilisateurs"));
+      await setDoc(newUserRef, {
+        email: email,
+        loginAttempts: 1,
+        lastFailedLogin: new Date().toISOString(),
+        disabled: false,
+        blocked: false,
+        createdAt: new Date().toISOString()
+      });
+      
+      const remainingAttempts = LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS - 1; // 3 - 1 = 2
+      console.log(`Première tentative échouée pour ${email}. ${remainingAttempts} tentatives restantes.`);
+      
+      return { 
+        blocked: false, 
+        attempts: 1, 
+        remainingAttempts: remainingAttempts,
+        shouldDisable: false 
+      };
     }
 
     const userDoc = querySnapshot.docs[0];
     const userData = userDoc.data() as UserProfile;
+    
+    // Si déjà désactivé, retourner immédiatement
+    if (userData.disabled) {
+      return { 
+        blocked: true, 
+        attempts: userData.loginAttempts || LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS, 
+        remainingAttempts: 0,
+        shouldDisable: false 
+      };
+    }
+
     const currentAttempts = (userData.loginAttempts || 0) + 1;
     const remainingAttempts = Math.max(0, LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS - currentAttempts);
+    const shouldDisable = currentAttempts >= LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS;
 
+    // Mettre à jour les tentatives dans Firestore
     await updateDoc(doc(db, "utilisateurs", userDoc.id), {
       loginAttempts: currentAttempts,
       lastFailedLogin: new Date().toISOString()
@@ -106,13 +140,14 @@ export const incrementLoginAttempts = async (email: string): Promise<{ blocked: 
     console.log(`Tentative ${currentAttempts}/${LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS} pour ${email} (${remainingAttempts} restantes)`);
     
     return { 
-      blocked: false, // Plus de blocage temporaire
+      blocked: shouldDisable,
       attempts: currentAttempts,
-      remainingAttempts: remainingAttempts
+      remainingAttempts: remainingAttempts,
+      shouldDisable: shouldDisable
     };
   } catch (error) {
     console.error("Erreur lors de l'incrémentation des tentatives :", error);
-    return { blocked: false, attempts: 0, remainingAttempts: LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS };
+    return { blocked: false, attempts: 0, remainingAttempts: LOGIN_ATTEMPTS_CONFIG.MAX_ATTEMPTS, shouldDisable: false };
   }
 };
 

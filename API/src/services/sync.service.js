@@ -206,12 +206,19 @@ const syncService = {
             const docSnapshot = await firebaseDB.collection('utilisateurs').doc(firebaseId).get();
             
             if (docSnapshot.exists) {
-              // UPDATE: Le document existe dans Firebase - ne pas écraser loginAttempts et disabled
+              // UPDATE: Le document existe dans Firebase - préserver les champs de blocage et tentatives
               const existingData = docSnapshot.data();
               await firebaseDB.collection('utilisateurs').doc(firebaseId).update({
                 ...firebaseData,
+                // Préserver tous les champs relatifs au blocage
                 loginAttempts: existingData.loginAttempts || 0,
                 disabled: existingData.disabled || false,
+                disabledAt: existingData.disabledAt || null,
+                disabledReason: existingData.disabledReason || null,
+                lastFailedLogin: existingData.lastFailedLogin || null,
+                reactivatedAt: existingData.reactivatedAt || null,
+                reactivatedBy: existingData.reactivatedBy || null,
+                blocked: existingData.blocked || false,
               });
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;
