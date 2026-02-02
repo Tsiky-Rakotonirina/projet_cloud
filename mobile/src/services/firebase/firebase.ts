@@ -14,10 +14,19 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-// Analytics only in browser
+// Analytics only in browser and only when required config exists
 let analytics;
-if (typeof window !== 'undefined') {
-  analytics = getAnalytics(app);
+const hasWebConfig = Boolean(firebaseConfig.apiKey) && (Boolean(firebaseConfig.appId) || Boolean(firebaseConfig.measurementId));
+if (typeof window !== 'undefined' && hasWebConfig) {
+  try {
+    analytics = getAnalytics(app);
+  } catch (err) {
+    // If analytics fails to initialize, log and continue without throwing
+    // This prevents runtime crashes when env vars are missing during dev
+    // or when analytics is not supported in the environment.
+    // eslint-disable-next-line no-console
+    console.warn('Analytics not initialized:', err);
+  }
 }
 export const auth = getAuth(app);
 export const db = getFirestore(app);
