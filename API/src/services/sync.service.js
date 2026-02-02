@@ -189,26 +189,43 @@ const syncService = {
           // Préparer les données pour Firebase
           const firebaseData = {
             email: user.email,
-            password_hash: user.mot_de_passe,
-            date_naissance: user.date_naissance,
-            profil_id: user.profil_id,
-            profil_libelle: user.profil?.libelle,
-            statut: user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif',
+            password: user.mot_de_passe,
+            dateNaissance: user.date_naissance ? user.date_naissance.toISOString() : null,
+            profilId: user.profil_id ? `profil_${user.profil_id}` : 'profil_2',
+            role: user.profil?.libelle?.toLowerCase() || 'user',
+            statutId: user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif',
+            loginAttempts: 0,
+            disabled: false,
+            createdAt: new Date().toISOString(),
             synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
-            // UPDATE: Le document existe déjà dans Firebase
+            // Vérifier si le document existe encore dans Firebase
             const firebaseId = existingMapping.firebase_id;
-            await firebaseDB.collection('users').doc(firebaseId).update(firebaseData);
-
-            // Mettre à jour le mapping
-            await existingMapping.update({ updated_at: new Date() });
-            stats.updated++;
-            console.log(`✅ Utilisateur ${user.email} mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            const docSnapshot = await firebaseDB.collection('utilisateurs').doc(firebaseId).get();
+            
+            if (docSnapshot.exists) {
+              // UPDATE: Le document existe dans Firebase - ne pas écraser loginAttempts et disabled
+              const existingData = docSnapshot.data();
+              await firebaseDB.collection('utilisateurs').doc(firebaseId).update({
+                ...firebaseData,
+                loginAttempts: existingData.loginAttempts || 0,
+                disabled: existingData.disabled || false,
+              });
+              await existingMapping.update({ updated_at: new Date() });
+              stats.updated++;
+              console.log(`✅ Utilisateur ${user.email} mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            } else {
+              // Le document n'existe plus dans Firebase, le recréer avec le même ID
+              await firebaseDB.collection('utilisateurs').doc(firebaseId).set(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.inserted++;
+              console.log(`✅ Utilisateur ${user.email} recréé dans Firebase (Firebase ID: ${firebaseId})`);
+            }
           } else {
             // INSERT: Nouveau document dans Firebase
-            const docRef = await firebaseDB.collection('users').add(firebaseData);
+            const docRef = await firebaseDB.collection('utilisateurs').add(firebaseData);
             const firebaseId = docRef.id;
 
             // Créer le mapping
@@ -308,6 +325,13 @@ const syncService = {
               signalement_statut_id: firebaseData.statut_id || 1,
             });
 
+            // Créer une entrée dans l'historique avec le statut "nouveau"
+            await db.SignalementHistorique.create({
+              signalement_id: newSignalement.id_signalements,
+              signalement_statut_id: firebaseData.statut_id || 1,
+              date_historique: new Date(),
+            });
+
             // Créer le mapping
             await FirebaseMapping.create({
               entity_type: 'signalement',
@@ -316,7 +340,7 @@ const syncService = {
             });
 
             stats.inserted++;
-            console.log(`✅ Nouveau signalement créé (PG ID: ${newSignalement.id_signalements})`);
+            console.log(`✅ Nouveau signalement créé avec historique (PG ID: ${newSignalement.id_signalements})`);
           }
         } catch (error) {
           stats.errors.push({
@@ -410,13 +434,23 @@ const syncService = {
           };
 
           if (existingMapping) {
-            // UPDATE: Le document existe déjà dans Firebase
+            // Vérifier si le document existe encore dans Firebase
             const firebaseId = existingMapping.firebase_id;
-            await firebaseDB.collection('signalements').doc(firebaseId).update(firebaseData);
-
-            await existingMapping.update({ updated_at: new Date() });
-            stats.updated++;
-            console.log(`✅ Signalement mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            const docSnapshot = await firebaseDB.collection('signalements').doc(firebaseId).get();
+            
+            if (docSnapshot.exists) {
+              // UPDATE: Le document existe dans Firebase
+              await firebaseDB.collection('signalements').doc(firebaseId).update(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.updated++;
+              console.log(`✅ Signalement mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
+            } else {
+              // Le document n'existe plus dans Firebase, le recréer avec le même ID
+              await firebaseDB.collection('signalements').doc(firebaseId).set(firebaseData);
+              await existingMapping.update({ updated_at: new Date() });
+              stats.inserted++;
+              console.log(`✅ Signalement recréé dans Firebase (Firebase ID: ${firebaseId})`);
+            }
           } else {
             // INSERT: Nouveau document dans Firebase
             const docRef = await firebaseDB.collection('signalements').add(firebaseData);
