@@ -3,9 +3,11 @@ import NavbarManager from '@components/NavbarManager';
 import ImageModal from '@components/ImageModal';
 import { colors } from '@assets/colors';
 import signalementApi from '@api/manager/Signalement';
+import problemeApi from '@api/manager/Probleme';
 import { 
   Flag, Check, X, MapPin, Edit3, ArrowUpCircle, 
-  Search, RefreshCw, Building, ChevronDown, CheckCircle, Image 
+  Search, RefreshCw, Building, ChevronDown, CheckCircle, Image,
+  ArrowRight, History, BarChart3, Clock, TrendingUp, Users 
 } from 'lucide-react';
 
 const GestionSignalement = () => {
@@ -27,6 +29,12 @@ const GestionSignalement = () => {
   const [selectedImages, setSelectedImages] = useState([]);
   const [selectedSignalementId, setSelectedSignalementId] = useState(null);
   const [loadingImages, setLoadingImages] = useState(false);
+  // États pour les tooltips d'historique
+  const [hoveredSignalement, setHoveredSignalement] = useState(null);
+  const [hoveredProbleme, setHoveredProbleme] = useState(null);
+  const [signalementHistorique, setSignalementHistorique] = useState([]);
+  const [problemeHistorique, setProblemeHistorique] = useState([]);
+  const [loadingHistorique, setLoadingHistorique] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -103,7 +111,7 @@ const GestionSignalement = () => {
           budget: parseFloat(modalData.budget),
           entreprise_id: parseInt(modalData.entreprise_id),
           signalement_id: selectedSignalement.id_signalements,
-          probleme_statut_id: 1 // Statut par défaut
+          probleme_statut_id: 1 // Statut par défaut: non_commence (0%)
         })
       });
       
@@ -111,14 +119,68 @@ const GestionSignalement = () => {
         throw new Error('Erreur lors de la création du problème');
       }
       
+      // Automatiquement résoudre le signalement après ajout des infos
+      await signalementApi.changeStatus(selectedSignalement.id_signalements, 3, 1);
+      
       await loadData();
       setShowModal(false);
       setSelectedSignalement(null);
-      alert('Informations ajoutées avec succès!');
+      alert('Problème créé et signalement résolu avec succès!');
     } catch (err) {
       console.error('Erreur lors de la mise à jour:', err);
       alert('Erreur lors de la mise à jour des informations: ' + err.message);
     }
+  };
+
+  // Avancer le problème au statut suivant
+  const handleAvancerProbleme = async (signalement) => {
+    try {
+      const problemeId = signalement.probleme_id;
+      
+      if (!problemeId) {
+        alert('Aucun problème lié à ce signalement');
+        return;
+      }
+      
+      await problemeApi.avancer(problemeId);
+      await loadData();
+    } catch (err) {
+      console.error('Erreur lors de l\'avancement du problème:', err);
+      alert('Erreur: ' + err.message);
+    }
+  };
+
+  // Charger l'historique d'un signalement
+  const loadSignalementHistorique = async (signalementId) => {
+    try {
+      setLoadingHistorique(true);
+      const data = await signalementApi.getHistorique(signalementId);
+      setSignalementHistorique(data || []);
+    } catch (err) {
+      console.error('Erreur chargement historique signalement:', err);
+      setSignalementHistorique([]);
+    } finally {
+      setLoadingHistorique(false);
+    }
+  };
+
+  // Charger l'historique d'un problème
+  const loadProblemeHistorique = async (problemeId) => {
+    try {
+      setLoadingHistorique(true);
+      const data = await problemeApi.getHistorique(problemeId);
+      setProblemeHistorique(data || []);
+    } catch (err) {
+      console.error('Erreur chargement historique problème:', err);
+      setProblemeHistorique([]);
+    } finally {
+      setLoadingHistorique(false);
+    }
+  };
+
+  // Formatter l'ID du signalement
+  const formatSignalementId = (id) => {
+    return `SIG${String(id).padStart(3, '0')}`;
   };
 
   const handleUpgrade = async (id) => {
@@ -185,6 +247,17 @@ const GestionSignalement = () => {
         return { ...base, color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.2)' };
       default:
         return { ...base, color: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(255,255,255,0.1)' };
+    }
+  };
+
+  // Style pour l'avancement du problème (0%, 50%, 100%)
+  const getProgressStyle = (pourcentage) => {
+    if (pourcentage >= 100) {
+      return { color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.2)' };
+    } else if (pourcentage >= 50) {
+      return { color: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.2)' };
+    } else {
+      return { color: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.2)' };
     }
   };
 
@@ -260,8 +333,8 @@ const GestionSignalement = () => {
       backgroundColor: colors.dark,
       borderRadius: '16px',
       border: `1px solid ${colors.primary}15`,
-      overflow: 'hidden',
-      marginBottom: '24px'
+      marginBottom: '24px',
+      position: 'relative'
     },
     cardHeader: {
       display: 'flex',
@@ -529,8 +602,127 @@ const GestionSignalement = () => {
       border: 'none',
       borderRadius: '10px',
       cursor: 'pointer'
+    },
+    // Styles pour les tooltips d'historique
+    tooltip: {
+      position: 'absolute',
+      backgroundColor: colors.darker,
+      border: `1px solid ${colors.primary}30`,
+      borderRadius: '8px',
+      padding: '12px',
+      zIndex: 1000,
+      minWidth: '250px',
+      maxWidth: '350px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+    },
+    tooltipTitle: {
+      fontSize: '12px',
+      fontWeight: '600',
+      color: colors.primary,
+      marginBottom: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px'
+    },
+    tooltipItem: {
+      fontSize: '11px',
+      color: 'rgba(255,255,255,0.8)',
+      padding: '4px 0',
+      borderBottom: `1px solid ${colors.primary}10`
+    },
+    idCell: {
+      position: 'relative',
+      cursor: 'pointer'
+    },
+    idBadge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      padding: '4px 10px',
+      fontSize: '12px',
+      fontWeight: '600',
+      color: colors.secondary,
+      backgroundColor: `${colors.secondary}15`,
+      borderRadius: '6px',
+      cursor: 'pointer'
+    },
+    progressCell: {
+      position: 'relative'
+    },
+    progressBadge: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '6px',
+      padding: '6px 12px',
+      fontSize: '12px',
+      fontWeight: '600',
+      borderRadius: '20px',
+      cursor: 'pointer'
+    },
+    btnAvancer: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      padding: '8px 14px',
+      fontSize: '13px',
+      fontWeight: '500',
+      fontFamily: 'inherit',
+      color: '#3B82F6',
+      backgroundColor: 'rgba(59, 130, 246, 0.15)',
+      border: '1px solid rgba(59, 130, 246, 0.3)',
+      borderRadius: '8px',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
     }
   };
+
+  // Fonction pour formater une date
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'N/A';
+    const date = new Date(dateValue);
+    if (isNaN(date.getTime())) return 'N/A';
+    return date.toLocaleDateString('fr-FR');
+  };
+
+  // Composant Tooltip pour l'historique des signalements
+  const SignalementHistoriqueTooltip = ({ signalementId }) => (
+    <div style={{ ...styles.tooltip, top: '100%', left: '0', marginTop: '4px' }}>
+      <div style={styles.tooltipTitle}>
+        <History size={14} /> Historique {formatSignalementId(signalementId)}
+      </div>
+      {loadingHistorique ? (
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Chargement...</div>
+      ) : signalementHistorique.length === 0 ? (
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Aucun historique</div>
+      ) : (
+        signalementHistorique.slice(0, 5).map((h, i) => (
+          <div key={i} style={styles.tooltipItem}>
+            <strong>{h.statut || h.libelle || 'N/A'}</strong> - {formatDate(h.date || h.date_historique)}
+          </div>
+        ))
+      )}
+    </div>
+  );
+
+  // Composant Tooltip pour l'historique des problèmes
+  const ProblemeHistoriqueTooltip = ({ problemeId }) => (
+    <div style={{ ...styles.tooltip, top: '100%', left: '0', marginTop: '4px' }}>
+      <div style={styles.tooltipTitle}>
+        <History size={14} /> Historique travaux
+      </div>
+      {loadingHistorique ? (
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Chargement...</div>
+      ) : problemeHistorique.length === 0 ? (
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Aucun historique</div>
+      ) : (
+        problemeHistorique.slice(0, 5).map((h, i) => (
+          <div key={i} style={styles.tooltipItem}>
+            <strong>{h.pourcentage != null ? `${h.pourcentage}%` : 'N/A'}</strong> - {h.statut || h.libelle || 'N/A'} - {formatDate(h.date || h.date_historique)}
+          </div>
+        ))
+      )}
+    </div>
+  );
 
   const renderNouveaux = () => (
     <div style={styles.card}>
@@ -548,6 +740,7 @@ const GestionSignalement = () => {
         <table style={styles.table}>
           <thead>
             <tr>
+              <th style={styles.th}>ID</th>
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email</th>
               <th style={styles.th}>Description</th>
@@ -558,6 +751,24 @@ const GestionSignalement = () => {
           <tbody>
             {signalements.map((s) => (
               <tr key={s.id_signalements}>
+                <td style={styles.td}>
+                  <div 
+                    style={styles.idCell}
+                    onMouseEnter={() => {
+                      setHoveredSignalement(s.id_signalements);
+                      loadSignalementHistorique(s.id_signalements);
+                    }}
+                    onMouseLeave={() => setHoveredSignalement(null)}
+                  >
+                    <span style={styles.idBadge}>
+                      <History size={12} />
+                      {formatSignalementId(s.id_signalements)}
+                    </span>
+                    {hoveredSignalement === s.id_signalements && (
+                      <SignalementHistoriqueTooltip signalementId={s.id_signalements} />
+                    )}
+                  </div>
+                </td>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
                     <MapPin size={14} />
@@ -609,6 +820,7 @@ const GestionSignalement = () => {
         <table style={styles.table}>
           <thead>
             <tr>
+              <th style={styles.th}>ID</th>
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email Utilisateur</th>
               <th style={styles.th}>Description</th>
@@ -620,6 +832,24 @@ const GestionSignalement = () => {
           <tbody>
             {signalementsEnCours.map((s) => (
               <tr key={s.id_signalements}>
+                <td style={styles.td}>
+                  <div 
+                    style={styles.idCell}
+                    onMouseEnter={() => {
+                      setHoveredSignalement(s.id_signalements);
+                      loadSignalementHistorique(s.id_signalements);
+                    }}
+                    onMouseLeave={() => setHoveredSignalement(null)}
+                  >
+                    <span style={styles.idBadge}>
+                      <History size={12} />
+                      {formatSignalementId(s.id_signalements)}
+                    </span>
+                    {hoveredSignalement === s.id_signalements && (
+                      <SignalementHistoriqueTooltip signalementId={s.id_signalements} />
+                    )}
+                  </div>
+                </td>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
                     <MapPin size={14} />
@@ -661,7 +891,7 @@ const GestionSignalement = () => {
   const renderResolus = () => (
     <div style={styles.card}>
       <div style={styles.cardHeader}>
-        <h3 style={styles.cardTitle}>Signalements résolus</h3>
+        <h3 style={styles.cardTitle}>Signalements résolus - Suivi des travaux</h3>
         <span style={{ ...styles.badge, color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.2)' }}>
           {signalementsResolus.length} signalement(s)
         </span>
@@ -674,47 +904,414 @@ const GestionSignalement = () => {
         <table style={styles.table}>
           <thead>
             <tr>
+              <th style={styles.th}>ID</th>
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Description</th>
-              <th style={styles.th}>Email</th>
+              <th style={styles.th}>Entreprise</th>
               <th style={styles.th}>Budget</th>
-              <th style={styles.th}>Surface</th>
+              <th style={styles.th}>Avancement</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
-              <th style={styles.th}>Statut</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
-            {signalementsResolus.map((s) => (
-              <tr key={s.id_signalements}>
-                <td style={styles.td}>
-                  <span style={styles.pointLink}>
-                    <MapPin size={14} />
-                    {s.ville || 'N/A'}
-                  </span>
-                </td>
-                <td style={styles.td}>{s.description}</td>
-                <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
-                <td style={styles.td}>{s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}</td>
-                <td style={styles.td}>{s.total_surface ? `${s.total_surface} m²` : 'N/A'}</td>
-                <td style={{ ...styles.td, textAlign: 'center' }}>
-                  <button 
-                    style={styles.btnImages} 
-                    onClick={() => handleVoirImages(s.id_signalements)}
-                    disabled={loadingImages}
-                  >
-                    <Image size={14} /> Voir
-                  </button>
-                </td>
-                <td style={styles.td}>
-                  <span style={getStatutStyle(s.statut)}>{s.statut?.replace('_', ' ')}</span>
-                </td>
-              </tr>
-            ))}
+            {signalementsResolus.map((s) => {
+              const pourcentage = Number(s.probleme_pourcentage) || 0;
+              const progressStyle = getProgressStyle(pourcentage);
+              const budget = Number(s.total_budget) || 0;
+              return (
+                <tr key={s.id_signalements}>
+                  <td style={styles.td}>
+                    <div 
+                      style={styles.idCell}
+                      onMouseEnter={() => {
+                        setHoveredSignalement(s.id_signalements);
+                        loadSignalementHistorique(s.id_signalements);
+                      }}
+                      onMouseLeave={() => setHoveredSignalement(null)}
+                    >
+                      <span style={styles.idBadge}>
+                        <History size={12} />
+                        {formatSignalementId(s.id_signalements)}
+                      </span>
+                      {hoveredSignalement === s.id_signalements && (
+                        <SignalementHistoriqueTooltip signalementId={s.id_signalements} />
+                      )}
+                    </div>
+                  </td>
+                  <td style={styles.td}>
+                    <span style={styles.pointLink}>
+                      <MapPin size={14} />
+                      {s.ville || 'N/A'}
+                    </span>
+                  </td>
+                  <td style={styles.td}>{s.description}</td>
+                  <td style={styles.td}>{s.entreprise_nom || 'N/A'}</td>
+                  <td style={styles.td}>{budget > 0 ? `${budget.toLocaleString()} Ar` : 'N/A'}</td>
+                  <td style={styles.td}>
+                    <div 
+                      style={styles.progressCell}
+                      onMouseEnter={() => {
+                        if (s.probleme_id) {
+                          setHoveredProbleme(s.probleme_id);
+                          loadProblemeHistorique(s.probleme_id);
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredProbleme(null)}
+                    >
+                      <span style={{ ...styles.progressBadge, ...progressStyle }}>
+                        {pourcentage}%
+                        <div style={{ 
+                          width: '40px', 
+                          height: '6px', 
+                          backgroundColor: 'rgba(0,0,0,0.2)', 
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{ 
+                            width: `${pourcentage}%`, 
+                            height: '100%', 
+                            backgroundColor: progressStyle.color,
+                            transition: 'width 0.3s'
+                          }} />
+                        </div>
+                      </span>
+                      {hoveredProbleme === s.probleme_id && s.probleme_id && (
+                        <ProblemeHistoriqueTooltip problemeId={s.probleme_id} />
+                      )}
+                    </div>
+                  </td>
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    {pourcentage < 100 && s.probleme_id ? (
+                      <button style={styles.btnAvancer} onClick={() => handleAvancerProbleme(s)}>
+                        <ArrowRight size={14} /> Avancer
+                      </button>
+                    ) : pourcentage >= 100 ? (
+                      <span style={{ color: '#10B981', fontSize: '13px', fontWeight: '600' }}>
+                        <CheckCircle size={14} style={{ marginRight: '4px' }} />
+                        Terminé
+                      </span>
+                    ) : (
+                      <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>
+                        Pas de problème lié
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}
     </div>
   );
+
+  // Calculer les statistiques
+  const calculateStats = () => {
+    const totalSignalements = signalements.length + signalementsEnCours.length + signalementsResolus.length;
+    
+    // Calculer le délai moyen de traitement (basé sur les signalements résolus avec problèmes terminés)
+    const problemesTermines = signalementsResolus.filter(s => Number(s.probleme_pourcentage) >= 100);
+    const problemesEnCours = signalementsResolus.filter(s => Number(s.probleme_pourcentage) > 0 && Number(s.probleme_pourcentage) < 100);
+    const problemesNonCommences = signalementsResolus.filter(s => Number(s.probleme_pourcentage) === 0 || !s.probleme_id);
+    
+    // Taux de résolution
+    const tauxResolution = totalSignalements > 0 
+      ? ((signalementsResolus.length / totalSignalements) * 100).toFixed(1) 
+      : 0;
+    
+    // Taux de complétion des travaux
+    const tauxCompletion = signalementsResolus.length > 0 
+      ? ((problemesTermines.length / signalementsResolus.length) * 100).toFixed(1) 
+      : 0;
+    
+    // Budget total - convertir en nombre pour éviter la concaténation
+    const budgetTotal = signalementsResolus.reduce((sum, s) => sum + (Number(s.total_budget) || 0), 0);
+    
+    // Avancement moyen des travaux - convertir en nombre pour éviter la concaténation
+    const avancementMoyen = signalementsResolus.length > 0
+      ? (signalementsResolus.reduce((sum, s) => sum + (Number(s.probleme_pourcentage) || 0), 0) / signalementsResolus.length).toFixed(0)
+      : 0;
+
+    // Délai moyen de résolution (en jours)
+    let delaiMoyenJours = 0;
+    const signalementsAvecDates = signalementsResolus.filter(s => s.date_creation && s.date_resolution);
+    if (signalementsAvecDates.length > 0) {
+      const totalDelai = signalementsAvecDates.reduce((sum, s) => {
+        const dateCreation = new Date(s.date_creation);
+        const dateResolution = new Date(s.date_resolution);
+        const delaiMs = dateResolution.getTime() - dateCreation.getTime();
+        const delaiJours = delaiMs / (1000 * 60 * 60 * 24);
+        return sum + Math.max(0, delaiJours);
+      }, 0);
+      delaiMoyenJours = (totalDelai / signalementsAvecDates.length).toFixed(1);
+    }
+
+    return {
+      totalSignalements,
+      nouveaux: signalements.length,
+      enCours: signalementsEnCours.length,
+      resolus: signalementsResolus.length,
+      problemesTermines: problemesTermines.length,
+      problemesEnCours: problemesEnCours.length,
+      problemesNonCommences: problemesNonCommences.length,
+      tauxResolution,
+      tauxCompletion,
+      budgetTotal,
+      avancementMoyen,
+      delaiMoyenJours
+    };
+  };
+
+  const renderStatistiques = () => {
+    const stats = calculateStats();
+    
+    const statCardStyle = {
+      backgroundColor: 'rgba(255,255,255,0.05)',
+      borderRadius: '12px',
+      padding: '24px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+      border: '1px solid rgba(255,255,255,0.1)'
+    };
+    
+    const statValueStyle = {
+      fontSize: '32px',
+      fontWeight: '700',
+      color: '#fff'
+    };
+    
+    const statLabelStyle = {
+      fontSize: '14px',
+      color: 'rgba(255,255,255,0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    };
+    
+    const progressBarContainerStyle = {
+      width: '100%',
+      height: '8px',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderRadius: '4px',
+      overflow: 'hidden',
+      marginTop: '8px'
+    };
+
+    return (
+      <div style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h3 style={styles.cardTitle}>
+            <BarChart3 size={20} style={{ marginRight: '8px' }} />
+            Tableau de bord - Statistiques
+          </h3>
+        </div>
+        
+        {/* Cartes de statistiques principales */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          {/* Total signalements */}
+          <div style={statCardStyle}>
+            <div style={statLabelStyle}>
+              <Flag size={16} color={colors.primary} /> Total Signalements
+            </div>
+            <div style={statValueStyle}>{stats.totalSignalements}</div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+              {stats.nouveaux} nouveaux • {stats.enCours} en cours • {stats.resolus} résolus
+            </div>
+          </div>
+          
+          {/* Taux de résolution */}
+          <div style={statCardStyle}>
+            <div style={statLabelStyle}>
+              <TrendingUp size={16} color="#10B981" /> Taux de Résolution
+            </div>
+            <div style={{ ...statValueStyle, color: '#10B981' }}>{stats.tauxResolution}%</div>
+            <div style={progressBarContainerStyle}>
+              <div style={{ 
+                width: `${stats.tauxResolution}%`, 
+                height: '100%', 
+                backgroundColor: '#10B981',
+                transition: 'width 0.5s'
+              }} />
+            </div>
+          </div>
+          
+          {/* Avancement moyen des travaux */}
+          <div style={statCardStyle}>
+            <div style={statLabelStyle}>
+              <TrendingUp size={16} color="#F59E0B" /> Avancement Moyen
+            </div>
+            <div style={{ ...statValueStyle, color: '#F59E0B' }}>{stats.avancementMoyen}%</div>
+            <div style={progressBarContainerStyle}>
+              <div style={{ 
+                width: `${stats.avancementMoyen}%`, 
+                height: '100%', 
+                backgroundColor: '#F59E0B',
+                transition: 'width 0.5s'
+              }} />
+            </div>
+          </div>
+          
+          {/* Délai moyen de résolution */}
+          <div style={statCardStyle}>
+            <div style={statLabelStyle}>
+              <Clock size={16} color="#8B5CF6" /> Délai Moyen de Résolution
+            </div>
+            <div style={{ ...statValueStyle, color: '#8B5CF6' }}>
+              {stats.delaiMoyenJours} <span style={{ fontSize: '16px' }}>jours</span>
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+              Temps moyen entre création et résolution
+            </div>
+          </div>
+          
+          {/* Budget total */}
+          <div style={statCardStyle}>
+            <div style={statLabelStyle}>
+              <Building size={16} color={colors.primary} /> Budget Total Alloué
+            </div>
+            <div style={{ ...statValueStyle, color: colors.primary }}>
+              {stats.budgetTotal.toLocaleString()} <span style={{ fontSize: '16px' }}>Ar</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Section détails des travaux */}
+        <div style={{ marginTop: '24px' }}>
+          <h4 style={{ color: '#fff', fontSize: '16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Users size={18} /> Répartition des Travaux
+          </h4>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+            {/* Travaux terminés */}
+            <div style={{ 
+              ...statCardStyle, 
+              borderLeft: '4px solid #10B981',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#10B981' }}>
+                {stats.problemesTermines}
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                <CheckCircle size={14} style={{ marginRight: '4px' }} />
+                Travaux Terminés (100%)
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
+                {stats.tauxCompletion}% des signalements résolus
+              </div>
+            </div>
+            
+            {/* Travaux en cours */}
+            <div style={{ 
+              ...statCardStyle, 
+              borderLeft: '4px solid #F59E0B',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#F59E0B' }}>
+                {stats.problemesEnCours}
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                <ArrowRight size={14} style={{ marginRight: '4px' }} />
+                Travaux En Cours (50%)
+              </div>
+            </div>
+            
+            {/* Travaux non commencés */}
+            <div style={{ 
+              ...statCardStyle, 
+              borderLeft: '4px solid #EF4444',
+              textAlign: 'center'
+            }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#EF4444' }}>
+                {stats.problemesNonCommences}
+              </div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                <Clock size={14} style={{ marginRight: '4px' }} />
+                Non Commencés (0%)
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Tableau récapitulatif */}
+        <div style={{ marginTop: '32px' }}>
+          <h4 style={{ color: '#fff', fontSize: '16px', marginBottom: '16px' }}>
+            Récapitulatif par Statut
+          </h4>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Statut</th>
+                <th style={styles.th}>Nombre</th>
+                <th style={styles.th}>Pourcentage</th>
+                <th style={styles.th}>Progression</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={styles.td}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colors.secondary }} />
+                    Nouveaux
+                  </span>
+                </td>
+                <td style={styles.td}>{stats.nouveaux}</td>
+                <td style={styles.td}>{stats.totalSignalements > 0 ? ((stats.nouveaux / stats.totalSignalements) * 100).toFixed(1) : 0}%</td>
+                <td style={styles.td}>
+                  <div style={{ ...progressBarContainerStyle, width: '100px' }}>
+                    <div style={{ 
+                      width: `${stats.totalSignalements > 0 ? (stats.nouveaux / stats.totalSignalements) * 100 : 0}%`, 
+                      height: '100%', 
+                      backgroundColor: colors.secondary 
+                    }} />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.td}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+                    En cours
+                  </span>
+                </td>
+                <td style={styles.td}>{stats.enCours}</td>
+                <td style={styles.td}>{stats.totalSignalements > 0 ? ((stats.enCours / stats.totalSignalements) * 100).toFixed(1) : 0}%</td>
+                <td style={styles.td}>
+                  <div style={{ ...progressBarContainerStyle, width: '100px' }}>
+                    <div style={{ 
+                      width: `${stats.totalSignalements > 0 ? (stats.enCours / stats.totalSignalements) * 100 : 0}%`, 
+                      height: '100%', 
+                      backgroundColor: '#F59E0B' 
+                    }} />
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style={styles.td}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                    Résolus
+                  </span>
+                </td>
+                <td style={styles.td}>{stats.resolus}</td>
+                <td style={styles.td}>{stats.tauxResolution}%</td>
+                <td style={styles.td}>
+                  <div style={{ ...progressBarContainerStyle, width: '100px' }}>
+                    <div style={{ 
+                      width: `${stats.tauxResolution}%`, 
+                      height: '100%', 
+                      backgroundColor: '#10B981' 
+                    }} />
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -750,6 +1347,13 @@ const GestionSignalement = () => {
             >
               Résolus ({signalementsResolus.length})
             </button>
+            <button
+              style={{ ...styles.tab, ...(activeTab === 'statistiques' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('statistiques')}
+            >
+              <BarChart3 size={16} style={{ marginRight: '6px' }} />
+              Statistiques
+            </button>
           </div>
 
           {loading ? (
@@ -761,6 +1365,7 @@ const GestionSignalement = () => {
               {activeTab === 'nouveaux' && renderNouveaux()}
               {activeTab === 'en_cours' && renderEnCours()}
               {activeTab === 'resolus' && renderResolus()}
+              {activeTab === 'statistiques' && renderStatistiques()}
             </>
           )}
         </div>

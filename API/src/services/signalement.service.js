@@ -77,8 +77,8 @@ const signalementService = {
 
     const problemes = signalement.problemes.map((p) => ({
       id_problemes: p.id_problemes,
-      surface: p.surface,
-      budget: p.budget,
+      surface: parseFloat(p.surface) || 0,
+      budget: parseFloat(p.budget) || 0,
       entreprise: p.entreprise
         ? {
             id_entreprises: p.entreprise.id_entreprises,
@@ -158,8 +158,8 @@ const signalementService = {
           email_utilisateur: s.utilisateur?.email || null,
           statut: statut?.libelle || null,
           nombre_problemes: s.problemes?.length || 0,
-          total_surface: s.problemes?.reduce((sum, p) => sum + (p.surface || 0), 0) || 0,
-          total_budget: s.problemes?.reduce((sum, p) => sum + (p.budget || 0), 0) || 0,
+          total_surface: s.problemes?.reduce((sum, p) => sum + (parseFloat(p.surface) || 0), 0) || 0,
+          total_budget: s.problemes?.reduce((sum, p) => sum + (parseFloat(p.budget) || 0), 0) || 0,
         };
       })
     );
@@ -259,7 +259,19 @@ const signalementService = {
         {
           model: db.Probleme,
           as: 'problemes',
-          attributes: ['surface', 'budget'],
+          attributes: ['id_problemes', 'surface', 'budget', 'probleme_statut_id'],
+          include: [
+            {
+              model: db.Entreprise,
+              as: 'entreprise',
+              attributes: ['id_entreprises', 'nom'],
+            },
+            {
+              model: db.ProblemeStatut,
+              as: 'statut',
+              attributes: ['id_probleme_statuts', 'libelle', 'pourcentage'],
+            },
+          ],
         },
       ],
     });
@@ -268,14 +280,34 @@ const signalementService = {
     for (const s of signalements) {
       const currentStatut = await this.getSignalementCurrentStatut(s.id_signalements);
       if (currentStatut?.libelle === statut) {
+        // Récupérer le problème associé (le premier s'il y en a plusieurs)
+        const probleme = s.problemes?.[0];
+        
+        // Récupérer les dates de l'historique pour calculer le délai de résolution
+        const historiques = await db.SignalementHistorique.findAll({
+          where: { signalement_id: s.id_signalements },
+          order: [['date_historique', 'ASC']],
+        });
+        
+        const dateCreation = historiques.length > 0 ? historiques[0].date_historique : null;
+        const dateResolution = historiques.length > 0 ? historiques[historiques.length - 1].date_historique : null;
+        
         filtered.push({
           id_signalements: s.id_signalements,
           description: s.description,
           ville: s.point?.ville?.nom || null,
           email_utilisateur: s.utilisateur?.email || null,
           statut: currentStatut.libelle,
-          total_surface: s.problemes?.reduce((sum, p) => sum + (p.surface || 0), 0) || 0,
-          total_budget: s.problemes?.reduce((sum, p) => sum + (p.budget || 0), 0) || 0,
+          total_surface: s.problemes?.reduce((sum, p) => sum + (parseFloat(p.surface) || 0), 0) || 0,
+          total_budget: s.problemes?.reduce((sum, p) => sum + (parseFloat(p.budget) || 0), 0) || 0,
+          // Informations du problème pour le suivi de l'avancement
+          probleme_id: probleme?.id_problemes || null,
+          probleme_pourcentage: parseFloat(probleme?.statut?.pourcentage) || 0,
+          probleme_statut: probleme?.statut?.libelle || null,
+          entreprise_nom: probleme?.entreprise?.nom || null,
+          // Dates pour le calcul du délai
+          date_creation: dateCreation,
+          date_resolution: dateResolution,
         });
       }
     }
