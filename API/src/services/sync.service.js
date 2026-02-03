@@ -40,6 +40,28 @@ try {
 
 const syncService = {
   /**
+   * Helper: Récupère le Firebase ID d'un signalement_statut à partir de son ID PostgreSQL
+   */
+  async getSignalementStatutFirebaseId(postgresId) {
+    if (!postgresId) return null;
+    const mapping = await FirebaseMapping.findOne({
+      where: { entity_type: 'signalement_statut', postgres_id: postgresId },
+    });
+    return mapping?.firebase_id || null;
+  },
+
+  /**
+   * Helper: Récupère le Firebase ID d'une ville à partir de son ID PostgreSQL
+   */
+  async getVilleFirebaseId(postgresId) {
+    if (!postgresId) return null;
+    const mapping = await FirebaseMapping.findOne({
+      where: { entity_type: 'ville', postgres_id: postgresId },
+    });
+    return mapping?.firebase_id || null;
+  },
+
+  /**
    * PUSH: Synchronise les utilisateurs de Firebase vers PostgreSQL
    * Firebase est la SOURCE DE VÉRITÉ - tous les champs sont synchronisés
    * Inclut les statuts (disabled, blocked, loginAttempts, etc.)
@@ -672,16 +694,23 @@ const syncService = {
             utilisateurFirebaseId = userMapping?.firebase_id;
           }
 
-          // Préparer les données pour Firebase
+          // Préparer les données pour Firebase (format compatible avec l'app mobile)
           const firebaseData = {
             description: signalement.description,
+            // Champs attendus par le mobile
+            utilisateurId: utilisateurFirebaseId,
+            statutId: await this.getSignalementStatutFirebaseId(signalement.signalement_statut_id),
+            point: signalement.point ? {
+              lat: signalement.point.xy?.coordinates?.[1] || 0,
+              lng: signalement.point.xy?.coordinates?.[0] || 0,
+              villeId: signalement.point.ville_id ? await this.getVilleFirebaseId(signalement.point.ville_id) : null,
+            } : { lat: 0, lng: 0, villeId: null },
+            createdAt: signalement.created_at ? signalement.created_at.toISOString() : new Date().toISOString(),
+            historiques: [],
+            // Champs supplémentaires pour compatibilité sync
             utilisateur_firebase_id: utilisateurFirebaseId,
             utilisateur_email: signalement.utilisateur?.email,
             point_id: signalement.point_id,
-            point_coordinates: signalement.point ? {
-              latitude: signalement.point.xy?.coordinates?.[1],
-              longitude: signalement.point.xy?.coordinates?.[0],
-            } : null,
             statut_id: signalement.signalement_statut_id,
             statut_libelle: signalement.statut?.libelle,
             synced_at: new Date().toISOString(),
@@ -1172,6 +1201,7 @@ const syncService = {
 
           const firebaseData = {
             libelle: statut.libelle,
+            descri: statut.descri || '',
             synced_at: new Date().toISOString(),
           };
 
@@ -1286,6 +1316,8 @@ const syncService = {
 
           const firebaseData = {
             libelle: statut.libelle,
+            descri: statut.descri || '',
+            pourcentage: parseFloat(statut.pourcentage) || 0,
             synced_at: new Date().toISOString(),
           };
 
@@ -1577,13 +1609,20 @@ const syncService = {
           }
 
           const firebaseData = {
+            // Champs attendus par le mobile
             surface: probleme.surface,
             budget: probleme.budget,
+            entrepriseId: entrepriseFirebaseId,
+            signalementId: signalementFirebaseId,
+            statutId: statutFirebaseId,
+            historiques: [],
+            // Champs supplémentaires pour compatibilité sync
             entreprise_firebase_id: entrepriseFirebaseId,
             entreprise_nom: probleme.entreprise?.nom,
             signalement_firebase_id: signalementFirebaseId,
             statut_firebase_id: statutFirebaseId,
             statut_libelle: probleme.statut?.libelle,
+            statut_pourcentage: probleme.statut?.pourcentage,
             synced_at: new Date().toISOString(),
           };
 
