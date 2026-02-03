@@ -29,10 +29,15 @@ import 'leaflet/dist/leaflet.css'
 /* Font Awesome */
 import '@fortawesome/fontawesome-free/css/all.min.css'
 
+// notification added 
+import { initNotifications } from './services/firebase/notification.service';
+
 const app = createApp(App)
   .use(IonicVue)
   .use(router)
 
+initNotifications();
+  
 router.isReady().then(() => {
   app.mount('#app')
 })

@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
-import { initActivityDetection, setSessionTimeout } from './services/firebase/authService';
+import { initActivityDetection, setSessionTimeout } from './services/firebase/auth.service';
 
 // Définir la durée de session (optionnel, défaut 30 min)
 setSessionTimeout(60); // 1 heure
