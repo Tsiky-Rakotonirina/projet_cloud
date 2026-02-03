@@ -84,3 +84,4 @@ temp/
 
 tiles/*.osm.pbf
 tiles/*.mbtiles
+API/src/config/firebase-admin-sdk.json
