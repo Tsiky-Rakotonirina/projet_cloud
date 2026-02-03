@@ -44,7 +44,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineEmits, defineProps } from 'vue';
+import { ref, computed } from 'vue';
 import { takePhoto, selectImagesFromGallery, MAX_IMAGES_ALLOWED } from '@/services/imageService';
 
 interface ImageItem {
