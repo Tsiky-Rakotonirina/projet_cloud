@@ -97,7 +97,7 @@ const problemeController = {
         return res.sendError('Problème non trouvé', { code: 'PROBLEME_NOT_FOUND' }, 404);
       }
 
-      const currentPourcentage = probleme.statut?.pourcentage || 0;
+      const currentPourcentage = parseFloat(probleme.statut?.pourcentage) || 0;
 
       // Trouver le prochain statut (0 -> 50 -> 100)
       let nextStatut;

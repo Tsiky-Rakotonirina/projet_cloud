@@ -555,18 +555,20 @@ const syncService = {
 
           if (existingMapping) {
             // UPDATE: Le signalement existe déjà dans PostgreSQL
+            // IMPORTANT: Ne pas écraser le statut car il est géré côté admin
             const signalement = await Signalement.findByPk(existingMapping.postgres_id);
             if (signalement) {
+              // On met à jour seulement la description et l'utilisateur, PAS le statut
               await signalement.update({
                 description: firebaseData.description,
                 utilisateur_id: utilisateurId,
                 point_id: firebaseData.point_id,
-                signalement_statut_id: firebaseData.statut_id || 1, // nouveau par défaut
+                // NE PAS mettre à jour signalement_statut_id pour préserver les modifications admin
               });
 
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;
-              console.log(`✅ Signalement mis à jour (PG ID: ${signalement.id_signalements})`);
+              console.log(`✅ Signalement mis à jour sans changer le statut (PG ID: ${signalement.id_signalements})`);
             }
           } else {
             // INSERT: Nouveau signalement

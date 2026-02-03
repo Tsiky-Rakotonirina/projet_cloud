@@ -966,6 +966,20 @@ const GestionSignalement = () => {
       ? (signalementsResolus.reduce((sum, s) => sum + (Number(s.probleme_pourcentage) || 0), 0) / signalementsResolus.length).toFixed(0)
       : 0;
 
+    // Délai moyen de résolution (en jours)
+    let delaiMoyenJours = 0;
+    const signalementsAvecDates = signalementsResolus.filter(s => s.date_creation && s.date_resolution);
+    if (signalementsAvecDates.length > 0) {
+      const totalDelai = signalementsAvecDates.reduce((sum, s) => {
+        const dateCreation = new Date(s.date_creation);
+        const dateResolution = new Date(s.date_resolution);
+        const delaiMs = dateResolution.getTime() - dateCreation.getTime();
+        const delaiJours = delaiMs / (1000 * 60 * 60 * 24);
+        return sum + Math.max(0, delaiJours);
+      }, 0);
+      delaiMoyenJours = (totalDelai / signalementsAvecDates.length).toFixed(1);
+    }
+
     return {
       totalSignalements,
       nouveaux: signalements.length,
@@ -977,7 +991,8 @@ const GestionSignalement = () => {
       tauxResolution,
       tauxCompletion,
       budgetTotal,
-      avancementMoyen
+      avancementMoyen,
+      delaiMoyenJours
     };
   };
 
@@ -1058,7 +1073,7 @@ const GestionSignalement = () => {
           {/* Avancement moyen des travaux */}
           <div style={statCardStyle}>
             <div style={statLabelStyle}>
-              <Clock size={16} color="#F59E0B" /> Avancement Moyen
+              <TrendingUp size={16} color="#F59E0B" /> Avancement Moyen
             </div>
             <div style={{ ...statValueStyle, color: '#F59E0B' }}>{stats.avancementMoyen}%</div>
             <div style={progressBarContainerStyle}>
@@ -1068,6 +1083,19 @@ const GestionSignalement = () => {
                 backgroundColor: '#F59E0B',
                 transition: 'width 0.5s'
               }} />
+            </div>
+          </div>
+          
+          {/* Délai moyen de résolution */}
+          <div style={statCardStyle}>
+            <div style={statLabelStyle}>
+              <Clock size={16} color="#8B5CF6" /> Délai Moyen de Résolution
+            </div>
+            <div style={{ ...statValueStyle, color: '#8B5CF6' }}>
+              {stats.delaiMoyenJours} <span style={{ fontSize: '16px' }}>jours</span>
+            </div>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
+              Temps moyen entre création et résolution
             </div>
           </div>
           
