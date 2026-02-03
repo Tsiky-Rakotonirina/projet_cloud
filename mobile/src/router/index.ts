@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import { observeAuthState, currentUser } from '@/services/firebase/authService';
+import { observeAuthState, currentUser } from '@/services/firebase/auth.service';
 
 const routes: Array<RouteRecordRaw> = [
   {

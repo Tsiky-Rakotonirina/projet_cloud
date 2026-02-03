@@ -174,8 +174,8 @@ import {
   alertController,
   toastController
 } from '@ionic/vue';
-import { logout, currentUser } from '@/services/firebase/authService';
-import { createSignalement } from '@/services/problemService';
+import { logout, currentUser } from '@/services/firebase/auth.service';
+import { createSignalement } from '@/services/problem.service';
 import MapView from '@/components/MapView.vue';
 import ImagePicker from '@/components/ImagePicker.vue';
 

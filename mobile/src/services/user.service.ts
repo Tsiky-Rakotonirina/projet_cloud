@@ -22,7 +22,7 @@ export const linkAuthWithFirestore = async (uid: string, email: string, addition
           updatedAt: new Date().toISOString()
         });
       }
-      return { id: uid, ...existingData, email };
+      return { ...existingData, id: uid, email };
     } else {
       // Chercher si l'utilisateur existe par email (migration depuis ancien système)
       const existingByEmail = await getUserByEmail(email);

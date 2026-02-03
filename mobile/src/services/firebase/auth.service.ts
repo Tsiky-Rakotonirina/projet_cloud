@@ -14,7 +14,7 @@ import {
   SESSION_CONFIG,
   setSessionTimeout as configSetSessionTimeout
 } from "@/config/auth";
-import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts, disableUserAccount, enableUserAccount, linkAuthWithFirestore } from "@/services/userService";
+import { getUserByEmail, resetLoginAttempts, incrementLoginAttempts, checkAndUnblockExpiredAccounts, disableUserAccount, enableUserAccount, linkAuthWithFirestore } from "@/services/user.service";
 import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
 
 // État global de l'utilisateur
@@ -161,7 +161,7 @@ export const reactivateUserAccount = async (email: string): Promise<boolean> => 
     }
 
     // Vérifier si l'utilisateur actuel est un manager
-    const { isUserManager } = await import("@/services/userService");
+    const { isUserManager } = await import("@/services/user.service");
     const isManager = await isUserManager(currentUser.uid);
     
     if (!isManager) {

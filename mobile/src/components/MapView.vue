@@ -8,7 +8,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getAllProblems, getMySignalements } from '@/services/problemService';
+import { getAllProblems, getMySignalements } from '@/services/problem.service';
 import type { Problem, Signalement } from '@/types/entities';
 import { auth } from '@/services/firebase/firebase';
 import { createPopupContent } from '@/utils/popupUtils';

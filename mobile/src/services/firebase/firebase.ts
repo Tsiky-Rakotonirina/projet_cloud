@@ -3,6 +3,7 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -15,6 +16,8 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+export const messaging = getMessaging(app);
+
 // Analytics only in browser and only when required config exists
 let analytics;
 const hasWebConfig = Boolean(firebaseConfig.apiKey) && (Boolean(firebaseConfig.appId) || Boolean(firebaseConfig.measurementId));

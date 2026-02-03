@@ -27,3 +27,8 @@ npm install -D ts-node typescript
 npm install --save-dev tsx
 
 npm run seed
+
+<!-- notification added -->
+npm install @capacitor/push-notifications
+
+npx cap sync android
