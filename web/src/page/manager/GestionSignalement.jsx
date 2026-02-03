@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import NavbarManager from '@components/NavbarManager';
+import ImageModal from '@components/ImageModal';
 import { colors } from '@assets/colors';
 import signalementApi from '@api/manager/Signalement';
 import { 
   Flag, Check, X, MapPin, Edit3, ArrowUpCircle, 
-  Search, RefreshCw, Building, ChevronDown, CheckCircle 
+  Search, RefreshCw, Building, ChevronDown, CheckCircle, Image 
 } from 'lucide-react';
 
 const GestionSignalement = () => {
@@ -21,6 +22,11 @@ const GestionSignalement = () => {
     budget: '',
     surface: ''
   });
+  // État pour le modal d'images
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [selectedSignalementId, setSelectedSignalementId] = useState(null);
+  const [loadingImages, setLoadingImages] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -134,6 +140,21 @@ const GestionSignalement = () => {
     } catch (err) {
       console.error('Erreur lors de la résolution:', err);
       alert('Erreur lors de la résolution du signalement');
+    }
+  };
+
+  const handleVoirImages = async (signalementId) => {
+    try {
+      setLoadingImages(true);
+      setSelectedSignalementId(signalementId);
+      const images = await signalementApi.getImages(signalementId);
+      setSelectedImages(images);
+      setShowImageModal(true);
+    } catch (err) {
+      console.error('Erreur lors du chargement des images:', err);
+      alert('Erreur lors du chargement des images');
+    } finally {
+      setLoadingImages(false);
     }
   };
 
@@ -357,6 +378,21 @@ const GestionSignalement = () => {
       cursor: 'pointer',
       transition: 'all 0.2s'
     },
+    btnImages: {
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '4px',
+      padding: '8px 14px',
+      fontSize: '13px',
+      fontWeight: '500',
+      fontFamily: 'inherit',
+      color: colors.secondary,
+      backgroundColor: `${colors.secondary}15`,
+      border: `1px solid ${colors.secondary}30`,
+      borderRadius: '8px',
+      cursor: 'pointer',
+      transition: 'all 0.2s'
+    },
     emptyState: {
       padding: '60px 24px',
       textAlign: 'center'
@@ -515,6 +551,7 @@ const GestionSignalement = () => {
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email</th>
               <th style={styles.th}>Description</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
@@ -529,6 +566,15 @@ const GestionSignalement = () => {
                 </td>
                 <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.description}</td>
+                <td style={{ ...styles.td, textAlign: 'center' }}>
+                  <button 
+                    style={styles.btnImages} 
+                    onClick={() => handleVoirImages(s.id_signalements)}
+                    disabled={loadingImages}
+                  >
+                    <Image size={14} /> Voir
+                  </button>
+                </td>
                 <td style={styles.td}>
                   <div style={styles.actionBtns}>
                     <button style={styles.btnApprouver} onClick={() => handleApprouver(s.id_signalements)}>
@@ -567,6 +613,7 @@ const GestionSignalement = () => {
               <th style={styles.th}>Email Utilisateur</th>
               <th style={styles.th}>Description</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Budget</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
@@ -583,6 +630,15 @@ const GestionSignalement = () => {
                 <td style={styles.td}>{s.description}</td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
                   {s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}
+                </td>
+                <td style={{ ...styles.td, textAlign: 'center' }}>
+                  <button 
+                    style={styles.btnImages} 
+                    onClick={() => handleVoirImages(s.id_signalements)}
+                    disabled={loadingImages}
+                  >
+                    <Image size={14} /> Voir
+                  </button>
                 </td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
@@ -623,6 +679,7 @@ const GestionSignalement = () => {
               <th style={styles.th}>Email</th>
               <th style={styles.th}>Budget</th>
               <th style={styles.th}>Surface</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={styles.th}>Statut</th>
             </tr>
           </thead>
@@ -639,6 +696,15 @@ const GestionSignalement = () => {
                 <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}</td>
                 <td style={styles.td}>{s.total_surface ? `${s.total_surface} m²` : 'N/A'}</td>
+                <td style={{ ...styles.td, textAlign: 'center' }}>
+                  <button 
+                    style={styles.btnImages} 
+                    onClick={() => handleVoirImages(s.id_signalements)}
+                    disabled={loadingImages}
+                  >
+                    <Image size={14} /> Voir
+                  </button>
+                </td>
                 <td style={styles.td}>
                   <span style={getStatutStyle(s.statut)}>{s.statut?.replace('_', ' ')}</span>
                 </td>
@@ -766,6 +832,18 @@ const GestionSignalement = () => {
           </div>
         </div>
       )}
+
+      {/* Modal Images */}
+      <ImageModal 
+        isOpen={showImageModal}
+        onClose={() => {
+          setShowImageModal(false);
+          setSelectedImages([]);
+          setSelectedSignalementId(null);
+        }}
+        images={selectedImages}
+        signalementId={selectedSignalementId}
+      />
     </>
   );
 };

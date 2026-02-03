@@ -113,13 +113,24 @@
             ></textarea>
           </div>
 
+          <!-- Ajout de photos -->
+          <div class="form-group" v-if="selectedPoint">
+            <label class="form-label">Photos (optionnel, max 3)</label>
+            <ImagePicker 
+              v-model="selectedImages" 
+              :max-images="3"
+              :disabled="!selectedPoint"
+            />
+          </div>
+
           <button
             class="btn-submit"
             @click="submitSignalement"
-            :disabled="!selectedPoint || !signalementDescription"
+            :disabled="!selectedPoint || !signalementDescription || isSubmitting"
           >
-            <i class="fas fa-paper-plane"></i>
-            <span>Envoyer le signalement</span>
+            <i v-if="!isSubmitting" class="fas fa-paper-plane"></i>
+            <ion-spinner v-else name="crescent" class="submit-spinner"></ion-spinner>
+            <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer le signalement' }}</span>
           </button>
         </div>
       </ion-content>
@@ -160,12 +171,14 @@ import {
   IonLabel,
   IonSegment,
   IonSegmentButton,
+  IonSpinner,
   alertController,
   toastController
 } from '@ionic/vue';
 import { logout, currentUser } from '@/services/firebase/authService';
 import { createSignalement } from '@/services/problemService';
 import MapView from '@/components/MapView.vue';
+import ImagePicker from '@/components/ImagePicker.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -176,6 +189,8 @@ const selectedPoint = ref<{ lat: number; lng: number } | null>(null);
 const clickedPoint = ref<{ lat: number; lng: number } | null>(null);
 const clickedPixelPos = ref<{ x: number; y: number } | null>(null);
 const filterMode = ref<'all' | 'mine'>('all');
+const selectedImages = ref<File[]>([]);
+const isSubmitting = ref(false);
 let tempMarker: any = null;
 
 onMounted(() => {
@@ -231,6 +246,7 @@ const openSignalementFromMapClick = () => {
   if (clickedPoint.value && currentUser.value) {
     selectedPoint.value = clickedPoint.value;
     signalementDescription.value = '';
+    selectedImages.value = [];
     isSelectingLocation.value = false;
     isModalOpen.value = true;
     clickedPoint.value = null;
@@ -249,6 +265,7 @@ const openSignalementModal = () => {
   isModalOpen.value = true;
   selectedPoint.value = null;
   signalementDescription.value = '';
+  selectedImages.value = [];
   isSelectingLocation.value = false;
 };
 
@@ -328,7 +345,7 @@ const submitSignalement = async () => {
   try {
     const alert = await alertController.create({
       header: 'Confirmer le signalement',
-      message: `Voulez-vous signaler ce problème ?<br/><br/><b>${signalementDescription.value}</b>`,
+      message: `Voulez-vous signaler ce problème ?<br/><br/><b>${signalementDescription.value}</b>${selectedImages.value.length > 0 ? '<br/><br/><i>' + selectedImages.value.length + ' photo(s) jointe(s)</i>' : ''}`,
       buttons: [
         {
           text: 'Annuler',
@@ -338,15 +355,20 @@ const submitSignalement = async () => {
           text: 'Confirmer',
           handler: async () => {
             try {
-
+              isSubmitting.value = true;
+              
               // Utiliser l'ID de la ville d'Antananarivo si disponible
               const villeId = 'villeId';
               const id = await createSignalement(
                 signalementDescription.value,
                 selectedPoint.value!.lat,
                 selectedPoint.value!.lng,
-                villeId
+                villeId,
+                selectedImages.value.length > 0 ? selectedImages.value : undefined
               );
+              
+              isSubmitting.value = false;
+              
               if (!id) {
                 const toast = await toastController.create({
                   message: "Erreur lors de la création du signalement.",
@@ -374,6 +396,7 @@ const submitSignalement = async () => {
               }
             } catch (error) {
               console.error('Erreur lors de la création du signalement:', error);
+              isSubmitting.value = false;
               const toast = await toastController.create({
                 message: 'Erreur lors de l\'envoi du signalement',
                 duration: 3000,
@@ -540,6 +563,12 @@ ion-fab-button i {
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.submit-spinner {
+  width: 20px;
+  height: 20px;
+  --color: #243B4A;
 }
 
 /* Header buttons */
