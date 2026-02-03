@@ -74,7 +74,7 @@ npm start
 
 Le serveur démarre sur `http://localhost:3000`
 
-## 📊 Base de données
+## Base de données
 
 ### Synchroniser les migrations
 ```bash

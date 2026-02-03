@@ -155,7 +155,7 @@ async function main() {
 
   console.log('');
   console.log('   ==========================================');
-  console.log('   📊 RÉSUMÉ');
+  console.log('   RÉSUMÉ');
   console.log('   ==========================================');
   console.log(`   ✅ Téléchargées: ${downloaded}`);
   console.log(`   📦 Déjà en cache: ${cached}`);

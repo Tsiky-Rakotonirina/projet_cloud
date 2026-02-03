@@ -34,11 +34,11 @@ async function cleanDuplicates() {
       SELECT firebase_id FROM firebase_mapping WHERE entity_type = 'signalement'
     `);
     const mappedFirebaseIds = new Set(mappings.map(m => m.firebase_id));
-    console.log(`📊 ${mappedFirebaseIds.size} signalements mappés dans PostgreSQL`);
+    console.log(`${mappedFirebaseIds.size} signalements mappés dans PostgreSQL`);
 
     // Récupérer tous les signalements Firebase
     const firebaseSignalements = await db.collection('signalements').get();
-    console.log(`📊 ${firebaseSignalements.docs.length} signalements dans Firebase`);
+    console.log(`${firebaseSignalements.docs.length} signalements dans Firebase`);
 
     // Identifier les documents à supprimer
     const toDelete = [];
@@ -65,7 +65,7 @@ async function cleanDuplicates() {
 
     // Vérification finale
     const finalCount = await db.collection('signalements').get();
-    console.log(`📊 Nombre final de signalements dans Firebase: ${finalCount.docs.length}`);
+    console.log(`Nombre final de signalements dans Firebase: ${finalCount.docs.length}`);
 
     await sequelize.close();
     process.exit(0);

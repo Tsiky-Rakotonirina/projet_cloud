@@ -556,7 +556,7 @@ const Synchronisation = () => {
                       onClick={() => handleViewSessionUsers(session)}
                       style={{ padding: '6px 12px', fontSize: '12px' }}
                     >
-                      👤 Voir utilisateurs
+                      Voir utilisateurs
                     </Button>
                   </td>
                 </tr>
@@ -627,7 +627,7 @@ const Synchronisation = () => {
           transition: 'all 0.2s'
         }}
       >
-        📊 Historique & Utilisateurs
+        Historique & Utilisateurs
       </button>
     </div>
   );
@@ -926,7 +926,7 @@ const Synchronisation = () => {
                       disabled={syncing}
                       style={{ backgroundColor: '#1565c0' }}
                     >
-                      📊 Sync avec tracking
+                      Sync avec tracking
                     </Button>
                   </div>
                 </div>

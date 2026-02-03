@@ -28,7 +28,7 @@ const db = admin.firestore();
     
     // Compter les signalements restants
     const remaining = await db.collection('signalements').get();
-    console.log(`📊 Signalements restants: ${remaining.size}`);
+    console.log(`Signalements restants: ${remaining.size}`);
     
     process.exit(0);
   } catch (error) {

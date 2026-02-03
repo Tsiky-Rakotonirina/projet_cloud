@@ -99,7 +99,7 @@ Le fichier `API/src/config/firebase-admin-sdk.json` contient les credentials Fir
 
 **Projet Firebase** : `tp-firebase-b195d`
 
-## 📊 Base de Données
+## Base de Données
 
 ### Connexion PostgreSQL
 
