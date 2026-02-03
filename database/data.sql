@@ -67,13 +67,11 @@ INSERT INTO signalement_statuts (libelle, descri) VALUES
   ('resolu', 'Signalement traité et fermé'),
   ('rejete', 'Signalement rejeté');
 
--- Statuts pour les problèmes (travaux)
+-- Statuts pour les problèmes (travaux) - 3 niveaux: 0% → 50% → 100%
 INSERT INTO probleme_statuts (libelle, descri, pourcentage) VALUES 
   ('non_commence', 'Travaux non commencés', 0),
   ('en_cours', 'Travaux en cours', 50),
-  ('termine', 'Travaux terminés', 100),
-  ('suspendu', 'Travaux suspendus temporairement', 25),
-  ('planifie', 'Travaux planifiés', 10);
+  ('termine', 'Travaux terminés', 100);
 
 -- ==============================
 -- DONNÉES GÉOGRAPHIQUES
@@ -111,7 +109,7 @@ INSERT INTO problemes (surface, budget, entreprise_id, signalement_id, probleme_
   (48.0, 12000, 1, 2, 2),
   (35.75, 8500, 2, 3, 2),
   (60.0, 15000, 2, 4, 1),
-  (42.25, 10000, 3, 5, 5),
+  (42.25, 10000, 3, 5, 3),
   (55.5, 13000, 3, 6, 1);
 
 -- ==============================
@@ -133,5 +131,5 @@ INSERT INTO probleme_historiques (surface, budget, utilisateur_id, probleme_stat
   (48.0, 12000, 1, 2, 2, NOW() - INTERVAL '4 days'),
   (35.75, 8500, 1, 2, 3, NOW() - INTERVAL '3 days'),
   (60.0, 15000, 1, 1, 4, NOW() - INTERVAL '2 days'),
-  (42.25, 10000, 1, 5, 5, NOW() - INTERVAL '1 day'),
+  (42.25, 10000, 1, 3, 5, NOW() - INTERVAL '1 day'),
   (55.5, 13000, 1, 1, 6, NOW());

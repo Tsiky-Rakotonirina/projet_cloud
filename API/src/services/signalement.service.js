@@ -259,7 +259,19 @@ const signalementService = {
         {
           model: db.Probleme,
           as: 'problemes',
-          attributes: ['surface', 'budget'],
+          attributes: ['id_problemes', 'surface', 'budget', 'probleme_statut_id'],
+          include: [
+            {
+              model: db.Entreprise,
+              as: 'entreprise',
+              attributes: ['id_entreprises', 'nom'],
+            },
+            {
+              model: db.ProblemeStatut,
+              as: 'statut',
+              attributes: ['id_probleme_statuts', 'libelle', 'pourcentage'],
+            },
+          ],
         },
       ],
     });
@@ -268,6 +280,8 @@ const signalementService = {
     for (const s of signalements) {
       const currentStatut = await this.getSignalementCurrentStatut(s.id_signalements);
       if (currentStatut?.libelle === statut) {
+        // Récupérer le problème associé (le premier s'il y en a plusieurs)
+        const probleme = s.problemes?.[0];
         filtered.push({
           id_signalements: s.id_signalements,
           description: s.description,
@@ -276,6 +290,11 @@ const signalementService = {
           statut: currentStatut.libelle,
           total_surface: s.problemes?.reduce((sum, p) => sum + (p.surface || 0), 0) || 0,
           total_budget: s.problemes?.reduce((sum, p) => sum + (p.budget || 0), 0) || 0,
+          // Informations du problème pour le suivi de l'avancement
+          probleme_id: probleme?.id_problemes || null,
+          probleme_pourcentage: probleme?.statut?.pourcentage || 0,
+          probleme_statut: probleme?.statut?.libelle || null,
+          entreprise_nom: probleme?.entreprise?.nom || null,
         });
       }
     }
