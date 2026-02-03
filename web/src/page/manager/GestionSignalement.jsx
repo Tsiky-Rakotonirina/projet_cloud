@@ -910,7 +910,6 @@ const GestionSignalement = () => {
               <th style={styles.th}>Entreprise</th>
               <th style={styles.th}>Budget</th>
               <th style={styles.th}>Avancement</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
