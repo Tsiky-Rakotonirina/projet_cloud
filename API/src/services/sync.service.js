@@ -11,6 +11,7 @@ const {
   Entreprise,
   Probleme,
   ProblemeStatut,
+  ProblemeHistorique,
   Ville,
   SyncSession,
   SyncItemDetail
@@ -694,10 +695,43 @@ const syncService = {
             utilisateurFirebaseId = userMapping?.firebase_id;
           }
 
-          // Préparer les données pour Firebase (format compatible avec l'app mobile)
+          // Récupérer l'historique du signalement depuis PostgreSQL
+          const historiques = await SignalementHistorique.findAll({
+            where: { signalement_id: postgresId },
+            include: [
+              { model: Utilisateur, as: 'utilisateur' },
+              { model: SignalementStatut, as: 'statut' }
+            ],
+            order: [['date_historique', 'ASC']],
+          });
+
+          // Formater l'historique selon le schéma NoSQL attendu
+          const formattedHistoriques = [];
+          for (const h of historiques) {
+            let histUserFirebaseId = null;
+            if (h.utilisateur_id) {
+              const histUserMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'utilisateur', postgres_id: h.utilisateur_id },
+              });
+              histUserFirebaseId = histUserMapping?.firebase_id;
+            }
+            let histStatutFirebaseId = null;
+            if (h.signalement_statut_id) {
+              const histStatutMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'signalement_statut', postgres_id: h.signalement_statut_id },
+              });
+              histStatutFirebaseId = histStatutMapping?.firebase_id;
+            }
+            formattedHistoriques.push({
+              date: h.date_historique ? h.date_historique.toISOString() : new Date().toISOString(),
+              utilisateurId: histUserFirebaseId,
+              statutId: histStatutFirebaseId,
+            });
+          }
+
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             description: signalement.description,
-            // Champs attendus par le mobile
             utilisateurId: utilisateurFirebaseId,
             statutId: await this.getSignalementStatutFirebaseId(signalement.signalement_statut_id),
             point: signalement.point ? {
@@ -706,14 +740,7 @@ const syncService = {
               villeId: signalement.point.ville_id ? await this.getVilleFirebaseId(signalement.point.ville_id) : null,
             } : { lat: 0, lng: 0, villeId: null },
             createdAt: signalement.created_at ? signalement.created_at.toISOString() : new Date().toISOString(),
-            historiques: [],
-            // Champs supplémentaires pour compatibilité sync
-            utilisateur_firebase_id: utilisateurFirebaseId,
-            utilisateur_email: signalement.utilisateur?.email,
-            point_id: signalement.point_id,
-            statut_id: signalement.signalement_statut_id,
-            statut_libelle: signalement.statut?.libelle,
-            synced_at: new Date().toISOString(),
+            historiques: formattedHistoriques,
           };
 
           if (existingMapping) {
@@ -848,9 +875,10 @@ const syncService = {
             where: { entity_type: 'ville', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
+          // Note: location et rues sont gérés séparément si nécessaire
           const firebaseData = {
             nom: ville.nom,
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1083,11 +1111,11 @@ const syncService = {
             where: { entity_type: 'entreprise', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             nom: entreprise.nom,
             adresse: entreprise.adresse,
             telephone: entreprise.telephone,
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1199,10 +1227,10 @@ const syncService = {
             where: { entity_type: 'signalement_statut', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             libelle: statut.libelle,
             descri: statut.descri || '',
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1314,11 +1342,11 @@ const syncService = {
             where: { entity_type: 'probleme_statut', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             libelle: statut.libelle,
             descri: statut.descri || '',
             pourcentage: parseFloat(statut.pourcentage) || 0,
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1608,27 +1636,46 @@ const syncService = {
             statutFirebaseId = statutMapping?.firebase_id;
           }
 
+          // Récupérer l'historique du problème depuis PostgreSQL
+          const historiques = await ProblemeHistorique.findAll({
+            where: { probleme_id: postgresId },
+            include: [{ model: ProblemeStatut, as: 'statut' }],
+            order: [['date_historique', 'ASC']],
+          });
+
+          // Formater l'historique selon le schéma NoSQL attendu
+          const formattedHistoriques = [];
+          for (const h of historiques) {
+            let histStatutFirebaseId = null;
+            if (h.probleme_statut_id) {
+              const histStatutMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'probleme_statut', postgres_id: h.probleme_statut_id },
+              });
+              histStatutFirebaseId = histStatutMapping?.firebase_id;
+            }
+            formattedHistoriques.push({
+              date: h.date_historique ? h.date_historique.toISOString() : new Date().toISOString(),
+              surface: parseFloat(probleme.surface) || 0,
+              budget: parseFloat(probleme.budget) || 0,
+              utilisateurId: null, // Pas d'utilisateur dans l'historique problème actuel
+              statutId: histStatutFirebaseId,
+            });
+          }
+
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
-            // Champs attendus par le mobile
-            surface: probleme.surface,
-            budget: probleme.budget,
+            surface: parseFloat(probleme.surface) || 0,
+            budget: parseFloat(probleme.budget) || 0,
             entrepriseId: entrepriseFirebaseId,
             signalementId: signalementFirebaseId,
             statutId: statutFirebaseId,
-            historiques: [],
-            // Champs supplémentaires pour compatibilité sync
-            entreprise_firebase_id: entrepriseFirebaseId,
-            entreprise_nom: probleme.entreprise?.nom,
-            signalement_firebase_id: signalementFirebaseId,
-            statut_firebase_id: statutFirebaseId,
-            statut_libelle: probleme.statut?.libelle,
-            statut_pourcentage: probleme.statut?.pourcentage,
-            synced_at: new Date().toISOString(),
+            historiques: formattedHistoriques,
           };
 
           if (existingMapping) {
             const firebaseId = existingMapping.firebase_id;
-            await firebaseDB.collection('problemes').doc(firebaseId).update(firebaseData);
+            // Utiliser set avec merge:false pour remplacer complètement le document
+            await firebaseDB.collection('problemes').doc(firebaseId).set(firebaseData);
             await existingMapping.update({ updated_at: new Date() });
             stats.updated++;
             console.log(`✅ Problème mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
