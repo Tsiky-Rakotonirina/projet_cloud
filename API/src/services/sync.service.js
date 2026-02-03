@@ -5,6 +5,7 @@ const {
   Signalement, 
   SignalementStatut,
   SignalementHistorique,
+  SignalementImage,
   Point, 
   Profil, 
   FirebaseMapping,
@@ -16,6 +17,11 @@ const {
   SyncItemDetail
 } = require('../models');
 
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+const http = require('http');
+
 // Service de gestion des sessions de synchronisation
 const syncSessionService = require('./sync-session.service');
 
@@ -26,7 +32,8 @@ const serviceAccount = require('../config/firebase-admin-sdk.json');
 // Vérifier si Firebase n'est pas déjà initialisé
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: `${serviceAccount.project_id}.appspot.com`
   });
 }
 
@@ -564,6 +571,9 @@ const syncService = {
                 signalement_statut_id: firebaseData.statut_id || 1, // nouveau par défaut
               });
 
+              // Synchroniser les images du signalement
+              await syncService.syncSignalementImages(signalement.id_signalements, firebaseData.images || []);
+
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;
               console.log(`✅ Signalement mis à jour (PG ID: ${signalement.id_signalements})`);
@@ -583,6 +593,9 @@ const syncService = {
               signalement_statut_id: firebaseData.statut_id || 1,
               date_historique: new Date(),
             });
+
+            // Synchroniser les images du signalement
+            await syncService.syncSignalementImages(newSignalement.id_signalements, firebaseData.images || []);
 
             // Créer le mapping
             await FirebaseMapping.create({
@@ -1748,6 +1761,208 @@ const syncService = {
       };
     }
   },
+
+  /**
+   * Synchronise les images d'un signalement depuis Firebase Storage
+   * @param {number} signalementId - ID du signalement PostgreSQL
+   * @param {Array} firebaseImages - Liste des images depuis Firebase (URLs ou paths)
+   */
+  async syncSignalementImages(signalementId, firebaseImages) {
+    const stats = { downloaded: 0, skipped: 0, errors: [] };
+    
+    if (!firebaseImages || firebaseImages.length === 0) {
+      return stats;
+    }
+
+    const uploadsDir = path.join(__dirname, '..', '..', 'uploads', 'signalements');
+    
+    // Créer le dossier s'il n'existe pas
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    for (const imageData of firebaseImages) {
+      try {
+        // imageData peut être une URL, un path Firebase Storage, ou un objet {url, name}
+        const imageUrl = typeof imageData === 'string' ? imageData : imageData.url;
+        const originalName = typeof imageData === 'string' 
+          ? path.basename(imageData) 
+          : (imageData.name || path.basename(imageData.url));
+
+        // Générer un nom de fichier unique
+        const timestamp = Date.now();
+        const sanitizedName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const fileName = `${signalementId}_${timestamp}_${sanitizedName}`;
+        const filePath = path.join(uploadsDir, fileName);
+
+        // Vérifier si l'image existe déjà dans la base
+        const existingImage = await SignalementImage.findOne({
+          where: {
+            signalement_id: signalementId,
+            name: { [require('sequelize').Op.like]: `%${sanitizedName}` }
+          }
+        });
+
+        if (existingImage) {
+          console.log(`⏭️ Image déjà synchronisée: ${sanitizedName}`);
+          stats.skipped++;
+          continue;
+        }
+
+        // Télécharger l'image
+        await syncService.downloadImage(imageUrl, filePath);
+
+        // Enregistrer dans la base de données
+        await SignalementImage.create({
+          name: fileName,
+          signalement_id: signalementId,
+          date_upload: new Date()
+        });
+
+        stats.downloaded++;
+        console.log(`✅ Image téléchargée: ${fileName}`);
+
+      } catch (error) {
+        stats.errors.push({
+          image: imageData,
+          error: error.message
+        });
+        console.error(`❌ Erreur téléchargement image:`, error.message);
+      }
+    }
+
+    console.log(`📷 Images sync pour signalement ${signalementId}: ${stats.downloaded} téléchargées, ${stats.skipped} ignorées`);
+    return stats;
+  },
+
+  /**
+   * Télécharge une image depuis une URL
+   * @param {string} url - URL de l'image
+   * @param {string} destPath - Chemin de destination
+   */
+  async downloadImage(url, destPath) {
+    return new Promise((resolve, reject) => {
+      // Détecter si c'est une URL Firebase Storage et obtenir l'URL signée
+      if (url.includes('firebasestorage.googleapis.com') || url.startsWith('gs://')) {
+        // Pour Firebase Storage, utiliser l'Admin SDK
+        syncService.downloadFromFirebaseStorage(url, destPath)
+          .then(resolve)
+          .catch(reject);
+        return;
+      }
+
+      // Pour les URLs HTTP/HTTPS standard
+      const protocol = url.startsWith('https') ? https : http;
+      const file = fs.createWriteStream(destPath);
+
+      protocol.get(url, (response) => {
+        // Gérer les redirections
+        if (response.statusCode === 301 || response.statusCode === 302) {
+          const redirectUrl = response.headers.location;
+          syncService.downloadImage(redirectUrl, destPath)
+            .then(resolve)
+            .catch(reject);
+          return;
+        }
+
+        if (response.statusCode !== 200) {
+          fs.unlink(destPath, () => {});
+          reject(new Error(`Erreur HTTP ${response.statusCode}`));
+          return;
+        }
+
+        response.pipe(file);
+        
+        file.on('finish', () => {
+          file.close();
+          resolve(destPath);
+        });
+
+        file.on('error', (err) => {
+          fs.unlink(destPath, () => {});
+          reject(err);
+        });
+      }).on('error', (err) => {
+        fs.unlink(destPath, () => {});
+        reject(err);
+      });
+    });
+  },
+
+  /**
+   * Télécharge une image depuis Firebase Storage
+   * @param {string} storagePath - Path ou URL Firebase Storage
+   * @param {string} destPath - Chemin de destination local
+   */
+  async downloadFromFirebaseStorage(storagePath, destPath) {
+    try {
+      const bucket = admin.storage().bucket();
+      
+      // Extraire le path du fichier depuis l'URL si nécessaire
+      let filePath = storagePath;
+      if (storagePath.includes('firebasestorage.googleapis.com')) {
+        // Extraire le path de l'URL
+        const urlObj = new URL(storagePath);
+        const pathParts = urlObj.pathname.split('/o/');
+        if (pathParts[1]) {
+          filePath = decodeURIComponent(pathParts[1].split('?')[0]);
+        }
+      } else if (storagePath.startsWith('gs://')) {
+        filePath = storagePath.replace(/^gs:\/\/[^\/]+\//, '');
+      }
+
+      const file = bucket.file(filePath);
+      
+      // Vérifier si le fichier existe
+      const [exists] = await file.exists();
+      if (!exists) {
+        throw new Error(`Fichier non trouvé dans Firebase Storage: ${filePath}`);
+      }
+
+      // Télécharger le fichier
+      await file.download({ destination: destPath });
+      
+      return destPath;
+    } catch (error) {
+      // Si le téléchargement via SDK échoue, essayer avec l'URL signée
+      if (storagePath.includes('firebasestorage.googleapis.com')) {
+        return new Promise((resolve, reject) => {
+          const file = fs.createWriteStream(destPath);
+          https.get(storagePath, (response) => {
+            if (response.statusCode !== 200) {
+              fs.unlink(destPath, () => {});
+              reject(new Error(`Erreur HTTP ${response.statusCode}`));
+              return;
+            }
+            response.pipe(file);
+            file.on('finish', () => {
+              file.close();
+              resolve(destPath);
+            });
+          }).on('error', reject);
+        });
+      }
+      throw error;
+    }
+  },
+
+  /**
+   * Récupère les images d'un signalement
+   * @param {number} signalementId - ID du signalement
+   */
+  async getSignalementImages(signalementId) {
+    const images = await SignalementImage.findAll({
+      where: { signalement_id: signalementId },
+      order: [['date_upload', 'DESC']]
+    });
+
+    return images.map(img => ({
+      id: img.id_signalement_images,
+      name: img.name,
+      url: `/uploads/signalements/${img.name}`,
+      date_upload: img.date_upload
+    }));
+  }
 };
 
 module.exports = syncService;

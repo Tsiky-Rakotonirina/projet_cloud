@@ -232,6 +232,50 @@ router.get('/:signalementId/historique', signalementController.getSignalementSta
 
 /**
  * @swagger
+ * /api/signalement/{signalementId}/images:
+ *   get:
+ *     tags:
+ *       - Signalement
+ *     summary: Récupérer les images d'un signalement
+ *     description: Retourne la liste des images associées à un signalement
+ *     parameters:
+ *       - name: signalementId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         example: 1
+ *     responses:
+ *       200:
+ *         description: Liste des images
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       url:
+ *                         type: string
+ *                       date_upload:
+ *                         type: string
+ *                         format: date-time
+ */
+router.get('/:signalementId/images', signalementController.getSignalementImages);
+
+/**
+ * @swagger
  * /api/signalement/statut/{statut}:
  *   get:
  *     tags:

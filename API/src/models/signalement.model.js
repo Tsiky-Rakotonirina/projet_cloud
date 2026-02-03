@@ -53,6 +53,10 @@ module.exports = (sequelize) => {
       foreignKey: 'signalement_id',
       as: 'historiques',
     });
+    Signalement.hasMany(db.SignalementImage, {
+      foreignKey: 'signalement_id',
+      as: 'images',
+    });
   };
 
   return Signalement;
