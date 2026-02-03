@@ -16,4 +16,6 @@ export interface UserProfile {
   reactivatedAt?: string;
   reactivatedBy?: string;
   role?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
