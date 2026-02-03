@@ -70,12 +70,12 @@
     </ion-content>
 
     <!-- Modal de signalement -->
-    <ion-modal :is-open="isModalOpen" @did-dismiss="closeSignalementModal">
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>Signaler un problème</ion-title>
+    <ion-modal :is-open="isModalOpen" @did-dismiss="closeSignalementModal" class="signalement-modal">
+      <ion-header class="modal-header">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">Signaler un problème</ion-title>
           <ion-buttons slot="end">
-            <ion-button @click="closeSignalementModal">
+            <ion-button @click="closeSignalementModal" class="btn-close-modal">
               <i class="fas fa-times"></i>
             </ion-button>
           </ion-buttons>
@@ -114,8 +114,7 @@
           </div>
 
           <!-- Ajout de photos -->
-          <div class="form-group" v-if="selectedPoint">
-            <label class="form-label">Photos (optionnel, max 3)</label>
+          <div class="form-group photos-section" v-if="selectedPoint">
             <ImagePicker 
               v-model="selectedImages" 
               :max-images="3"
@@ -345,14 +344,16 @@ const submitSignalement = async () => {
   try {
     const alert = await alertController.create({
       header: 'Confirmer le signalement',
-      message: `Voulez-vous signaler ce problème ?<br/><br/><b>${signalementDescription.value}</b>${selectedImages.value.length > 0 ? '<br/><br/><i>' + selectedImages.value.length + ' photo(s) jointe(s)</i>' : ''}`,
+      cssClass: 'confirm-alert',
       buttons: [
         {
           text: 'Annuler',
-          role: 'cancel'
+          role: 'cancel',
+          cssClass: 'alert-btn-cancel'
         },
         {
           text: 'Confirmer',
+          cssClass: 'alert-btn-confirm',
           handler: async () => {
             try {
               isSubmitting.value = true;
@@ -437,14 +438,47 @@ ion-fab-button i {
 }
 
 /* Modal */
+.signalement-modal {
+  --border-radius: 20px 20px 0 0;
+}
+
+.modal-header {
+  background: #1a2e3a;
+}
+
+.modal-toolbar {
+  --background: #1a2e3a;
+  --border-width: 0;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  padding-left: 16px;
+}
+
+.btn-close-modal {
+  --color: rgba(255, 255, 255, 0.7);
+  font-size: 20px;
+}
+
+.btn-close-modal:hover {
+  --color: white;
+}
+
 .modal-content-wrapper {
   --background: #243B4A;
+  --padding-top: 20px;
+  --padding-bottom: 30px;
 }
 
 .modal-content {
   max-width: 500px;
   margin: 0 auto;
-  padding: 8px 0;
+  padding: 0 4px;
 }
 
 .instruction-box {
@@ -502,7 +536,11 @@ ion-fab-button i {
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.photos-section {
+  margin-bottom: 28px;
 }
 
 .form-label {
@@ -512,7 +550,7 @@ ion-fab-button i {
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .form-textarea {

@@ -1783,11 +1783,9 @@ const syncService = {
 
     for (const imageData of firebaseImages) {
       try {
-        // imageData peut être une URL, un path Firebase Storage, ou un objet {url, name}
-        const imageUrl = typeof imageData === 'string' ? imageData : imageData.url;
-        const originalName = typeof imageData === 'string' 
-          ? path.basename(imageData) 
-          : (imageData.name || path.basename(imageData.url));
+        // Vérifier le format de l'image (base64 ou URL)
+        const isBase64 = imageData.base64 && imageData.base64.startsWith('data:');
+        const originalName = imageData.name || `image_${Date.now()}.jpg`;
 
         // Générer un nom de fichier unique
         const timestamp = Date.now();
@@ -1809,8 +1807,15 @@ const syncService = {
           continue;
         }
 
-        // Télécharger l'image
-        await syncService.downloadImage(imageUrl, filePath);
+        if (isBase64) {
+          // Sauvegarder l'image depuis base64
+          await syncService.saveBase64Image(imageData.base64, filePath);
+        } else if (imageData.url) {
+          // Télécharger l'image depuis URL
+          await syncService.downloadImage(imageData.url, filePath);
+        } else {
+          throw new Error('Format d\'image non supporté');
+        }
 
         // Enregistrer dans la base de données
         await SignalementImage.create({
@@ -1820,19 +1825,50 @@ const syncService = {
         });
 
         stats.downloaded++;
-        console.log(`✅ Image téléchargée: ${fileName}`);
+        console.log(`✅ Image sauvegardée: ${fileName}`);
 
       } catch (error) {
         stats.errors.push({
-          image: imageData,
+          image: imageData.name || 'unknown',
           error: error.message
         });
-        console.error(`❌ Erreur téléchargement image:`, error.message);
+        console.error(`❌ Erreur sauvegarde image:`, error.message);
       }
     }
 
     console.log(`📷 Images sync pour signalement ${signalementId}: ${stats.downloaded} téléchargées, ${stats.skipped} ignorées`);
     return stats;
+  },
+
+  /**
+   * Sauvegarde une image depuis base64
+   * @param {string} base64Data - Image en base64 (data:image/jpeg;base64,...)
+   * @param {string} destPath - Chemin de destination
+   */
+  async saveBase64Image(base64Data, destPath) {
+    return new Promise((resolve, reject) => {
+      try {
+        // Extraire les données base64 (enlever le préfixe data:image/...)
+        const matches = base64Data.match(/^data:image\/\w+;base64,(.+)$/);
+        if (!matches || matches.length !== 2) {
+          reject(new Error('Format base64 invalide'));
+          return;
+        }
+
+        const imageBuffer = Buffer.from(matches[1], 'base64');
+        
+        fs.writeFile(destPath, imageBuffer, (err) => {
+          if (err) {
+            reject(err);
+          } else {
+            console.log(`📷 Image base64 sauvegardée: ${path.basename(destPath)} (${(imageBuffer.length / 1024).toFixed(1)} KB)`);
+            resolve(destPath);
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
   },
 
   /**

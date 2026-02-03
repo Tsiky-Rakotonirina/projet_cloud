@@ -1,44 +1,43 @@
 <template>
   <div class="image-picker">
     <div class="picker-header">
-      <label class="picker-label">
+      <div class="picker-title">
         <i class="fas fa-camera"></i>
-        Photos ({{ images.length }}/{{ maxImages }})
-      </label>
+        <span class="picker-label">Photos ({{ images.length }}/{{ maxImages }})</span>
+      </div>
       <span class="picker-hint">Ajoutez jusqu'à {{ maxImages }} photos</span>
     </div>
 
-    <!-- Grille des images -->
-    <div class="images-grid">
-      <!-- Images sélectionnées -->
+    <!-- Images sélectionnées -->
+    <div v-if="images.length > 0" class="images-preview">
       <div 
         v-for="(image, index) in images" 
         :key="index" 
         class="image-item"
       >
         <img :src="image.preview" :alt="`Photo ${index + 1}`" class="image-preview" />
-        <button class="btn-remove" @click="removeImage(index)">
+        <button class="btn-remove" @click="removeImage(index)" type="button">
           <i class="fas fa-times"></i>
-        </button>
-      </div>
-
-      <!-- Boutons d'ajout si pas au max -->
-      <div v-if="images.length < maxImages" class="add-buttons">
-        <button class="btn-add" @click="handleTakePhoto" :disabled="isLoading">
-          <i class="fas fa-camera"></i>
-          <span>Photo</span>
-        </button>
-        <button class="btn-add btn-gallery" @click="handleSelectGallery" :disabled="isLoading">
-          <i class="fas fa-images"></i>
-          <span>Galerie</span>
         </button>
       </div>
     </div>
 
+    <!-- Boutons d'ajout -->
+    <div v-if="images.length < maxImages" class="add-buttons">
+      <button class="btn-add btn-camera" @click="handleTakePhoto" :disabled="isLoading" type="button">
+        <i class="fas fa-camera"></i>
+        <span>Prendre une photo</span>
+      </button>
+      <button class="btn-add btn-gallery" @click="handleSelectGallery" :disabled="isLoading" type="button">
+        <i class="fas fa-folder-open"></i>
+        <span>Choisir depuis galerie</span>
+      </button>
+    </div>
+
     <!-- Loader -->
     <div v-if="isLoading" class="loader">
-      <i class="fas fa-spinner fa-spin"></i>
-      <span>Traitement...</span>
+      <div class="loader-spinner"></div>
+      <span>Traitement de l'image...</span>
     </div>
   </div>
 </template>
@@ -144,47 +143,61 @@ defineExpose({ reset });
 
 <style scoped>
 .image-picker {
-  margin-bottom: 20px;
+  background: rgba(45, 70, 84, 0.5);
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid rgba(135, 188, 222, 0.15);
 }
 
 .picker-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(135, 188, 222, 0.15);
+}
+
+.picker-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.picker-title i {
+  font-size: 18px;
+  color: #87BCDE;
 }
 
 .picker-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
-}
-
-.picker-label i {
-  color: #87BCDE;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .picker-hint {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
 }
 
-.images-grid {
+.images-preview {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+  margin-bottom: 16px;
 }
 
 .image-item {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 90px;
+  height: 90px;
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid rgba(135, 188, 222, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .image-preview {
@@ -200,7 +213,7 @@ defineExpose({ reset });
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(239, 68, 68, 0.9);
+  background: rgba(239, 68, 68, 0.95);
   border: none;
   color: white;
   display: flex;
@@ -208,6 +221,7 @@ defineExpose({ reset });
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .btn-remove:hover {
@@ -216,33 +230,27 @@ defineExpose({ reset });
 }
 
 .btn-remove i {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .add-buttons {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .btn-add {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 100px;
-  height: 100px;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 20px;
   border-radius: 12px;
-  border: 2px dashed rgba(135, 188, 222, 0.4);
-  background: rgba(135, 188, 222, 0.1);
-  color: #87BCDE;
+  border: none;
   cursor: pointer;
   transition: all 0.2s;
-}
-
-.btn-add:hover:not(:disabled) {
-  border-color: #87BCDE;
-  background: rgba(135, 188, 222, 0.2);
+  font-family: inherit;
 }
 
 .btn-add:disabled {
@@ -251,36 +259,58 @@ defineExpose({ reset });
 }
 
 .btn-add i {
-  font-size: 24px;
+  font-size: 18px;
 }
 
 .btn-add span {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.btn-camera {
+  background: linear-gradient(135deg, #87BCDE 0%, #6fa8cc 100%);
+  color: #1a2e3a;
+}
+
+.btn-camera:hover:not(:disabled) {
+  background: linear-gradient(135deg, #9cc8e6 0%, #87BCDE 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(135, 188, 222, 0.4);
 }
 
 .btn-gallery {
-  border-color: rgba(128, 94, 115, 0.4);
-  background: rgba(128, 94, 115, 0.1);
-  color: #805E73;
+  background: rgba(135, 188, 222, 0.15);
+  color: #87BCDE;
+  border: 1px solid rgba(135, 188, 222, 0.3);
 }
 
 .btn-gallery:hover:not(:disabled) {
-  border-color: #805E73;
-  background: rgba(128, 94, 115, 0.2);
+  background: rgba(135, 188, 222, 0.25);
+  border-color: #87BCDE;
 }
 
 .loader {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  gap: 12px;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.8);
   font-size: 14px;
 }
 
-.loader i {
-  color: #87BCDE;
+.loader-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(135, 188, 222, 0.3);
+  border-top-color: #87BCDE;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

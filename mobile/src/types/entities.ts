@@ -32,9 +32,9 @@ export interface ProblemeStatut {
 }
 
 export interface SignalementImage {
-  url: string;
+  base64?: string;  // Image en base64 (stockée dans Firestore)
+  url?: string;     // URL de l'image (après sync vers API)
   name: string;
-  path?: string;
 }
 
 export interface Signalement {
