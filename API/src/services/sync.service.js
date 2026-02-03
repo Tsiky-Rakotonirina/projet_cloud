@@ -5,22 +5,17 @@ const {
   Signalement, 
   SignalementStatut,
   SignalementHistorique,
-  SignalementImage,
   Point, 
   Profil, 
   FirebaseMapping,
   Entreprise,
   Probleme,
   ProblemeStatut,
+  ProblemeHistorique,
   Ville,
   SyncSession,
   SyncItemDetail
 } = require('../models');
-
-const fs = require('fs');
-const path = require('path');
-const https = require('https');
-const http = require('http');
 
 // Service de gestion des sessions de synchronisation
 const syncSessionService = require('./sync-session.service');
@@ -32,8 +27,7 @@ const serviceAccount = require('../config/firebase-admin-sdk.json');
 // Vérifier si Firebase n'est pas déjà initialisé
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    storageBucket: `${serviceAccount.project_id}.appspot.com`
+    credential: admin.credential.cert(serviceAccount)
   });
 }
 
@@ -595,9 +589,6 @@ const syncService = {
                 // NE PAS mettre à jour signalement_statut_id pour préserver les modifications admin
               });
 
-              // Synchroniser les images du signalement
-              await syncService.syncSignalementImages(signalement.id_signalements, firebaseData.images || []);
-
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;
               console.log(`✅ Signalement mis à jour sans changer le statut (PG ID: ${signalement.id_signalements})`);
@@ -617,9 +608,6 @@ const syncService = {
               signalement_statut_id: firebaseData.statut_id || 1,
               date_historique: new Date(),
             });
-
-            // Synchroniser les images du signalement
-            await syncService.syncSignalementImages(newSignalement.id_signalements, firebaseData.images || []);
 
             // Créer le mapping
             await FirebaseMapping.create({
@@ -707,10 +695,43 @@ const syncService = {
             utilisateurFirebaseId = userMapping?.firebase_id;
           }
 
-          // Préparer les données pour Firebase (format compatible avec l'app mobile)
+          // Récupérer l'historique du signalement depuis PostgreSQL
+          const historiques = await SignalementHistorique.findAll({
+            where: { signalement_id: postgresId },
+            include: [
+              { model: Utilisateur, as: 'utilisateur' },
+              { model: SignalementStatut, as: 'statut' }
+            ],
+            order: [['date_historique', 'ASC']],
+          });
+
+          // Formater l'historique selon le schéma NoSQL attendu
+          const formattedHistoriques = [];
+          for (const h of historiques) {
+            let histUserFirebaseId = null;
+            if (h.utilisateur_id) {
+              const histUserMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'utilisateur', postgres_id: h.utilisateur_id },
+              });
+              histUserFirebaseId = histUserMapping?.firebase_id;
+            }
+            let histStatutFirebaseId = null;
+            if (h.signalement_statut_id) {
+              const histStatutMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'signalement_statut', postgres_id: h.signalement_statut_id },
+              });
+              histStatutFirebaseId = histStatutMapping?.firebase_id;
+            }
+            formattedHistoriques.push({
+              date: h.date_historique ? h.date_historique.toISOString() : new Date().toISOString(),
+              utilisateurId: histUserFirebaseId,
+              statutId: histStatutFirebaseId,
+            });
+          }
+
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             description: signalement.description,
-            // Champs attendus par le mobile
             utilisateurId: utilisateurFirebaseId,
             statutId: await this.getSignalementStatutFirebaseId(signalement.signalement_statut_id),
             point: signalement.point ? {
@@ -719,14 +740,7 @@ const syncService = {
               villeId: signalement.point.ville_id ? await this.getVilleFirebaseId(signalement.point.ville_id) : null,
             } : { lat: 0, lng: 0, villeId: null },
             createdAt: signalement.created_at ? signalement.created_at.toISOString() : new Date().toISOString(),
-            historiques: [],
-            // Champs supplémentaires pour compatibilité sync
-            utilisateur_firebase_id: utilisateurFirebaseId,
-            utilisateur_email: signalement.utilisateur?.email,
-            point_id: signalement.point_id,
-            statut_id: signalement.signalement_statut_id,
-            statut_libelle: signalement.statut?.libelle,
-            synced_at: new Date().toISOString(),
+            historiques: formattedHistoriques,
           };
 
           if (existingMapping) {
@@ -861,9 +875,10 @@ const syncService = {
             where: { entity_type: 'ville', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
+          // Note: location et rues sont gérés séparément si nécessaire
           const firebaseData = {
             nom: ville.nom,
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1096,11 +1111,11 @@ const syncService = {
             where: { entity_type: 'entreprise', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             nom: entreprise.nom,
             adresse: entreprise.adresse,
             telephone: entreprise.telephone,
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1212,10 +1227,10 @@ const syncService = {
             where: { entity_type: 'signalement_statut', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             libelle: statut.libelle,
             descri: statut.descri || '',
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1327,11 +1342,11 @@ const syncService = {
             where: { entity_type: 'probleme_statut', postgres_id: postgresId },
           });
 
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
             libelle: statut.libelle,
             descri: statut.descri || '',
             pourcentage: parseFloat(statut.pourcentage) || 0,
-            synced_at: new Date().toISOString(),
           };
 
           if (existingMapping) {
@@ -1621,27 +1636,46 @@ const syncService = {
             statutFirebaseId = statutMapping?.firebase_id;
           }
 
+          // Récupérer l'historique du problème depuis PostgreSQL
+          const historiques = await ProblemeHistorique.findAll({
+            where: { probleme_id: postgresId },
+            include: [{ model: ProblemeStatut, as: 'statut' }],
+            order: [['date_historique', 'ASC']],
+          });
+
+          // Formater l'historique selon le schéma NoSQL attendu
+          const formattedHistoriques = [];
+          for (const h of historiques) {
+            let histStatutFirebaseId = null;
+            if (h.probleme_statut_id) {
+              const histStatutMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'probleme_statut', postgres_id: h.probleme_statut_id },
+              });
+              histStatutFirebaseId = histStatutMapping?.firebase_id;
+            }
+            formattedHistoriques.push({
+              date: h.date_historique ? h.date_historique.toISOString() : new Date().toISOString(),
+              surface: parseFloat(probleme.surface) || 0,
+              budget: parseFloat(probleme.budget) || 0,
+              utilisateurId: null, // Pas d'utilisateur dans l'historique problème actuel
+              statutId: histStatutFirebaseId,
+            });
+          }
+
+          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
           const firebaseData = {
-            // Champs attendus par le mobile
-            surface: probleme.surface,
-            budget: probleme.budget,
+            surface: parseFloat(probleme.surface) || 0,
+            budget: parseFloat(probleme.budget) || 0,
             entrepriseId: entrepriseFirebaseId,
             signalementId: signalementFirebaseId,
             statutId: statutFirebaseId,
-            historiques: [],
-            // Champs supplémentaires pour compatibilité sync
-            entreprise_firebase_id: entrepriseFirebaseId,
-            entreprise_nom: probleme.entreprise?.nom,
-            signalement_firebase_id: signalementFirebaseId,
-            statut_firebase_id: statutFirebaseId,
-            statut_libelle: probleme.statut?.libelle,
-            statut_pourcentage: probleme.statut?.pourcentage,
-            synced_at: new Date().toISOString(),
+            historiques: formattedHistoriques,
           };
 
           if (existingMapping) {
             const firebaseId = existingMapping.firebase_id;
-            await firebaseDB.collection('problemes').doc(firebaseId).update(firebaseData);
+            // Utiliser set avec merge:false pour remplacer complètement le document
+            await firebaseDB.collection('problemes').doc(firebaseId).set(firebaseData);
             await existingMapping.update({ updated_at: new Date() });
             stats.updated++;
             console.log(`✅ Problème mis à jour dans Firebase (Firebase ID: ${firebaseId})`);
@@ -1802,244 +1836,6 @@ const syncService = {
       };
     }
   },
-
-  /**
-   * Synchronise les images d'un signalement depuis Firebase Storage
-   * @param {number} signalementId - ID du signalement PostgreSQL
-   * @param {Array} firebaseImages - Liste des images depuis Firebase (URLs ou paths)
-   */
-  async syncSignalementImages(signalementId, firebaseImages) {
-    const stats = { downloaded: 0, skipped: 0, errors: [] };
-    
-    if (!firebaseImages || firebaseImages.length === 0) {
-      return stats;
-    }
-
-    const uploadsDir = path.join(__dirname, '..', '..', 'uploads', 'signalements');
-    
-    // Créer le dossier s'il n'existe pas
-    if (!fs.existsSync(uploadsDir)) {
-      fs.mkdirSync(uploadsDir, { recursive: true });
-    }
-
-    for (const imageData of firebaseImages) {
-      try {
-        // Vérifier le format de l'image (base64 ou URL)
-        const isBase64 = imageData.base64 && imageData.base64.startsWith('data:');
-        const originalName = imageData.name || `image_${Date.now()}.jpg`;
-
-        // Générer un nom de fichier unique
-        const timestamp = Date.now();
-        const sanitizedName = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const fileName = `${signalementId}_${timestamp}_${sanitizedName}`;
-        const filePath = path.join(uploadsDir, fileName);
-
-        // Vérifier si l'image existe déjà dans la base
-        const existingImage = await SignalementImage.findOne({
-          where: {
-            signalement_id: signalementId,
-            name: { [require('sequelize').Op.like]: `%${sanitizedName}` }
-          }
-        });
-
-        if (existingImage) {
-          console.log(`⏭️ Image déjà synchronisée: ${sanitizedName}`);
-          stats.skipped++;
-          continue;
-        }
-
-        if (isBase64) {
-          // Sauvegarder l'image depuis base64
-          await syncService.saveBase64Image(imageData.base64, filePath);
-        } else if (imageData.url) {
-          // Télécharger l'image depuis URL
-          await syncService.downloadImage(imageData.url, filePath);
-        } else {
-          throw new Error('Format d\'image non supporté');
-        }
-
-        // Enregistrer dans la base de données
-        await SignalementImage.create({
-          name: fileName,
-          signalement_id: signalementId,
-          date_upload: new Date()
-        });
-
-        stats.downloaded++;
-        console.log(`✅ Image sauvegardée: ${fileName}`);
-
-      } catch (error) {
-        stats.errors.push({
-          image: imageData.name || 'unknown',
-          error: error.message
-        });
-        console.error(`❌ Erreur sauvegarde image:`, error.message);
-      }
-    }
-
-    console.log(`📷 Images sync pour signalement ${signalementId}: ${stats.downloaded} téléchargées, ${stats.skipped} ignorées`);
-    return stats;
-  },
-
-  /**
-   * Sauvegarde une image depuis base64
-   * @param {string} base64Data - Image en base64 (data:image/jpeg;base64,...)
-   * @param {string} destPath - Chemin de destination
-   */
-  async saveBase64Image(base64Data, destPath) {
-    return new Promise((resolve, reject) => {
-      try {
-        // Extraire les données base64 (enlever le préfixe data:image/...)
-        const matches = base64Data.match(/^data:image\/\w+;base64,(.+)$/);
-        if (!matches || matches.length !== 2) {
-          reject(new Error('Format base64 invalide'));
-          return;
-        }
-
-        const imageBuffer = Buffer.from(matches[1], 'base64');
-        
-        fs.writeFile(destPath, imageBuffer, (err) => {
-          if (err) {
-            reject(err);
-          } else {
-            console.log(`📷 Image base64 sauvegardée: ${path.basename(destPath)} (${(imageBuffer.length / 1024).toFixed(1)} KB)`);
-            resolve(destPath);
-          }
-        });
-      } catch (error) {
-        reject(error);
-      }
-    });
-  },
-
-  /**
-   * Télécharge une image depuis une URL
-   * @param {string} url - URL de l'image
-   * @param {string} destPath - Chemin de destination
-   */
-  async downloadImage(url, destPath) {
-    return new Promise((resolve, reject) => {
-      // Détecter si c'est une URL Firebase Storage et obtenir l'URL signée
-      if (url.includes('firebasestorage.googleapis.com') || url.startsWith('gs://')) {
-        // Pour Firebase Storage, utiliser l'Admin SDK
-        syncService.downloadFromFirebaseStorage(url, destPath)
-          .then(resolve)
-          .catch(reject);
-        return;
-      }
-
-      // Pour les URLs HTTP/HTTPS standard
-      const protocol = url.startsWith('https') ? https : http;
-      const file = fs.createWriteStream(destPath);
-
-      protocol.get(url, (response) => {
-        // Gérer les redirections
-        if (response.statusCode === 301 || response.statusCode === 302) {
-          const redirectUrl = response.headers.location;
-          syncService.downloadImage(redirectUrl, destPath)
-            .then(resolve)
-            .catch(reject);
-          return;
-        }
-
-        if (response.statusCode !== 200) {
-          fs.unlink(destPath, () => {});
-          reject(new Error(`Erreur HTTP ${response.statusCode}`));
-          return;
-        }
-
-        response.pipe(file);
-        
-        file.on('finish', () => {
-          file.close();
-          resolve(destPath);
-        });
-
-        file.on('error', (err) => {
-          fs.unlink(destPath, () => {});
-          reject(err);
-        });
-      }).on('error', (err) => {
-        fs.unlink(destPath, () => {});
-        reject(err);
-      });
-    });
-  },
-
-  /**
-   * Télécharge une image depuis Firebase Storage
-   * @param {string} storagePath - Path ou URL Firebase Storage
-   * @param {string} destPath - Chemin de destination local
-   */
-  async downloadFromFirebaseStorage(storagePath, destPath) {
-    try {
-      const bucket = admin.storage().bucket();
-      
-      // Extraire le path du fichier depuis l'URL si nécessaire
-      let filePath = storagePath;
-      if (storagePath.includes('firebasestorage.googleapis.com')) {
-        // Extraire le path de l'URL
-        const urlObj = new URL(storagePath);
-        const pathParts = urlObj.pathname.split('/o/');
-        if (pathParts[1]) {
-          filePath = decodeURIComponent(pathParts[1].split('?')[0]);
-        }
-      } else if (storagePath.startsWith('gs://')) {
-        filePath = storagePath.replace(/^gs:\/\/[^\/]+\//, '');
-      }
-
-      const file = bucket.file(filePath);
-      
-      // Vérifier si le fichier existe
-      const [exists] = await file.exists();
-      if (!exists) {
-        throw new Error(`Fichier non trouvé dans Firebase Storage: ${filePath}`);
-      }
-
-      // Télécharger le fichier
-      await file.download({ destination: destPath });
-      
-      return destPath;
-    } catch (error) {
-      // Si le téléchargement via SDK échoue, essayer avec l'URL signée
-      if (storagePath.includes('firebasestorage.googleapis.com')) {
-        return new Promise((resolve, reject) => {
-          const file = fs.createWriteStream(destPath);
-          https.get(storagePath, (response) => {
-            if (response.statusCode !== 200) {
-              fs.unlink(destPath, () => {});
-              reject(new Error(`Erreur HTTP ${response.statusCode}`));
-              return;
-            }
-            response.pipe(file);
-            file.on('finish', () => {
-              file.close();
-              resolve(destPath);
-            });
-          }).on('error', reject);
-        });
-      }
-      throw error;
-    }
-  },
-
-  /**
-   * Récupère les images d'un signalement
-   * @param {number} signalementId - ID du signalement
-   */
-  async getSignalementImages(signalementId) {
-    const images = await SignalementImage.findAll({
-      where: { signalement_id: signalementId },
-      order: [['date_upload', 'DESC']]
-    });
-
-    return images.map(img => ({
-      id: img.id_signalement_images,
-      name: img.name,
-      url: `/uploads/signalements/${img.name}`,
-      date_upload: img.date_upload
-    }));
-  }
 };
 
 module.exports = syncService;
