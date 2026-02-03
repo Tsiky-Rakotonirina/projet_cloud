@@ -50,6 +50,42 @@ const createSignalementIcon = () => {
   });
 };
 
+// Créer le contenu HTML du popup pour un signalement (avec images)
+const createSignalementPopupContent = (sig: Signalement): string => {
+  let imagesHtml = '';
+  if (sig.images && sig.images.length > 0) {
+    const imageThumbs = sig.images.slice(0, 3).map(img => {
+      const src = img.base64 || img.url || '';
+      return `<div style="width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 2px solid #dee2e6;">
+        <img src="${src}" alt="${img.name || 'Image'}" style="width: 100%; height: 100%; object-fit: cover;"/>
+      </div>`;
+    }).join('');
+    
+    imagesHtml = `
+      <div style="margin: 10px 0;">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">${imageThumbs}</div>
+        <small style="color: #6c757d; font-size: 10px;">${sig.images.length} photo(s)</small>
+      </div>
+    `;
+  }
+  
+  return `
+    <div style="max-width: 280px; font-family: Arial, sans-serif;">
+      <div style="background: #FFC107; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+        <b style="font-size: 14px;">📍 Mon Signalement</b>
+      </div>
+      <p style="margin: 0 0 8px 0; font-size: 13px; color: #333;">${sig.description}</p>
+      ${imagesHtml}
+      <div style="background: #f8f9fa; padding: 8px; border-radius: 4px;">
+        <small style="color: #6c757d;">
+          📅 Signalé le ${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}<br/>
+          <em style="color: #FFC107;">⏳ En attente de prise en charge</em>
+        </small>
+      </div>
+    </div>
+  `;
+};
+
 const clearProblemMarkers = () => {
   if (map) {
     problemMarkers.forEach(marker => {
@@ -96,17 +132,8 @@ const loadProblems = async (filterByUser: boolean = false) => {
             offset: [0, -20]
           });
           
-          const popupContent = `
-            <div style="max-width: 200px;">
-              <b style="color: #FFC107;">📍 Mon Signalement</b><br/>
-              <p style="margin: 5px 0;">${sig.description}</p>
-              <small style="color: #6c757d;">
-                Signalé le ${new Date(sig.createdAt).toLocaleDateString('fr-FR')}<br/>
-                <em>En attente de prise en charge</em>
-              </small>
-            </div>
-          `;
-          marker.bindPopup(popupContent);
+          const popupContent = createSignalementPopupContent(sig);
+          marker.bindPopup(popupContent, { maxWidth: 300 });
           problemMarkers.push(marker);
         }
       });
