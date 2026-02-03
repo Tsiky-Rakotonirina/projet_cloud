@@ -47,6 +47,20 @@ router.get('/signalements', mapController.getSignalements);
 
 /**
  * @swagger
+ * /api/map/signalements-carte:
+ *   get:
+ *     tags:
+ *       - Map (Visiteur)
+ *     summary: Récupérer tous les signalements avec images (format carte)
+ *     description: Retourne tous les signalements avec leurs coordonnées lat/lng et images pour affichage sur carte
+ *     responses:
+ *       200:
+ *         description: Liste des signalements avec images
+ */
+router.get('/signalements-carte', mapController.getSignalementsWithImages);
+
+/**
+ * @swagger
  * /api/map/signalements/{id}:
  *   get:
  *     tags:

@@ -1,28 +1,21 @@
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage, auth } from "@/services/firebase/firebase";
-
-export interface ImageFile {
-  uri: string;
-  name: string;
-  type: string;
-  blob?: Blob;
-}
+import { auth } from "@/services/firebase/firebase";
 
 export interface UploadedImage {
-  url: string;
+  base64: string;  // Image en base64
   name: string;
-  path: string;
+  size: number;    // Taille en KB
 }
 
 const MAX_IMAGES = 3;
-const MAX_WIDTH = 1200;
-const MAX_HEIGHT = 1200;
-const QUALITY = 0.7;
+// Taille max plus petite pour Firestore (document max 1MB)
+const MAX_WIDTH = 800;
+const MAX_HEIGHT = 800;
+const QUALITY = 0.6;  // Qualité réduite pour garder des fichiers petits
 
 /**
- * Compresse une image avant upload
+ * Compresse une image et retourne le base64
  */
-export const compressImage = async (file: File | Blob): Promise<Blob> => {
+export const compressImageToBase64 = async (file: File | Blob): Promise<{ base64: string; size: number }> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -56,18 +49,12 @@ export const compressImage = async (file: File | Blob): Promise<Blob> => {
 
         ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              console.log(`Image compressée: ${(blob.size / 1024).toFixed(2)} KB`);
-              resolve(blob);
-            } else {
-              reject(new Error('Échec de la compression'));
-            }
-          },
-          'image/jpeg',
-          QUALITY
-        );
+        // Convertir en base64
+        const base64 = canvas.toDataURL('image/jpeg', QUALITY);
+        const sizeKB = Math.round((base64.length * 3) / 4 / 1024); // Estimation taille
+        
+        console.log(`Image compressée: ${sizeKB} KB (${width}x${height})`);
+        resolve({ base64, size: sizeKB });
       };
       img.onerror = () => reject(new Error('Erreur de chargement de l\'image'));
       img.src = e.target?.result as string;
@@ -78,64 +65,43 @@ export const compressImage = async (file: File | Blob): Promise<Blob> => {
 };
 
 /**
- * Upload une image vers Firebase Storage
+ * Prépare les images pour Firestore (compression + base64)
  */
-export const uploadImage = async (
-  file: File | Blob,
-  signalementId: string,
-  index: number
-): Promise<UploadedImage> => {
+export const prepareImagesForFirestore = async (
+  files: (File | Blob)[]
+): Promise<UploadedImage[]> => {
   const user = auth.currentUser;
   if (!user) {
     throw new Error("Utilisateur non connecté");
   }
 
-  // Compresser l'image
-  const compressedBlob = await compressImage(file);
-
-  // Générer un nom unique pour l'image
-  const timestamp = Date.now();
-  const fileName = `${signalementId}_${timestamp}_${index}.jpg`;
-  const path = `signalements/${signalementId}/${fileName}`;
-
-  // Créer la référence dans Firebase Storage
-  const storageRef = ref(storage, path);
-
-  // Upload l'image
-  const snapshot = await uploadBytes(storageRef, compressedBlob, {
-    contentType: 'image/jpeg',
-  });
-
-  // Récupérer l'URL de téléchargement
-  const url = await getDownloadURL(snapshot.ref);
-
-  console.log(`Image uploadée: ${path}`);
-
-  return {
-    url,
-    name: fileName,
-    path,
-  };
-};
-
-/**
- * Upload plusieurs images pour un signalement
- */
-export const uploadSignalementImages = async (
-  files: (File | Blob)[],
-  signalementId: string
-): Promise<UploadedImage[]> => {
   if (files.length > MAX_IMAGES) {
     throw new Error(`Maximum ${MAX_IMAGES} images autorisées`);
   }
 
-  const uploadPromises = files.map((file, index) =>
-    uploadImage(file, signalementId, index)
-  );
+  const results: UploadedImage[] = [];
+  
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const timestamp = Date.now();
+    const fileName = `img_${timestamp}_${i}.jpg`;
+    
+    const { base64, size } = await compressImageToBase64(file);
+    
+    results.push({
+      base64,
+      name: fileName,
+      size
+    });
+  }
 
-  const results = await Promise.all(uploadPromises);
-  console.log(`${results.length} images uploadées pour le signalement ${signalementId}`);
+  // Vérifier la taille totale (Firestore limite à ~1MB par document)
+  const totalSize = results.reduce((acc, img) => acc + img.size, 0);
+  if (totalSize > 900) { // 900KB max pour laisser de la marge
+    throw new Error(`Images trop volumineuses (${totalSize}KB). Essayez avec des images plus petites.`);
+  }
 
+  console.log(`${results.length} images préparées (${totalSize}KB total)`);
   return results;
 };
 

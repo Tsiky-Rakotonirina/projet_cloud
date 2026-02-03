@@ -56,31 +56,36 @@ const createSignalementPopupContent = (sig: Signalement): string => {
   if (sig.images && sig.images.length > 0) {
     const imageThumbs = sig.images.slice(0, 3).map(img => {
       const src = img.base64 || img.url || '';
-      return `<div style="width: 60px; height: 60px; border-radius: 6px; overflow: hidden; border: 2px solid #dee2e6;">
+      return `<div style="width: 65px; height: 65px; border-radius: 6px; overflow: hidden; background: #f5f5f5;">
         <img src="${src}" alt="${img.name || 'Image'}" style="width: 100%; height: 100%; object-fit: cover;"/>
       </div>`;
     }).join('');
     
     imagesHtml = `
-      <div style="margin: 10px 0;">
-        <div style="display: flex; gap: 6px; flex-wrap: wrap;">${imageThumbs}</div>
-        <small style="color: #6c757d; font-size: 10px;">${sig.images.length} photo(s)</small>
+      <div style="margin: 12px 0;">
+        <div style="display: flex; gap: 8px;">${imageThumbs}</div>
+        <span style="font-size: 11px; color: #888; margin-top: 6px; display: block;">${sig.images.length} photo(s)</span>
       </div>
     `;
   }
   
   return `
-    <div style="max-width: 280px; font-family: Arial, sans-serif;">
-      <div style="background: #FFC107; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
-        <b style="font-size: 14px;">📍 Mon Signalement</b>
+    <div style="width: 250px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="background: #FFC107; padding: 10px 12px; margin: -10px -10px 12px -10px; border-radius: 4px 4px 0 0;">
+        <span style="font-size: 13px; font-weight: 600; color: #333;">Mon Signalement</span>
       </div>
-      <p style="margin: 0 0 8px 0; font-size: 13px; color: #333;">${sig.description}</p>
+      
+      <p style="margin: 0 0 12px 0; font-size: 14px; color: #333; line-height: 1.4;">${sig.description}</p>
+      
       ${imagesHtml}
-      <div style="background: #f8f9fa; padding: 8px; border-radius: 4px;">
-        <small style="color: #6c757d;">
-          📅 Signalé le ${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}<br/>
-          <em style="color: #FFC107;">⏳ En attente de prise en charge</em>
-        </small>
+      
+      <div style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
+        <div style="font-size: 12px; color: #666; margin-bottom: 6px;">
+          ${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+        </div>
+        <span style="display: inline-block; background: #FFF3CD; color: #856404; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+          En attente de traitement
+        </span>
       </div>
     </div>
   `;

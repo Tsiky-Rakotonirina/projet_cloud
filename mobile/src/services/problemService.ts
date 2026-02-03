@@ -2,7 +2,7 @@ import { getFirestore, collection, getDocs, query, where, addDoc, serverTimestam
 import { auth } from "@/services/firebase/firebase";
 import { db } from "@/services/firebase/firebase";
 import type { Problem, Entreprise, ProblemeStatut, Signalement, SignalementImage } from "@/types/entities";
-import { uploadSignalementImages, type UploadedImage } from "@/services/imageService";
+import { prepareImagesForFirestore, type UploadedImage } from "@/services/imageService";
 
 // Récupérer tous les problèmes avec leurs signalements, entreprises et statuts associés
 export const getAllProblems = async (): Promise<Problem[]> => {
@@ -112,7 +112,7 @@ export const createSignalement = async (
       throw new Error("Utilisateur non connecté");
     }
 
-    // Créer le signalement avec le statut par défaut (sans images pour l'instant)
+    // Créer le signalement avec le statut par défaut
     const signalementData: any = {
       description,
       utilisateurId: user.uid,
@@ -133,32 +133,25 @@ export const createSignalement = async (
       ]
     };
 
+    // Préparer les images en base64 si présentes
+    if (images.length > 0) {
+      try {
+        const preparedImages = await prepareImagesForFirestore(images);
+        signalementData.images = preparedImages.map(img => ({
+          base64: img.base64,
+          name: img.name
+        }));
+        console.log(`${preparedImages.length} images préparées pour le signalement`);
+      } catch (imageError) {
+        console.error("Erreur lors de la préparation des images:", imageError);
+        // Continuer sans images si erreur
+      }
+    }
+
     const signalementRef = collection(db, "signalements");
     const docRef = await addDoc(signalementRef, signalementData);
     
     console.log("Signalement créé avec l'ID :", docRef.id);
-
-    // Upload les images si présentes
-    if (images.length > 0) {
-      try {
-        const uploadedImages = await uploadSignalementImages(images, docRef.id);
-        
-        // Mettre à jour le signalement avec les URLs des images
-        const signalementDocRef = doc(db, "signalements", docRef.id);
-        await updateDoc(signalementDocRef, {
-          images: uploadedImages.map(img => ({
-            url: img.url,
-            name: img.name,
-            path: img.path
-          }))
-        });
-        
-        console.log(`${uploadedImages.length} images ajoutées au signalement`);
-      } catch (imageError) {
-        console.error("Erreur lors de l'upload des images:", imageError);
-        // Le signalement est créé mais sans images
-      }
-    }
 
     return docRef.id;
   } catch (error) {
