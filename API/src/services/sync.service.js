@@ -585,7 +585,6 @@ const syncService = {
               await signalement.update({
                 description: firebaseData.description,
                 utilisateur_id: utilisateurId,
-                point_id: firebaseData.point_id,
                 // NE PAS mettre à jour signalement_statut_id pour préserver les modifications admin
               });
 
@@ -595,10 +594,40 @@ const syncService = {
             }
           } else {
             // INSERT: Nouveau signalement
+            // Créer d'abord le Point avec les coordonnées géographiques
+            let pointId = null;
+            if (firebaseData.point && (firebaseData.point.lat || firebaseData.point.lng)) {
+              // Récupérer l'ID de la ville depuis le mapping Firebase
+              let villeId = null;
+              if (firebaseData.point.villeId) {
+                const villeMapping = await FirebaseMapping.findOne({
+                  where: {
+                    entity_type: 'ville',
+                    firebase_id: firebaseData.point.villeId,
+                  },
+                });
+                villeId = villeMapping?.postgres_id;
+              }
+              
+              // Si pas de ville trouvée, utiliser la ville par défaut (Antananarivo = 1)
+              if (!villeId) {
+                villeId = 1; // ID par défaut pour Antananarivo
+              }
+
+              // Créer le point avec les coordonnées
+              const sequelize = require('../config/sequelize');
+              const newPoint = await Point.create({
+                xy: sequelize.fn('ST_SetSRID', sequelize.fn('ST_MakePoint', firebaseData.point.lng || 0, firebaseData.point.lat || 0), 4326),
+                ville_id: villeId,
+              });
+              pointId = newPoint.id_points;
+              console.log(`✅ Point créé avec ville_id=${villeId} (PG ID: ${pointId})`);
+            }
+
             const newSignalement = await Signalement.create({
               description: firebaseData.description,
               utilisateur_id: utilisateurId,
-              point_id: firebaseData.point_id,
+              point_id: pointId,
               signalement_statut_id: firebaseData.statut_id || 1,
             });
 
@@ -650,7 +679,7 @@ const syncService = {
     try {
       const stats = { inserted: 0, updated: 0, errors: [], total: 0 };
 
-      // Récupérer tous les signalements depuis PostgreSQL
+      // Récupérer tous les signalements depuis PostgreSQL avec les problèmes associés
       const signalements = await Signalement.findAll({
         include: [
           {
@@ -660,10 +689,19 @@ const syncService = {
           {
             model: Point,
             as: 'point',
+            include: [{ model: Ville, as: 'ville' }],
           },
           {
             model: SignalementStatut,
             as: 'statut',
+          },
+          {
+            model: Probleme,
+            as: 'problemes',
+            include: [
+              { model: Entreprise, as: 'entreprise' },
+              { model: ProblemeStatut, as: 'statut' },
+            ],
           },
         ],
       });
@@ -726,21 +764,61 @@ const syncService = {
               date: h.date_historique ? h.date_historique.toISOString() : new Date().toISOString(),
               utilisateurId: histUserFirebaseId,
               statutId: histStatutFirebaseId,
+              statutLibelle: h.statut?.libelle || null,
             });
           }
 
-          // Format NoSQL exact attendu par le mobile - UNIQUEMENT ces champs
+          // Récupérer les données du problème associé (le premier s'il y en a plusieurs)
+          const probleme = signalement.problemes?.[0];
+          let problemeData = null;
+          
+          if (probleme) {
+            // Récupérer le Firebase ID de l'entreprise
+            let entrepriseFirebaseId = null;
+            if (probleme.entreprise_id) {
+              const entrepriseMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'entreprise', postgres_id: probleme.entreprise_id },
+              });
+              entrepriseFirebaseId = entrepriseMapping?.firebase_id;
+            }
+            
+            // Récupérer le Firebase ID du statut du problème
+            let problemeStatutFirebaseId = null;
+            if (probleme.probleme_statut_id) {
+              const problemeStatutMapping = await FirebaseMapping.findOne({
+                where: { entity_type: 'probleme_statut', postgres_id: probleme.probleme_statut_id },
+              });
+              problemeStatutFirebaseId = problemeStatutMapping?.firebase_id;
+            }
+            
+            problemeData = {
+              id: probleme.id_problemes,
+              surface: parseFloat(probleme.surface) || 0,
+              budget: parseFloat(probleme.budget) || 0,
+              entrepriseId: entrepriseFirebaseId,
+              entrepriseNom: probleme.entreprise?.nom || null,
+              statutId: problemeStatutFirebaseId,
+              statutLibelle: probleme.statut?.libelle || null,
+              pourcentage: parseFloat(probleme.statut?.pourcentage) || 0,
+            };
+          }
+
+          // Format NoSQL exact attendu par le mobile - INCLUT les données du problème
           const firebaseData = {
             description: signalement.description,
             utilisateurId: utilisateurFirebaseId,
             statutId: await this.getSignalementStatutFirebaseId(signalement.signalement_statut_id),
+            statutLibelle: signalement.statut?.libelle || null,
             point: signalement.point ? {
               lat: signalement.point.xy?.coordinates?.[1] || 0,
               lng: signalement.point.xy?.coordinates?.[0] || 0,
               villeId: signalement.point.ville_id ? await this.getVilleFirebaseId(signalement.point.ville_id) : null,
-            } : { lat: 0, lng: 0, villeId: null },
+              villeNom: signalement.point.ville?.nom || null,
+            } : { lat: 0, lng: 0, villeId: null, villeNom: null },
             createdAt: signalement.created_at ? signalement.created_at.toISOString() : new Date().toISOString(),
             historiques: formattedHistoriques,
+            // Données du problème associé (ajoutées par l'admin après approbation)
+            probleme: problemeData,
           };
 
           if (existingMapping) {
@@ -749,6 +827,11 @@ const syncService = {
             const docSnapshot = await firebaseDB.collection('signalements').doc(firebaseId).get();
             
             if (docSnapshot.exists) {
+              // Préserver le utilisateurId original si on n'a pas de mapping valide
+              const existingData = docSnapshot.data();
+              const finalUtilisateurId = utilisateurFirebaseId || existingData.utilisateurId;
+              firebaseData.utilisateurId = finalUtilisateurId;
+              
               // UPDATE: Le document existe dans Firebase
               await firebaseDB.collection('signalements').doc(firebaseId).update(firebaseData);
               await existingMapping.update({ updated_at: new Date() });

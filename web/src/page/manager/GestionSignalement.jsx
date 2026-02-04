@@ -875,9 +875,6 @@ const GestionSignalement = () => {
                     <button style={styles.btnInfo} onClick={() => handleMettreInfos(s)}>
                       <Edit3 size={14} /> Mettre Infos
                     </button>
-                    <button style={styles.btnApprouver} onClick={() => handleResoudre(s.id_signalements)}>
-                      <CheckCircle size={14} /> Résoudre
-                    </button>
                   </div>
                 </td>
               </tr>

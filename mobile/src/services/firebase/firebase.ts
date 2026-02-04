@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getMessaging } from "firebase/messaging";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -30,6 +31,7 @@ if (typeof window !== 'undefined' && hasWebConfig) {
 }
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const messaging = getMessaging(app);
 
 // Configuration de la persistance de session
 // LOCAL : session persiste même après fermeture du navigateur
