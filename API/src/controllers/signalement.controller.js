@@ -1,4 +1,5 @@
 const signalementService = require('../services/signalement.service');
+const syncService = require('../services/sync.service');
 
 const signalementController = {
   async getSignalementWithDetails(req, res, next) {
@@ -68,6 +69,16 @@ const signalementController = {
       if (error.code) {
         return res.sendError(error.message, { code: error.code }, error.status || 400);
       }
+      next(error);
+    }
+  },
+
+  async getSignalementImages(req, res, next) {
+    try {
+      const { signalementId } = req.params;
+      const images = await syncService.getSignalementImages(parseInt(signalementId));
+      return res.sendSuccess('Images du signalement récupérées', images, 200);
+    } catch (error) {
       next(error);
     }
   },

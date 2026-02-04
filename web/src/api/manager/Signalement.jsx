@@ -93,6 +93,14 @@ export const signalementApi = {
   },
 
   /**
+   * Récupérer les images d'un signalement
+   */
+  getImages: async (id) => {
+    const response = await callApi(`/api/signalement/${id}/images`, 'GET');
+    return response.data || [];
+  },
+
+  /**
    * Récupérer les statistiques des signalements
    */
   getStats: async () => {

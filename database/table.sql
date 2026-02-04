@@ -69,6 +69,15 @@ CREATE TABLE
   );
 
 CREATE TABLE
+  signalement_images (
+    id_signalement_images SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    signalement_id INTEGER,
+    date_upload TIMESTAMP WITHOUT TIME ZONE DEFAULT now (),
+    CONSTRAINT fk_signalement_images_signalement FOREIGN KEY (signalement_id) REFERENCES signalements (id_signalements) ON DELETE CASCADE
+  );
+
+CREATE TABLE
   problemes (
     id_problemes SERIAL PRIMARY KEY,
     surface NUMERIC,

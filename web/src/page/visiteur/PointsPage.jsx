@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import Navbar from '@components/Navbar';
 import { colors } from '@assets/colors';
-import { Map as MapIcon, Locate, X } from 'lucide-react';
+import { Map as MapIcon, Locate, X, Image as ImageIcon } from 'lucide-react';
+import { mapApi } from '@api/map.api';
 import 'leaflet/dist/leaflet.css';
 
 // Fix icônes Leaflet
@@ -40,19 +41,54 @@ const createCustomIcon = (color) => {
   });
 };
 
+// Créer le contenu HTML du popup avec images
+const createPopupContent = (point, getStatusColor, getStatusLabel) => {
+  let imagesHtml = '';
+  if (point.images && point.images.length > 0) {
+    const imageThumbs = point.images.slice(0, 3).map(img => 
+      `<div style="width: 50px; height: 50px; border-radius: 6px; overflow: hidden; border: 2px solid #dee2e6;">
+        <img src="${img.url}" alt="${img.name || 'Image'}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.style.display='none'"/>
+      </div>`
+    ).join('');
+    
+    imagesHtml = `
+      <div style="margin: 10px 0;">
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">${imageThumbs}</div>
+        <small style="color: #6c757d; font-size: 10px;">${point.images.length} photo(s)</small>
+      </div>
+    `;
+  }
+
+  const statusColor = getStatusColor(point.status);
+  
+  return `
+    <div style="max-width: 260px; font-family: Arial, sans-serif;">
+      <div style="background: ${statusColor}; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
+        <b style="font-size: 14px;">📍 Signalement</b>
+      </div>
+      <p style="margin: 0 0 8px 0; font-size: 13px; color: #333;">${point.name}</p>
+      ${imagesHtml}
+      <div style="background: #f8f9fa; padding: 8px; border-radius: 4px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <b style="font-size: 12px;">Statut:</b>
+          <span style="background: ${statusColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+            ${getStatusLabel(point.status)}
+          </span>
+        </div>
+        ${point.date ? `<small style="color: #6c757d;">📅 ${new Date(point.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</small>` : ''}
+        ${point.email ? `<br/><small style="color: #6c757d;">👤 ${point.email}</small>` : ''}
+      </div>
+    </div>
+  `;
+};
+
 const PointsPage = () => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
   const [selectedPoint, setSelectedPoint] = useState(null);
-
-  // Points de démo
-  const demoPoints = [
-    { id: 1, lng: 47.5161, lat: -18.8883, name: 'Route RN7 - Km 5', status: 'en_cours' },
-    { id: 2, lng: 47.5250, lat: -18.8750, name: 'Carrefour Analakely', status: 'planifie' },
-    { id: 3, lng: 47.4950, lat: -18.8950, name: 'Boulevard de l\'Indépendance', status: 'termine' },
-    { id: 4, lng: 47.5350, lat: -18.8650, name: 'Route vers Ivato', status: 'en_cours' },
-  ];
+  const [signalements, setSignalements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -71,7 +107,24 @@ const PointsPage = () => {
     }
   };
 
-  // Initialiser la carte
+  // Charger les signalements depuis l'API
+  useEffect(() => {
+    const loadSignalements = async () => {
+      try {
+        setLoading(true);
+        const data = await mapApi.getSignalements();
+        console.log('Signalements chargés:', data);
+        setSignalements(data);
+      } catch (error) {
+        console.error('Erreur chargement signalements:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSignalements();
+  }, []);
+
+  // Initialiser la carte et ajouter les marqueurs
   useEffect(() => {
     if (!mapInstanceRef.current && mapRef.current) {
       // Créer la carte
@@ -84,21 +137,6 @@ const PointsPage = () => {
         maxZoom: 19,
         attribution: '© OpenStreetMap | Serveur Offline Antananarivo'
       }).addTo(mapInstanceRef.current);
-
-      // Ajouter les marqueurs
-      demoPoints.forEach((point) => {
-        const marker = L.marker([point.lat, point.lng], {
-          icon: createCustomIcon(getStatusColor(point.status))
-        }).addTo(mapInstanceRef.current);
-
-        marker.bindPopup(`<strong>${point.name}</strong><br/>Statut: ${getStatusLabel(point.status)}`);
-        
-        marker.on('click', () => {
-          setSelectedPoint(point);
-        });
-
-        markersRef.current.push(marker);
-      });
     }
 
     return () => {
@@ -108,6 +146,38 @@ const PointsPage = () => {
       }
     };
   }, []);
+
+  // Mettre à jour les marqueurs quand les signalements changent
+  useEffect(() => {
+    if (!mapInstanceRef.current || signalements.length === 0) return;
+
+    // Supprimer les anciens marqueurs
+    markersRef.current.forEach(marker => {
+      mapInstanceRef.current.removeLayer(marker);
+    });
+    markersRef.current = [];
+
+    // Ajouter les nouveaux marqueurs
+    signalements.forEach((point) => {
+      if (point.lat && point.lng) {
+        const marker = L.marker([point.lat, point.lng], {
+          icon: createCustomIcon(getStatusColor(point.status))
+        }).addTo(mapInstanceRef.current);
+
+        // Créer un popup riche avec images
+        const popupContent = createPopupContent(point, getStatusColor, getStatusLabel);
+        marker.bindPopup(popupContent, { maxWidth: 300 });
+        
+        marker.on('click', () => {
+          setSelectedPoint(point);
+        });
+
+        markersRef.current.push(marker);
+      }
+    });
+
+    console.log(`${markersRef.current.length} marqueurs ajoutés sur la carte`);
+  }, [signalements]);
 
   const handleLocate = () => {
     if (mapInstanceRef.current) {
@@ -301,8 +371,10 @@ const PointsPage = () => {
               <MapIcon size={20} color={colors.primary} />
             </div>
             <div>
-              <h2 style={styles.headerTitle}>Points d'Intérêt</h2>
-              <p style={styles.headerSubtitle}>Région Antananarivo - Serveur Offline</p>
+              <h2 style={styles.headerTitle}>Signalements Routiers</h2>
+              <p style={styles.headerSubtitle}>
+                {loading ? 'Chargement...' : `${signalements.length} signalement(s) - Région Antananarivo`}
+              </p>
             </div>
           </div>
 
@@ -344,9 +416,35 @@ const PointsPage = () => {
               </div>
               <div style={styles.infoPanelBody}>
                 <div style={styles.infoRow}>
-                  <p style={styles.infoLabel}>Nom</p>
+                  <p style={styles.infoLabel}>Description</p>
                   <p style={styles.infoValue}>{selectedPoint.name}</p>
                 </div>
+                {selectedPoint.images && selectedPoint.images.length > 0 && (
+                  <div style={styles.infoRow}>
+                    <p style={styles.infoLabel}>Photos</p>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
+                      {selectedPoint.images.slice(0, 3).map((img, idx) => (
+                        <div key={idx} style={{ 
+                          width: '70px', 
+                          height: '70px', 
+                          borderRadius: '8px', 
+                          overflow: 'hidden',
+                          border: `2px solid ${colors.primary}30`
+                        }}>
+                          <img 
+                            src={img.url} 
+                            alt={img.name || `Image ${idx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <small style={{ color: 'rgba(255,255,255,0.5)', fontSize: '11px' }}>
+                      {selectedPoint.images.length} photo(s)
+                    </small>
+                  </div>
+                )}
                 <div style={styles.infoRow}>
                   <p style={styles.infoLabel}>Coordonnées</p>
                   <p style={styles.infoValue}>
@@ -365,6 +463,24 @@ const PointsPage = () => {
                     {getStatusLabel(selectedPoint.status)}
                   </span>
                 </div>
+                {selectedPoint.email && (
+                  <div style={styles.infoRow}>
+                    <p style={styles.infoLabel}>Signalé par</p>
+                    <p style={styles.infoValue}>{selectedPoint.email}</p>
+                  </div>
+                )}
+                {selectedPoint.date && (
+                  <div style={styles.infoRow}>
+                    <p style={styles.infoLabel}>Date</p>
+                    <p style={styles.infoValue}>
+                      {new Date(selectedPoint.date).toLocaleDateString('fr-FR', { 
+                        day: '2-digit', 
+                        month: 'long', 
+                        year: 'numeric' 
+                      })}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           )}

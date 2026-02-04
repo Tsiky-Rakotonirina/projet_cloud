@@ -161,6 +161,60 @@ router.post('/signalements/pull', syncController.pullSignalements);
 
 /**
  * @swagger
+ * /api/sync/problemes/push:
+ *   post:
+ *     tags:
+ *       - Synchronisation
+ *     summary: PUSH problèmes Firebase → PostgreSQL
+ *     description: Synchronise les problèmes et tables associées (entreprises, probleme_statuts) depuis Firebase vers PostgreSQL
+ *     responses:
+ *       200:
+ *         description: Synchronisation réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       500:
+ *         description: Erreur lors de la synchronisation
+ */
+router.post('/problemes/push', syncController.pushProblemes);
+
+/**
+ * @swagger
+ * /api/sync/problemes/pull:
+ *   post:
+ *     tags:
+ *       - Synchronisation
+ *     summary: PULL problèmes PostgreSQL → Firebase
+ *     description: Synchronise les problèmes et tables associées (entreprises, probleme_statuts) depuis PostgreSQL vers Firebase
+ *     responses:
+ *       200:
+ *         description: Synchronisation réussie
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *       500:
+ *         description: Erreur lors de la synchronisation
+ */
+router.post('/problemes/pull', syncController.pullProblemes);
+
+/**
+ * @swagger
  * /api/sync/all:
  *   post:
  *     tags:
@@ -203,6 +257,30 @@ router.post('/signalements/pull', syncController.pullSignalements);
  *         description: Erreur lors de la synchronisation
  */
 router.post('/all', syncController.syncAll);
+
+// === ROUTES POUR ENTREPRISES ===
+router.post('/entreprises/push', syncController.pushEntreprises);
+router.post('/entreprises/pull', syncController.pullEntreprises);
+
+// === ROUTES POUR VILLES ===
+router.post('/villes/push', syncController.pushVilles);
+router.post('/villes/pull', syncController.pullVilles);
+
+// === ROUTES POUR PROFILS ===
+router.post('/profils/push', syncController.pushProfils);
+router.post('/profils/pull', syncController.pullProfils);
+
+// === ROUTES POUR STATUTS UTILISATEUR ===
+router.post('/statuts-utilisateur/push', syncController.pushStatutsUtilisateur);
+router.post('/statuts-utilisateur/pull', syncController.pullStatutsUtilisateur);
+
+// === ROUTES POUR STATUTS SIGNALEMENT ===
+router.post('/signalement-statuts/push', syncController.pushSignalementStatuts);
+router.post('/signalement-statuts/pull', syncController.pullSignalementStatuts);
+
+// === ROUTES POUR STATUTS PROBLÈME ===
+router.post('/probleme-statuts/push', syncController.pushProblemeStatuts);
+router.post('/probleme-statuts/pull', syncController.pullProblemeStatuts);
 
 /**
  * @swagger

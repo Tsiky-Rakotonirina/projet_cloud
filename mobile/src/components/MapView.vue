@@ -8,15 +8,16 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { getAllProblems, getMySignalements } from '@/services/problemService';
+import { getAllProblems, getMySignalements } from '@/services/problem.service';
 import type { Problem, Signalement } from '@/types/entities';
 import { auth } from '@/services/firebase/firebase';
+import { createPopupContent } from '@/utils/popupUtils';
 
 const props = defineProps<{
   filterMine?: boolean;
 }>();
 
-const emit = defineEmits(['problemsLoaded']);
+const emit = defineEmits(['problemsLoaded', 'mapClicked']);
 
 const mapContainer = ref<HTMLElement | null>(null);
 let map: L.Map | null = null;
@@ -47,6 +48,47 @@ const createSignalementIcon = () => {
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
   });
+};
+
+// Créer le contenu HTML du popup pour un signalement (avec images)
+const createSignalementPopupContent = (sig: Signalement): string => {
+  let imagesHtml = '';
+  if (sig.images && sig.images.length > 0) {
+    const imageThumbs = sig.images.slice(0, 3).map(img => {
+      const src = img.base64 || img.url || '';
+      return `<div style="width: 65px; height: 65px; border-radius: 6px; overflow: hidden; background: #f5f5f5;">
+        <img src="${src}" alt="${img.name || 'Image'}" style="width: 100%; height: 100%; object-fit: cover;"/>
+      </div>`;
+    }).join('');
+    
+    imagesHtml = `
+      <div style="margin: 12px 0;">
+        <div style="display: flex; gap: 8px;">${imageThumbs}</div>
+        <span style="font-size: 11px; color: #888; margin-top: 6px; display: block;">${sig.images.length} photo(s)</span>
+      </div>
+    `;
+  }
+  
+  return `
+    <div style="width: 250px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <div style="background: #FFC107; padding: 10px 12px; margin: -10px -10px 12px -10px; border-radius: 4px 4px 0 0;">
+        <span style="font-size: 13px; font-weight: 600; color: #333;">Mon Signalement</span>
+      </div>
+      
+      <p style="margin: 0 0 12px 0; font-size: 14px; color: #333; line-height: 1.4;">${sig.description}</p>
+      
+      ${imagesHtml}
+      
+      <div style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
+        <div style="font-size: 12px; color: #666; margin-bottom: 6px;">
+          ${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+        </div>
+        <span style="display: inline-block; background: #FFF3CD; color: #856404; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+          En attente de traitement
+        </span>
+      </div>
+    </div>
+  `;
 };
 
 const clearProblemMarkers = () => {
@@ -95,17 +137,8 @@ const loadProblems = async (filterByUser: boolean = false) => {
             offset: [0, -20]
           });
           
-          const popupContent = `
-            <div style="max-width: 200px;">
-              <b style="color: #FFC107;">📍 Mon Signalement</b><br/>
-              <p style="margin: 5px 0;">${sig.description}</p>
-              <small style="color: #6c757d;">
-                Signalé le ${new Date(sig.createdAt).toLocaleDateString('fr-FR')}<br/>
-                <em>En attente de prise en charge</em>
-              </small>
-            </div>
-          `;
-          marker.bindPopup(popupContent);
+          const popupContent = createSignalementPopupContent(sig);
+          marker.bindPopup(popupContent, { maxWidth: 300 });
           problemMarkers.push(marker);
         }
       });
@@ -150,56 +183,8 @@ const loadProblems = async (filterByUser: boolean = false) => {
             offset: [0, -20]
           });
           
-          // Popup complet au clic
-          const popupContent = `
-            <div style="max-width: 250px; font-family: Arial, sans-serif;">
-              <div style="background: #FF6B6B; color: white; padding: 8px; margin: -10px -10px 10px -10px; border-radius: 4px 4px 0 0;">
-                <b style="font-size: 14px;">⚠️ Problème Routier</b>
-              </div>
-              
-              <div style="margin-bottom: 8px;">
-                <p style="margin: 0; font-size: 13px; color: #333;">${problem.signalement.description}</p>
-              </div>
-              
-              <div style="background: #f8f9fa; padding: 8px; border-radius: 4px; margin-bottom: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <b style="font-size: 12px;">Statut:</b>
-                  <span style="background: ${statutColor}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
-                    ${statutLibelle}
-                  </span>
-                </div>
-                <div style="margin-top: 4px;">
-                  <div style="background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden;">
-                    <div style="background: ${statutColor}; height: 100%; width: ${pourcentage}%;"></div>
-                  </div>
-                  <small style="color: #6c757d;">${pourcentage}% complété</small>
-                </div>
-              </div>
-              
-              <div style="font-size: 12px; line-height: 1.6;">
-                <div style="margin-bottom: 4px;">
-                  <b>📅 Date:</b> ${new Date(problem.signalement.createdAt).toLocaleDateString('fr-FR', { 
-                    day: '2-digit', 
-                    month: 'long', 
-                    year: 'numeric' 
-                  })}
-                </div>
-                <div style="margin-bottom: 4px;">
-                  <b>📐 Surface:</b> <span style="color: #007bff;">${problem.surface} m²</span>
-                </div>
-                <div style="margin-bottom: 4px;">
-                  <b>💰 Budget:</b> <span style="color: #28a745; font-weight: bold;">${problem.budget.toLocaleString('fr-FR')} Ar</span>
-                </div>
-                ${problem.entreprise ? `
-                  <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6;">
-                    <b>🏢 Entreprise:</b> ${problem.entreprise.nom}<br/>
-                    <small style="color: #6c757d;">📍 ${problem.entreprise.adresse}</small><br/>
-                    <small style="color: #6c757d;">📞 ${problem.entreprise.telephone}</small>
-                  </div>
-                ` : ''}
-              </div>
-            </div>
-          `;
+          // Générer le contenu de la popup avec le composant réutilisable
+          const popupContent = createPopupContent(problem);
           marker.bindPopup(popupContent, { maxWidth: 300 });
         }
       });
@@ -218,14 +203,17 @@ onMounted(() => {
     zoom: 13,
   });
 
-  // URL du serveur de tuiles offline local
-  const TILE_SERVER_URL = import.meta.env.VITE_TILE_SERVER_URL || 'http://localhost:3001';
-
-  // Ajouter le layer de tuiles depuis le serveur offline local
-  L.tileLayer(`${TILE_SERVER_URL}/tiles/{z}/{x}/{y}.png`, {
-    attribution: '© OpenStreetMap | Serveur Offline Antananarivo',
+  // Ajouter le layer de tuiles OpenStreetMap standard
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
     maxZoom: 19,
   }).addTo(map);
+
+  // Émettre un événement mapClicked quand on clique sur la carte
+  map.on('click', (e: L.LeafletMouseEvent) => {
+    const { lat, lng } = e.latlng;
+    emit('mapClicked', { lat, lng });
+  });
 
   // Ajouter un marqueur sur Antananarivo
   const marker = L.marker(ANTANANARIVO_CENTER).addTo(map);

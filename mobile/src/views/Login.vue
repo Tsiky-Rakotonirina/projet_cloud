@@ -78,18 +78,18 @@
           </form>
 
           <!-- Divider -->
-          <div class="divider">
+          <!-- <div class="divider">
             <span>ou</span>
-          </div>
+          </div> -->
 
-          <!-- Link to Register -->
-          <div class="register-section">
-            <p class="register-text">Pas encore de compte ?</p>
-            <RouterLink :to="{ name: 'register' }" class="btn-register">
-              <i class="fas fa-user-plus"></i>
-              <span>Créer un compte</span>
-            </RouterLink>
-          </div>
+          <!-- GitHub Login Button -->
+          <!-- <button type="button" class="btn-github" @click="handleGithubLogin" :disabled="loading">
+            <ion-spinner v-if="loading" name="crescent"></ion-spinner>
+            <template v-else>
+              <i class="fab fa-github"></i>
+              <span>Se connecter avec GitHub</span>
+            </template>
+          </button> -->
         </div>
 
         <!-- Footer -->
@@ -106,9 +106,8 @@
 import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { IonPage, IonContent, IonSpinner, toastController, alertController } from '@ionic/vue';
-import { login } from '@/services/firebase/authService';
-import { isAccountBlocked, incrementLoginAttempts, resetLoginAttempts } from '@/services/userService';
-import { getMaxLoginAttempts } from '@/config/auth';
+import { login, loginWithGithub } from '@/services/firebase/authService';
+import { isAccountBlocked, resetLoginAttempts } from '@/services/userService';
 
 const router = useRouter();
 const loading = ref(false);
@@ -154,16 +153,47 @@ const handleLogin = async () => {
 
     router.push({ name: 'home' });
   } catch (err: any) {
-    const result = await incrementLoginAttempts(formData.value.email);
+    // Ne PAS appeler incrementLoginAttempts ici car c'est déjà fait dans authService.login()
+    // Extraire le nombre de tentatives restantes du message d'erreur
+    const remainingMatch = err.message?.match(/(\d+)\s*tentative/i);
+    const remaining = remainingMatch ? parseInt(remainingMatch[1]) : 0;
     
-    if (result.blocked) {
-      error.value = 'Compte bloqué ! Trop de tentatives échouées.';
-    } else if (result.attempts > 0) {
-      const remaining = getMaxLoginAttempts() - result.attempts;
-      error.value = `${err.message || 'Erreur de connexion'} (${remaining} tentative(s) restante(s))`;
+    if (err.message?.includes('désactivé') || err.message?.includes('bloqué')) {
+      error.value = 'Votre compte a été bloqué. Contactez un administrateur pour le réactiver.';
     } else {
       error.value = err.message || 'Erreur lors de la connexion';
     }
+    
+    const toast = await toastController.create({
+      message: error.value,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger'
+    });
+    await toast.present();
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleGithubLogin = async () => {
+  error.value = '';
+  loading.value = true;
+
+  try {
+    await loginWithGithub();
+    
+    const toast = await toastController.create({
+      message: 'Connexion avec GitHub réussie !',
+      duration: 1500,
+      position: 'bottom',
+      color: 'success'
+    });
+    await toast.present();
+
+    router.push({ name: 'home' });
+  } catch (err: any) {
+    error.value = err.message || 'Erreur lors de la connexion avec GitHub';
     
     const toast = await toastController.create({
       message: error.value,
@@ -421,6 +451,39 @@ const handleLogin = async () => {
   cursor: not-allowed;
 }
 
+.btn-github {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  color: white;
+  background: #24292e;
+  border: 2px solid #24292e;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 20px;
+}
+
+.btn-github:hover:not(:disabled) {
+  background: #1a1e22;
+  border-color: #1a1e22;
+}
+
+.btn-github:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-github i {
+  font-size: 18px;
+}
+
 .divider {
   display: flex;
   align-items: center;
@@ -440,37 +503,6 @@ const handleLogin = async () => {
   font-size: 13px;
   color: rgba(255, 255, 255, 0.5);
   text-transform: uppercase;
-}
-
-.register-section {
-  text-align: center;
-}
-
-.register-text {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0 0 12px 0;
-}
-
-.btn-register {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #87BCDE;
-  background: transparent;
-  border: 2px solid rgba(135, 188, 222, 0.3);
-  border-radius: 12px;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.btn-register:hover {
-  background: rgba(135, 188, 222, 0.1);
-  border-color: #87BCDE;
 }
 
 .footer-text {

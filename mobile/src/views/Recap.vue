@@ -119,8 +119,8 @@ import {
   IonSpinner,
   IonBackButton,
 } from '@ionic/vue';
-import { getAllProblems } from '@/services/problemService';
-import { logout, currentUser } from '@/services/firebase/authService';
+import { getAllProblems } from '@/services/problem.service';
+import { logout, currentUser } from '@/services/firebase/auth.service';
 
 const router = useRouter();
 const loading = ref(true);

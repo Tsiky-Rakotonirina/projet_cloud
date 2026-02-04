@@ -24,7 +24,8 @@
             <ion-label>Tous</ion-label>
           </ion-segment-button>
           <ion-segment-button value="mine">
-            <ion-label>Mes signalements</ion-label>
+            <ion-label>Mes signalements <br>
+              <span>(Cliques sur la carte pour signaler)</span></ion-label>
           </ion-segment-button>
         </ion-segment>
       </ion-toolbar>
@@ -32,7 +33,7 @@
     
     <ion-content :fullscreen="true">
       <div class="map-wrapper">
-        <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" />
+        <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" @mapClicked="onMapClicked" />
       </div>
       
       <!-- Bouton pour centrer sur Antananarivo -->
@@ -49,21 +50,32 @@
         </ion-fab-button>
       </ion-fab>
 
-      <!-- Bouton pour signaler un problème (visible uniquement si connecté) -->
-      <ion-fab v-if="currentUser" vertical="top" horizontal="end" slot="fixed" style="margin-top: 110px;">
-        <ion-fab-button color="danger" @click="openSignalementModal" class="fab-add">
-          <i class="fas fa-plus"></i>
+      <!-- Bouton pour signaler depuis un clic sur la carte -->
+      <ion-fab 
+        v-if="clickedPoint && currentUser" 
+        slot="fixed"
+        :style="clickedPixelPos ? {
+          position: 'absolute',
+          left: (clickedPixelPos.x - 28) + 'px',
+          top: (clickedPixelPos.y - 28) + 'px',
+          right: 'auto',
+          bottom: 'auto'
+        } : {}"
+      >
+        <ion-fab-button color="warning" @click="openSignalementFromMapClick" class="fab-signal">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>Signaler</span>
         </ion-fab-button>
       </ion-fab>
     </ion-content>
 
     <!-- Modal de signalement -->
-    <ion-modal :is-open="isModalOpen" @did-dismiss="closeSignalementModal">
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>Signaler un problème</ion-title>
+    <ion-modal :is-open="isModalOpen" @did-dismiss="closeSignalementModal" class="signalement-modal">
+      <ion-header class="modal-header">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">Signaler un problème</ion-title>
           <ion-buttons slot="end">
-            <ion-button @click="closeSignalementModal">
+            <ion-button @click="closeSignalementModal" class="btn-close-modal">
               <i class="fas fa-times"></i>
             </ion-button>
           </ion-buttons>
@@ -73,7 +85,11 @@
         <div class="modal-content">
           <div class="instruction-box">
             <i class="fas fa-map-marker-alt"></i>
-            <span>Cliquez sur la carte pour sélectionner l'emplacement du problème</span>
+            <button class="btn-select-location" @click="activateMapSelection" v-if="!selectedPoint && !isSelectingLocation">
+              Sélectionner l'emplacement sur la carte
+            </button>
+            <span v-if="isSelectingLocation">Cliquez sur la carte pour choisir l'emplacement</span>
+            <span v-if="selectedPoint">Emplacement sélectionné ✔️</span>
           </div>
 
           <div v-if="selectedPoint" class="selected-location">
@@ -93,16 +109,27 @@
               class="form-textarea"
               placeholder="Ex: Nid-de-poule important, route endommagée..."
               rows="4"
+              :disabled="!selectedPoint"
             ></textarea>
+          </div>
+
+          <!-- Ajout de photos -->
+          <div class="form-group photos-section" v-if="selectedPoint">
+            <ImagePicker 
+              v-model="selectedImages" 
+              :max-images="3"
+              :disabled="!selectedPoint"
+            />
           </div>
 
           <button
             class="btn-submit"
             @click="submitSignalement"
-            :disabled="!selectedPoint || !signalementDescription"
+            :disabled="!selectedPoint || !signalementDescription || isSubmitting"
           >
-            <i class="fas fa-paper-plane"></i>
-            <span>Envoyer le signalement</span>
+            <i v-if="!isSubmitting" class="fas fa-paper-plane"></i>
+            <ion-spinner v-else name="crescent" class="submit-spinner"></ion-spinner>
+            <span>{{ isSubmitting ? 'Envoi en cours...' : 'Envoyer le signalement' }}</span>
           </button>
         </div>
       </ion-content>
@@ -111,6 +138,22 @@
 </template>
 
 <script setup lang="ts">
+const isSelectingLocation = ref(false);
+const activateMapSelection = () => {
+  const map = mapViewRef.value?.getMap();
+  if (!map) {
+    toastController.create({
+      message: "La carte n'est pas encore prête. Réessayez dans quelques secondes.",
+      duration: 2500,
+      color: 'danger',
+      position: 'top'
+    }).then(toast => toast.present());
+    return;
+  }
+  isSelectingLocation.value = true;
+  enableMapClickSelection();
+  console.log('Mode sélection sur la carte activé');
+};
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { 
@@ -127,12 +170,14 @@ import {
   IonLabel,
   IonSegment,
   IonSegmentButton,
+  IonSpinner,
   alertController,
   toastController
 } from '@ionic/vue';
-import { logout, currentUser } from '@/services/firebase/authService';
-import { createSignalement } from '@/services/problemService';
+import { logout, currentUser } from '@/services/firebase/auth.service';
+import { createSignalement } from '@/services/problem.service';
 import MapView from '@/components/MapView.vue';
+import ImagePicker from '@/components/ImagePicker.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -140,7 +185,11 @@ const mapViewRef = ref<InstanceType<typeof MapView> | null>(null);
 const isModalOpen = ref(false);
 const signalementDescription = ref('');
 const selectedPoint = ref<{ lat: number; lng: number } | null>(null);
+const clickedPoint = ref<{ lat: number; lng: number } | null>(null);
+const clickedPixelPos = ref<{ x: number; y: number } | null>(null);
 const filterMode = ref<'all' | 'mine'>('all');
+const selectedImages = ref<File[]>([]);
+const isSubmitting = ref(false);
 let tempMarker: any = null;
 
 onMounted(() => {
@@ -182,15 +231,41 @@ const handleLogout = async () => {
   }
 };
 
+const onMapClicked = (point: { lat: number; lng: number }) => {
+  if (isModalOpen.value) return;
+  clickedPoint.value = point;
+  const map = mapViewRef.value?.getMap();
+  if (map) {
+    const containerPoint = (map as any).latLngToContainerPoint([point.lat, point.lng]);
+    clickedPixelPos.value = { x: containerPoint.x, y: containerPoint.y };
+  }
+};
+
+const openSignalementFromMapClick = () => {
+  if (clickedPoint.value && currentUser.value) {
+    selectedPoint.value = clickedPoint.value;
+    signalementDescription.value = '';
+    selectedImages.value = [];
+    isSelectingLocation.value = false;
+    isModalOpen.value = true;
+    clickedPoint.value = null;
+    clickedPixelPos.value = null;
+  } else if (!currentUser.value) {
+    toastController.create({
+      message: 'Vous devez être connecté pour signaler un problème.',
+      duration: 2500,
+      color: 'warning',
+      position: 'top'
+    }).then(toast => toast.present());
+  }
+};
+
 const openSignalementModal = () => {
   isModalOpen.value = true;
   selectedPoint.value = null;
   signalementDescription.value = '';
-  
-  // Activer le mode sélection sur la carte
-  setTimeout(() => {
-    enableMapClickSelection();
-  }, 300);
+  selectedImages.value = [];
+  isSelectingLocation.value = false;
 };
 
 const closeSignalementModal = () => {
@@ -210,7 +285,7 @@ const enableMapClickSelection = () => {
     const map = mapViewRef.value.getMap();
     if (map) {
       map.on('click', handleMapClick);
-      map.getContainer().style.cursor = 'crosshair';
+      map.getContainer().style.cursor = 'pointer';
     }
   }
 };
@@ -226,9 +301,10 @@ const disableMapClickSelection = () => {
 };
 
 const handleMapClick = (e: any) => {
+  if (!isSelectingLocation.value) return;
   const { lat, lng } = e.latlng;
   selectedPoint.value = { lat, lng };
-  
+  isSelectingLocation.value = false;
   // Supprimer le marqueur temporaire précédent
   if (tempMarker && mapViewRef.value) {
     const map = mapViewRef.value.getMap();
@@ -236,7 +312,6 @@ const handleMapClick = (e: any) => {
       map.removeLayer(tempMarker);
     }
   }
-  
   // Ajouter un nouveau marqueur temporaire
   if (mapViewRef.value) {
     const L = (window as any).L;
@@ -256,28 +331,55 @@ const handleMapClick = (e: any) => {
 
 const submitSignalement = async () => {
   if (!selectedPoint.value || !signalementDescription.value) {
+    const toast = await toastController.create({
+      message: "Veuillez sélectionner un emplacement et décrire le problème.",
+      duration: 2500,
+      color: 'danger',
+      position: 'top'
+    });
+    await toast.present();
     return;
   }
 
   try {
     const alert = await alertController.create({
       header: 'Confirmer le signalement',
-      message: `Voulez-vous signaler ce problème ?<br/><br/><b>${signalementDescription.value}</b>`,
+      cssClass: 'confirm-alert',
       buttons: [
         {
           text: 'Annuler',
-          role: 'cancel'
+          role: 'cancel',
+          cssClass: 'alert-btn-cancel'
         },
         {
           text: 'Confirmer',
+          cssClass: 'alert-btn-confirm',
           handler: async () => {
             try {
-              await createSignalement(
+              isSubmitting.value = true;
+              
+              // Utiliser l'ID de la ville d'Antananarivo si disponible
+              const villeId = 'villeId';
+              const id = await createSignalement(
                 signalementDescription.value,
                 selectedPoint.value!.lat,
                 selectedPoint.value!.lng,
-                'villeId'
+                villeId,
+                selectedImages.value.length > 0 ? selectedImages.value : undefined
               );
+              
+              isSubmitting.value = false;
+              
+              if (!id) {
+                const toast = await toastController.create({
+                  message: "Erreur lors de la création du signalement.",
+                  duration: 3000,
+                  color: 'danger',
+                  position: 'top'
+                });
+                await toast.present();
+                return;
+              }
 
               const toast = await toastController.create({
                 message: 'Signalement envoyé avec succès !',
@@ -295,6 +397,7 @@ const submitSignalement = async () => {
               }
             } catch (error) {
               console.error('Erreur lors de la création du signalement:', error);
+              isSubmitting.value = false;
               const toast = await toastController.create({
                 message: 'Erreur lors de l\'envoi du signalement',
                 duration: 3000,
@@ -335,14 +438,47 @@ ion-fab-button i {
 }
 
 /* Modal */
+.signalement-modal {
+  --border-radius: 20px 20px 0 0;
+}
+
+.modal-header {
+  background: #1a2e3a;
+}
+
+.modal-toolbar {
+  --background: #1a2e3a;
+  --border-width: 0;
+  --padding-top: 16px;
+  --padding-bottom: 16px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  padding-left: 16px;
+}
+
+.btn-close-modal {
+  --color: rgba(255, 255, 255, 0.7);
+  font-size: 20px;
+}
+
+.btn-close-modal:hover {
+  --color: white;
+}
+
 .modal-content-wrapper {
   --background: #243B4A;
+  --padding-top: 20px;
+  --padding-bottom: 30px;
 }
 
 .modal-content {
   max-width: 500px;
   margin: 0 auto;
-  padding: 8px 0;
+  padding: 0 4px;
 }
 
 .instruction-box {
@@ -400,7 +536,11 @@ ion-fab-button i {
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.photos-section {
+  margin-bottom: 28px;
 }
 
 .form-label {
@@ -410,7 +550,7 @@ ion-fab-button i {
   color: rgba(255, 255, 255, 0.7);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .form-textarea {
@@ -461,6 +601,12 @@ ion-fab-button i {
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.submit-spinner {
+  width: 20px;
+  height: 20px;
+  --color: #243B4A;
 }
 
 /* Header buttons */

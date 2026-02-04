@@ -47,4 +47,44 @@ router.post('/', problemeController.createProbleme);
  */
 router.get('/', problemeController.getAllProblemes);
 
+/**
+ * @swagger
+ * /api/probleme/{problemeId}/historique:
+ *   get:
+ *     tags:
+ *       - Probleme
+ *     summary: Récupérer l'historique des statuts d'un problème
+ *     parameters:
+ *       - in: path
+ *         name: problemeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID du problème
+ *     responses:
+ *       200:
+ *         description: Historique du problème
+ */
+router.get('/:problemeId/historique', problemeController.getProblemeHistorique);
+
+/**
+ * @swagger
+ * /api/probleme/{problemeId}/avancer:
+ *   put:
+ *     tags:
+ *       - Probleme
+ *     summary: Avancer le statut d'un problème au niveau suivant (0% -> 50% -> 100%)
+ *     parameters:
+ *       - in: path
+ *         name: problemeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID du problème
+ *     responses:
+ *       200:
+ *         description: Problème avancé
+ */
+router.put('/:problemeId/avancer', problemeController.avancerProbleme);
+
 module.exports = router;

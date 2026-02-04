@@ -94,7 +94,7 @@ import {
   IonButton,
   IonButtons,
 } from '@ionic/vue';
-import { logout, currentUser } from '@/services/firebase/authService';
+import { logout, currentUser } from '@/services/firebase/auth.service';
 
 const router = useRouter();
 

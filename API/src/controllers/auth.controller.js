@@ -30,6 +30,25 @@ const authController = {
       next(error);
     }
   },
+
+  /**
+   * Enregistrer un utilisateur dans Firebase Auth + Firestore + PostgreSQL
+   * Crée la cohérence entre les 3 systèmes
+   */
+  async registerWithFirebase(req, res, next) {
+    try {
+      const { email, password } = req.body;
+
+      const result = await authService.registerWithFirebase(email, password);
+
+      return res.sendSuccess('Utilisateur créé dans tous les systèmes', result, 201);
+    } catch (error) {
+      if (error.code) {
+        return res.sendError(error.message, { code: error.code }, error.status || 400);
+      }
+      next(error);
+    }
+  },
 };
 
 module.exports = authController;

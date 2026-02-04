@@ -31,6 +31,12 @@ export interface ProblemeStatut {
   pourcentage: number;
 }
 
+export interface SignalementImage {
+  base64?: string;  // Image en base64 (stockée dans Firestore)
+  url?: string;     // URL de l'image (après sync vers API)
+  name: string;
+}
+
 export interface Signalement {
   id: string;
   description: string;
@@ -41,6 +47,7 @@ export interface Signalement {
     lng: number;
     villeId: string;
   };
+  images?: SignalementImage[];
   createdAt: string;
   historiques: Array<{
     date: string;

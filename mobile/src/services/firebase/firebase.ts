@@ -4,17 +4,30 @@ import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDIWOJvZx9RTmPQ5Cs_HIhDkhsupOHRH1Q",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: "tp-firebase-b195d.firebaseapp.com",
   projectId: "tp-firebase-b195d",
   storageBucket: "tp-firebase-b195d.firebasestorage.app",
-  messagingSenderId: "79410079282",
-  appId: "1:79410079282:web:79ea5bb57d79bbc7ae7e2b",
-  measurementId: "G-2CL6MR5X2T"
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Analytics only in browser and only when required config exists
+let analytics;
+const hasWebConfig = Boolean(firebaseConfig.apiKey) && (Boolean(firebaseConfig.appId) || Boolean(firebaseConfig.measurementId));
+if (typeof window !== 'undefined' && hasWebConfig) {
+  try {
+    analytics = getAnalytics(app);
+  } catch (err) {
+    // If analytics fails to initialize, log and continue without throwing
+    // This prevents runtime crashes when env vars are missing during dev
+    // or when analytics is not supported in the environment.
+    // eslint-disable-next-line no-console
+    console.warn('Analytics not initialized:', err);
+  }
+}
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 

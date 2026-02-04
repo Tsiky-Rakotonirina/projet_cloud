@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import { observeAuthState, currentUser } from '@/services/firebase/authService';
+import { observeAuthState, currentUser } from '@/services/firebase/auth.service';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -11,11 +11,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/login',
     name: 'login',
     component: () => import('@/views/Login.vue')
-  },
-  {
-    path: '/register',
-    name: 'register',
-    component: () => import('@/views/Register.vue')
   },
   {
     path: '/home',
@@ -36,6 +31,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/profile',
     name: 'profile',
     component: () => import('@/views/Profile.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/seed',
+    name: 'seed',
+    component: () => import('@/views/SeedView.vue'),
     meta: { requiresAuth: true }
   }
 ]

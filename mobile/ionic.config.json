@@ -1,5 +1,7 @@
 {
-  "name": "New Ionic App",
-  "integrations": {},
-  "type": "vue"
+  "name": "mobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
 }

@@ -190,10 +190,10 @@ import {
   IonBackButton,
   toastController
 } from '@ionic/vue';
-import { logout, currentUser } from '@/services/firebase/authService';
-import { getMyProfile, updateMyProfile } from '@/services/userService';
+import { logout, currentUser } from '@/services/firebase/auth.service';
+import { getMyProfile, updateMyProfile } from '@/services/user.service';
 import type { UserProfile } from '@/types/user';
-import { getMySignalements } from '@/services/problemService';
+import { getMySignalements } from '@/services/problem.service';
 
 const router = useRouter();
 const loading = ref(true);

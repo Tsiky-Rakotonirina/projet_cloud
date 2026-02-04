@@ -10,6 +10,16 @@ const mapController = {
     }
   },
 
+  // Nouvelle méthode pour récupérer les signalements avec images (format carte)
+  async getSignalementsWithImages(req, res, next) {
+    try {
+      const signalements = await mapService.getSignalementsWithImages();
+      return res.sendSuccess('Signalements avec images récupérés', signalements, 200);
+    } catch (error) {
+      next(error);
+    }
+  },
+
   async getSignalementById(req, res, next) {
     try {
       const { id } = req.params;

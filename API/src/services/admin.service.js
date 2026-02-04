@@ -145,35 +145,41 @@ const adminService = {
   },
 
   async getBlockedUsers() {
-    const blockedUsers = await db.UtilisateurStatut.findAll({
-      include: [
-        {
-          model: db.Utilisateur,
-          as: 'utilisateur',
-          attributes: ['id_utilisateurs', 'email'],
-          include: {
-            model: db.Profil,
-            as: 'profil',
-            attributes: ['libelle'],
-          },
-        },
-        {
-          model: db.Statut,
-          as: 'statut',
-          attributes: ['libelle'],
-          where: { libelle: 'bloque' },
-        },
-      ],
-      order: [['date_statut', 'DESC']],
-    });
+    // D'abord, récupérer le dernier statut de chaque utilisateur
+    const { QueryTypes } = require('sequelize');
+    const sequelize = db.sequelize;
+    
+    // Requête pour obtenir les utilisateurs dont le DERNIER statut est "bloque"
+    const blockedUsers = await sequelize.query(`
+      SELECT DISTINCT ON (us.utilisateur_id)
+        us.id_utilisateur_statut,
+        us.utilisateur_id,
+        us.date_statut,
+        u.email,
+        p.libelle as profil,
+        s.libelle as statut
+      FROM utilisateur_statuts us
+      JOIN utilisateurs u ON us.utilisateur_id = u.id_utilisateurs
+      JOIN statuts s ON us.statut_id = s.id_statut
+      LEFT JOIN profils p ON u.profil_id = p.id_profils
+      WHERE s.libelle = 'bloque'
+      AND us.id_utilisateur_statut = (
+        SELECT us2.id_utilisateur_statut 
+        FROM utilisateur_statuts us2 
+        WHERE us2.utilisateur_id = us.utilisateur_id 
+        ORDER BY us2.date_statut DESC 
+        LIMIT 1
+      )
+      ORDER BY us.utilisateur_id, us.date_statut DESC
+    `, { type: QueryTypes.SELECT });
 
-    return blockedUsers.map((us) => ({
-      id_utilisateur_statut: us.id_utilisateur_statut,
-      utilisateur_id: us.utilisateur.id_utilisateurs,
-      email: us.utilisateur.email,
-      profil: us.utilisateur.profil?.libelle || null,
-      statut: us.statut.libelle,
-      date_statut: us.date_statut,
+    return blockedUsers.map((user) => ({
+      id_utilisateur_statut: user.id_utilisateur_statut,
+      utilisateur_id: user.utilisateur_id,
+      email: user.email,
+      profil: user.profil || null,
+      statut: user.statut,
+      date_statut: user.date_statut,
     }));
   },
 

@@ -232,4 +232,63 @@ router.post('/login', authController.login);
  */
 router.post('/register', authController.register);
 
+/**
+ * @swagger
+ * /api/auth/register-firebase:
+ *   post:
+ *     tags:
+ *       - Authentication
+ *     summary: Créer un utilisateur dans Firebase Auth + Firestore + PostgreSQL
+ *     description: Crée un utilisateur cohérent dans les 3 systèmes (Firebase Auth, Firestore, PostgreSQL) avec le mapping approprié. Idéal pour créer des utilisateurs qui pourront se connecter depuis l'application mobile.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: user@example.com
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *                 example: password123
+ *     responses:
+ *       201:
+ *         description: Utilisateur créé avec succès dans tous les systèmes
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: Utilisateur créé dans tous les systèmes
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     token:
+ *                       type: string
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: integer
+ *                         email:
+ *                           type: string
+ *                         firebaseUid:
+ *                           type: string
+ *       400:
+ *         description: Requête invalide
+ */
+router.post('/register-firebase', authController.registerWithFirebase);
+
 module.exports = router;
