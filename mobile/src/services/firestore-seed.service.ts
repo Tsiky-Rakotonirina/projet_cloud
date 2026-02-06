@@ -14,15 +14,15 @@ import { db } from './firebase/firebase';
 
 const seedData = {
   profils: [
-    { _id: "profil_1", libelle: "admin", descri: "Administrateur du système" },
-    { _id: "profil_2", libelle: "utilisateur", descri: "Utilisateur standard" }
+    { _id: "profil_1", libelle: "Admin", descri: "Administrateur du système" },
+    { _id: "profil_2", libelle: "Utilisateur", descri: "Utilisateur standard" }
   ],
 
   statuts_utilisateur: [
-    { _id: "statut_1", libelle: "actif" },
-    { _id: "statut_2", libelle: "bloque" },
-    { _id: "statut_3", libelle: "suspendu" },
-    { _id: "statut_4", libelle: "inactif" }
+    { _id: "statut_1", libelle: "Actif" },
+    { _id: "statut_2", libelle: "Bloque" },
+    { _id: "statut_3", libelle: "Suspendu" },
+    { _id: "statut_4", libelle: "Inactif" }
   ],
 
   villes: [
@@ -39,18 +39,18 @@ const seedData = {
   ],
 
   signalement_statuts: [
-    { _id: "sig_1", libelle: "nouveau", descri: "Nouveau signalement signalé" },
-    { _id: "sig_2", libelle: "en_cours", descri: "En cours de traitement" },
-    { _id: "sig_3", libelle: "resolu", descri: "Signalement traité et fermé" },
-    { _id: "sig_4", libelle: "rejete", descri: "Signalement rejeté" }
+    { _id: "sig_1", libelle: "Nouveau", descri: "Nouveau signalement signalé" },
+    { _id: "sig_2", libelle: "En cours", descri: "En cours de traitement" },
+    { _id: "sig_3", libelle: "Resolu", descri: "Signalement traité et fermé" },
+    { _id: "sig_4", libelle: "Rejete", descri: "Signalement rejeté" }
   ],
 
   probleme_statuts: [
-    { _id: "prob_1", libelle: "non_commence", descri: "Travaux non commencés", pourcentage: 0 },
-    { _id: "prob_2", libelle: "en_cours", descri: "Travaux en cours", pourcentage: 50 },
-    { _id: "prob_3", libelle: "termine", descri: "Travaux terminés", pourcentage: 100 },
-    { _id: "prob_4", libelle: "suspendu", descri: "Travaux suspendus temporairement", pourcentage: 25 },
-    { _id: "prob_5", libelle: "planifie", descri: "Travaux planifiés", pourcentage: 10 }
+    { _id: "prob_1", libelle: "Non commence", descri: "Travaux non commencés", pourcentage: 0 },
+    { _id: "prob_2", libelle: "En cours", descri: "Travaux en cours", pourcentage: 50 },
+    { _id: "prob_3", libelle: "Termine", descri: "Travaux terminés", pourcentage: 100 },
+    { _id: "prob_4", libelle: "Suspendu", descri: "Travaux suspendus temporairement", pourcentage: 25 },
+    { _id: "prob_5", libelle: "Planifie", descri: "Travaux planifiés", pourcentage: 10 }
   ],
 
   utilisateurs: [

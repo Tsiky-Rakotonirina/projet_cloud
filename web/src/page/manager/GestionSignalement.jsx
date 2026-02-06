@@ -239,11 +239,11 @@ const GestionSignalement = () => {
       textTransform: 'capitalize'
     };
     switch (statut) {
-      case 'planifié':
+      case 'Nouveau':
         return { ...base, color: colors.primary, backgroundColor: `${colors.primary}20` };
-      case 'en_cours':
+      case 'En cours':
         return { ...base, color: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.2)' };
-      case 'terminé':
+      case 'Resolu':
         return { ...base, color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.2)' };
       default:
         return { ...base, color: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(255,255,255,0.1)' };
@@ -1326,20 +1326,20 @@ const GestionSignalement = () => {
 
           <div style={styles.tabs}>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'nouveaux' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('nouveaux')}
+              style={{ ...styles.tab, ...(activeTab === 'Nouveau' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('Nouveau')}
             >
               Nouveaux ({signalements.length})
             </button>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'en_cours' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('en_cours')}
+              style={{ ...styles.tab, ...(activeTab === 'En cours' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('En cours')}
             >
               En cours ({signalementsEnCours.length})
             </button>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'resolus' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('resolus')}
+              style={{ ...styles.tab, ...(activeTab === 'Resolu' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('Resolu')}
             >
               Résolus ({signalementsResolus.length})
             </button>
@@ -1358,9 +1358,9 @@ const GestionSignalement = () => {
             </div>
           ) : (
             <>
-              {activeTab === 'nouveaux' && renderNouveaux()}
-              {activeTab === 'en_cours' && renderEnCours()}
-              {activeTab === 'resolus' && renderResolus()}
+              {activeTab === 'Nouveau' && renderNouveaux()}
+              {activeTab === 'En cours' && renderEnCours()}
+              {activeTab === 'Resolu' && renderResolus()}
               {activeTab === 'statistiques' && renderStatistiques()}
             </>
           )}

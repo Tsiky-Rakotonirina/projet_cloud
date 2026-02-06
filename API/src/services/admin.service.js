@@ -75,7 +75,7 @@ const adminService = {
 
     // Récupérer le statut "bloque"
     const statutBloque = await db.Statut.findOne({
-      where: { libelle: 'bloque' },
+      where: { libelle: 'Bloque' },
     });
 
     if (!statutBloque) {
@@ -95,7 +95,7 @@ const adminService = {
     return {
       id_utilisateur_statut: utilisateurStatut.id_utilisateur_statut,
       utilisateur_id: utilisateurId,
-      statut: 'bloque',
+      statut: 'Bloque',
       date_statut: utilisateurStatut.date_statut,
     };
   },
@@ -119,7 +119,7 @@ const adminService = {
 
     // Récupérer le statut "actif"
     const statutActif = await db.Statut.findOne({
-      where: { libelle: 'actif' },
+      where: { libelle: 'Actif' },
     });
 
     if (!statutActif) {
@@ -139,7 +139,7 @@ const adminService = {
     return {
       id_utilisateur_statut: utilisateurStatut.id_utilisateur_statut,
       utilisateur_id: utilisateurId,
-      statut: 'actif',
+      statut: 'Actif',
       date_statut: utilisateurStatut.date_statut,
     };
   },
@@ -162,7 +162,7 @@ const adminService = {
       JOIN utilisateurs u ON us.utilisateur_id = u.id_utilisateurs
       JOIN statuts s ON us.statut_id = s.id_statut
       LEFT JOIN profils p ON u.profil_id = p.id_profils
-      WHERE s.libelle = 'bloque'
+      WHERE s.libelle = 'Bloque'
       AND us.id_utilisateur_statut = (
         SELECT us2.id_utilisateur_statut 
         FROM utilisateur_statuts us2 
@@ -237,7 +237,7 @@ const adminService = {
 
     // Créer le statut initial (actif)
     const statutActif = await db.Statut.findOne({
-      where: { libelle: 'actif' },
+      where: { libelle: 'Actif' },
     });
 
     if (statutActif) {

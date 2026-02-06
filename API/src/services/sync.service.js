@@ -382,7 +382,7 @@ const syncService = {
             dateNaissance: user.date_naissance ? user.date_naissance.toISOString() : null,
             profilId: user.profil_id ? `profil_${user.profil_id}` : 'profil_2',
             role: user.profil?.libelle?.toLowerCase() || 'user',
-            statutId: user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif',
+            statutId: user.utilisateur_statuts?.[0]?.statut?.libelle || 'Actif',
             loginAttempts: 0,
             disabled: false,
             createdAt: new Date().toISOString(),
@@ -390,8 +390,8 @@ const syncService = {
           };
 
           // Déterminer le statut de blocage depuis PostgreSQL
-          const currentStatut = user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif';
-          const isBlockedInPostgres = currentStatut === 'bloque';
+          const currentStatut = user.utilisateur_statuts?.[0]?.statut?.libelle || 'Actif';
+          const isBlockedInPostgres = currentStatut === 'Bloque';
 
           if (existingMapping) {
             // Vérifier si le document existe encore dans Firebase

@@ -27,18 +27,15 @@ const ANTANANARIVO = {
 // Statuts des problèmes (supporte les deux formats)
 const STATUTS = {
   'Non commence': { color: '#EF4444', icon: 'alert', label: 'Non commencé' },
-  'non_commence': { color: '#EF4444', icon: 'alert', label: 'Non commencé' },
   'En cours': { color: '#F59E0B', icon: 'clock', label: 'En cours' },
-  'en_cours': { color: '#F59E0B', icon: 'clock', label: 'En cours' },
-  'Termine': { color: '#10B981', icon: 'check', label: 'Terminé' },
-  'termine': { color: '#10B981', icon: 'check', label: 'Terminé' }
+  'Termine': { color: '#10B981', icon: 'check', label: 'Terminé' }
 };
 
 // Liste des filtres pour le dropdown (format API)
 const FILTER_OPTIONS = [
-  { key: 'non_commence', color: '#EF4444', label: 'Non commencé' },
-  { key: 'en_cours', color: '#F59E0B', label: 'En cours' },
-  { key: 'termine', color: '#10B981', label: 'Terminé' }
+  { key: 'Non commence', color: '#EF4444', label: 'Non commencé' },
+  { key: 'En cours', color: '#F59E0B', label: 'En cours' },
+  { key: 'Termine', color: '#10B981', label: 'Terminé' }
 ];
 
 // Créer une icône personnalisée selon le statut
@@ -668,9 +665,9 @@ const CartePage = () => {
                       backgroundColor: `${getStatusConfig(selectedPoint.status).color}20`
                     }}
                   >
-                    {(selectedPoint.status === 'Non commence' || selectedPoint.status === 'non_commence') && <AlertTriangle size={14} />}
-                    {(selectedPoint.status === 'En cours' || selectedPoint.status === 'en_cours') && <Clock size={14} />}
-                    {(selectedPoint.status === 'Termine' || selectedPoint.status === 'termine') && <CheckCircle size={14} />}
+                    {(selectedPoint.status === 'Non commence' || selectedPoint.status === 'Non commence') && <AlertTriangle size={14} />}
+                    {(selectedPoint.status === 'En cours' || selectedPoint.status === 'En cours') && <Clock size={14} />}
+                    {(selectedPoint.status === 'Termine' || selectedPoint.status === 'Termine') && <CheckCircle size={14} />}
                     {getStatusConfig(selectedPoint.status).label}
                   </span>
                   <div style={styles.progressBar}>

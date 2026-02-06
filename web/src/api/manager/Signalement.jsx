@@ -109,9 +109,9 @@ export const signalementApi = {
     const signalements = response.data || [];
     return {
       total: signalements.length,
-      pending: signalements.filter(s => s.statut === 'nouveau').length,
-      resolved: signalements.filter(s => s.statut === 'termine').length,
-      urgent: signalements.filter(s => s.statut === 'urgent').length
+      pending: signalements.filter(s => s.statut === 'Nouveau').length,
+      resolved: signalements.filter(s => s.statut === 'Termine').length,
+      urgent: signalements.filter(s => s.statut === 'Urgent').length
     };
   }
 };

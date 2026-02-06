@@ -26,7 +26,7 @@ const db = admin.firestore();
           disabledReason: null,
           reactivatedAt: new Date().toISOString(),
           reactivatedBy: 'admin_sync',
-          statutId: 'actif',
+          statutId: 'Actif',
           loginAttempts: 0,
         });
         console.log(`✅ Document ${doc.id} débloqué!`);
