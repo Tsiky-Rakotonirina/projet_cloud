@@ -210,7 +210,7 @@ const mapService = {
         },
         {
           model: db.ProblemeStatut,
-          as: 'probleme_statut',
+          as: 'statut',
           attributes: ['id_probleme_statuts', 'libelle', 'pourcentage'],
         },
         {
@@ -228,8 +228,8 @@ const mapService = {
       budget: p.budget,
       geometry: p.geometry ? JSON.parse(p.geometry) : null,
       description: p['signalement.description'],
-      statut: p['probleme_statut.libelle'],
-      pourcentage: p['probleme_statut.pourcentage'],
+      statut: p['statut.libelle'],
+      pourcentage: p['statut.pourcentage'],
       entreprise: p['entreprise.nom'],
     }));
   },
@@ -254,7 +254,7 @@ const mapService = {
         },
         {
           model: db.ProblemeStatut,
-          as: 'probleme_statut',
+          as: 'statut',
           attributes: ['id_probleme_statuts', 'libelle', 'descri', 'pourcentage'],
         },
         {
@@ -286,7 +286,7 @@ const mapService = {
       ],
       include: {
         model: db.SignalementStatut,
-        as: 'signalement_statut',
+        as: 'statut',
         attributes: ['libelle'],
       },
       group: ['signalement_statut_id', 'SignalementStatut.id_signalement_statuts'],
@@ -300,7 +300,7 @@ const mapService = {
       ],
       include: {
         model: db.ProblemeStatut,
-        as: 'probleme_statut',
+        as: 'statut',
         attributes: ['libelle'],
       },
       group: ['probleme_statut_id', 'ProblemeStatut.id_probleme_statuts'],
@@ -311,14 +311,14 @@ const mapService = {
       signalements: {
         total: totalSignalements,
         par_statut: signalementStatutCounts.map((s) => ({
-          statut: s['signalement_statut.libelle'],
+          statut: s['statut.libelle'],
           count: parseInt(s.count),
         })),
       },
       problemes: {
         total: totalProblemes,
         par_statut: problemeStatutCounts.map((p) => ({
-          statut: p['probleme_statut.libelle'],
+          statut: p['statut.libelle'],
           count: parseInt(p.count),
         })),
       },

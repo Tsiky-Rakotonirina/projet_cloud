@@ -6,13 +6,13 @@ const visiteurService = {
       where: { probleme_id: problemeId },
       include: {
         model: db.ProblemeStatut,
-        as: 'probleme_statut',
+        as: 'statut',
         attributes: ['libelle', 'descri', 'pourcentage'],
       },
       order: [['date_historique', 'DESC']],
     });
 
-    return historique ? historique.probleme_statut : null;
+    return historique ? historique.statut : null;
   },
 
   async getSummaryStats() {
@@ -30,8 +30,8 @@ const visiteurService = {
       },
     });
 
-    const totalSurface = problemes.reduce((sum, p) => sum + (p.surface || 0), 0);
-    const totalBudget = problemes.reduce((sum, p) => sum + (p.budget || 0), 0);
+    const totalSurface = problemes.reduce((sum, p) => sum + (parseFloat(p.surface) || 0), 0);
+    const totalBudget = problemes.reduce((sum, p) => sum + (parseFloat(p.budget) || 0), 0);
 
     // Récupérer le statut actuel de chaque problème pour calculer l'avancement moyen
     const statusPercentages = await Promise.all(

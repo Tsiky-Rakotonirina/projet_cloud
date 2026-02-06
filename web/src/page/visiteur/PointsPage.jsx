@@ -71,10 +71,13 @@ const PointsPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
 
+  const [error, setError] = useState(null);
+
   // Charger les problèmes depuis l'API
   useEffect(() => {
     const loadProblemes = async () => {
       try {
+        setError(null);
         const data = await pointVisiteurApi.getAllProblemes();
         // Transformer les données pour la carte
         const formattedData = data.map(p => ({
@@ -91,14 +94,9 @@ const PointsPage = () => {
         setProblemes(formattedData);
       } catch (error) {
         console.error('Erreur chargement problèmes:', error);
-        // Données de démo en cas d'erreur
-        setProblemes([
-          { id: 1, lng: 47.5200, lat: -18.8850, description: 'Nid de poule Avenue Indépendance', status: 'Non commence', pourcentage: 0, surface: 15, budget: 500000, entreprise: 'SORGETRAM' },
-          { id: 2, lng: 47.5250, lat: -18.8780, description: 'Fissure chaussée Rue de la Reine', status: 'En cours', pourcentage: 50, surface: 25, budget: 800000, entreprise: 'BTP Madagascar' },
-          { id: 3, lng: 47.5150, lat: -18.8900, description: 'Route dégradée Boulevard Ratsimilaho', status: 'Termine', pourcentage: 100, surface: 40, budget: 1200000, entreprise: 'Travaux Publics Plus' },
-          { id: 4, lng: 47.5300, lat: -18.8750, description: 'Affaissement chaussée Analakely', status: 'En cours', pourcentage: 50, surface: 20, budget: 600000, entreprise: 'SORGETRAM' },
-          { id: 5, lng: 47.5100, lat: -18.8820, description: 'Nid de poule Route Ivato', status: 'Non commence', pourcentage: 0, surface: 10, budget: 300000, entreprise: 'Infrastructure Solutions' },
-        ]);
+        setError('Impossible de charger les problèmes depuis le serveur');
+        // Réinitialiser avec une liste vide en cas d'erreur
+        setProblemes([]);
       } finally {
         setLoading(false);
       }
@@ -513,6 +511,25 @@ const PointsPage = () => {
           {loading && (
             <div style={styles.loadingOverlay}>
               <span style={styles.loadingText}>Chargement des problèmes...</span>
+            </div>
+          )}
+
+          {/* Erreur */}
+          {error && !loading && (
+            <div style={{
+              position: 'absolute',
+              top: '80px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              backgroundColor: 'rgba(239, 68, 68, 0.95)',
+              color: 'white',
+              padding: '12px 24px',
+              borderRadius: '10px',
+              zIndex: 2000,
+              fontSize: '14px',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
+            }}>
+              {error}
             </div>
           )}
 

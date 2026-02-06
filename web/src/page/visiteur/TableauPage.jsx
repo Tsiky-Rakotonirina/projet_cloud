@@ -9,9 +9,11 @@ const TableauPage = () => {
     nbPoints: 0,
     totalSurface: 0,
     avancement: 0,
-    totalBudget: 0
+    totalBudget: 0,
+    nombreProblemes: 0
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -20,21 +22,26 @@ const TableauPage = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const totalsData = await tableauVisiteurApi.getStats();
-      setTotals(totalsData || {
+      setError(null);
+      const response = await tableauVisiteurApi.getStats();
+      // Mapper les données de l'API vers le format attendu
+      setTotals({
+        nbPoints: response.total_points || 0,
+        totalSurface: response.total_surface || 0,
+        avancement: response.avancement_moyen_pourcent || 0,
+        totalBudget: response.total_budget || 0,
+        nombreProblemes: response.nombre_problemes || 0
+      });
+    } catch (err) {
+      console.error('Erreur lors du chargement des statistiques:', err);
+      setError('Impossible de charger les statistiques depuis le serveur');
+      // Réinitialiser avec des valeurs vides en cas d'erreur
+      setTotals({
         nbPoints: 0,
         totalSurface: 0,
         avancement: 0,
-        totalBudget: 0
-      });
-    } catch (err) {
-      console.error(err);
-      // Données de démonstration
-      setTotals({
-        nbPoints: 107,
-        totalSurface: 28300,
-        avancement: 56,
-        totalBudget: 5870000000
+        totalBudget: 0,
+        nombreProblemes: 0
       });
     } finally {
       setLoading(false);
@@ -279,6 +286,21 @@ const TableauPage = () => {
             <p style={styles.subtitle}>Statistiques et avancement des travaux</p>
           </header>
 
+          {/* Message d'erreur */}
+          {error && (
+            <div style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '12px',
+              padding: '16px 20px',
+              marginBottom: '24px',
+              color: '#EF4444',
+              fontSize: '14px'
+            }}>
+              {error}
+            </div>
+          )}
+
           {/* Stats Cards */}
           <div style={styles.statsGrid}>
             <div style={styles.statCard}>
@@ -288,7 +310,7 @@ const TableauPage = () => {
                 </div>
               </div>
               <p style={styles.statLabel}>Nombre de Points</p>
-              <h3 style={styles.statValue}>{totals.nbPoints}</h3>
+              <h3 style={styles.statValue}>{loading ? '...' : totals.nbPoints}</h3>
             </div>
 
             <div style={styles.statCard}>
@@ -298,7 +320,7 @@ const TableauPage = () => {
                 </div>
               </div>
               <p style={styles.statLabel}>Surface Totale</p>
-              <h3 style={styles.statValue}>{formatSurface(totals.totalSurface)}</h3>
+              <h3 style={styles.statValue}>{loading ? '...' : formatSurface(totals.totalSurface)}</h3>
             </div>
 
             <div style={styles.statCard}>
@@ -308,7 +330,7 @@ const TableauPage = () => {
                 </div>
               </div>
               <p style={styles.statLabel}>Avancement Moyen</p>
-              <h3 style={styles.statValue}>{totals.avancement}%</h3>
+              <h3 style={styles.statValue}>{loading ? '...' : `${totals.avancement}%`}</h3>
             </div>
 
             <div style={styles.statCard}>
@@ -318,8 +340,34 @@ const TableauPage = () => {
                 </div>
               </div>
               <p style={styles.statLabel}>Budget Total</p>
-              <h3 style={styles.statValue}>{formatBudget(totals.totalBudget)}</h3>
+              <h3 style={styles.statValue}>{loading ? '...' : formatBudget(totals.totalBudget)}</h3>
             </div>
+          </div>
+
+          {/* Bouton de rafraîchissement */}
+          <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              onClick={loadData}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '10px 18px',
+                fontSize: '14px',
+                fontWeight: '500',
+                fontFamily: 'inherit',
+                color: colors.primary,
+                backgroundColor: `${colors.primary}15`,
+                border: 'none',
+                borderRadius: '10px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1
+              }}
+            >
+              <RefreshCw size={18} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              {loading ? 'Chargement...' : 'Actualiser'}
+            </button>
           </div>
         </div>
       </div>
