@@ -15,7 +15,7 @@ const GestionSignalement = () => {
   const [signalementsEnCours, setSignalementsEnCours] = useState([]);
   const [signalementsResolus, setSignalementsResolus] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('nouveaux');
+  const [activeTab, setActiveTab] = useState('Nouveau');
   const [showModal, setShowModal] = useState(false);
   const [selectedSignalement, setSelectedSignalement] = useState(null);
   const [entreprises, setEntreprises] = useState([]);
