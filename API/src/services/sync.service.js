@@ -1611,12 +1611,13 @@ const syncService = {
           if (existingMapping) {
             const probleme = await Probleme.findByPk(existingMapping.postgres_id);
             if (probleme) {
+              // Préserver les données existantes si pas de mapping trouvé dans Firebase
               await probleme.update({
-                surface: firebaseData.surface,
-                budget: firebaseData.budget,
-                entreprise_id: entrepriseId,
-                signalement_id: signalementId,
-                probleme_statut_id: problemeStatutId,
+                surface: firebaseData.surface ?? probleme.surface,
+                budget: firebaseData.budget ?? probleme.budget,
+                entreprise_id: entrepriseId ?? probleme.entreprise_id,
+                signalement_id: signalementId ?? probleme.signalement_id,
+                probleme_statut_id: problemeStatutId ?? probleme.probleme_statut_id,
               });
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;

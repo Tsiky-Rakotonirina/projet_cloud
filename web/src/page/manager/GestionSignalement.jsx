@@ -824,7 +824,6 @@ const GestionSignalement = () => {
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email Utilisateur</th>
               <th style={styles.th}>Description</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>Budget</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
@@ -858,9 +857,6 @@ const GestionSignalement = () => {
                 </td>
                 <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.description}</td>
-                <td style={{ ...styles.td, textAlign: 'center' }}>
-                  {s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}
-                </td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
                   <button 
                     style={styles.btnImages} 

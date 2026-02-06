@@ -107,7 +107,7 @@ import { ref } from 'vue';
 import { useRouter, RouterLink } from 'vue-router';
 import { IonPage, IonContent, IonSpinner, toastController, alertController } from '@ionic/vue';
 import { login, loginWithGithub } from '@/services/firebase/auth.service';
-import { isAccountBlocked, resetLoginAttempts } from '@/services/user.service';
+import { isAccountBlocked, resetLoginAttempts } from '@/services/userService';
 
 const router = useRouter();
 const loading = ref(false);

@@ -1,4 +1,5 @@
 const db = require('../models');
+const { Op } = require('sequelize');
 
 const signalementService = {
   async getSignalementCurrentStatut(signalementId) {
@@ -38,7 +39,7 @@ const signalementService = {
           attributes: [
             'id_points',
             [
-              db.sequelize.sequelize.fn(
+              db.sequelize.fn(
                 'ST_AsGeoJSON',
                 db.sequelize.col('point.xy')
               ),
@@ -228,8 +229,13 @@ const signalementService = {
   },
 
   async getSignalementsByStatut(statut) {
+    // Normaliser le statut: minuscules et remplacer les espaces par des underscores
+    const normalizedStatut = statut.toLowerCase().replace(/\s+/g, '_');
+    
     const statutObj = await db.SignalementStatut.findOne({
-      where: { libelle: statut },
+      where: { 
+        libelle: { [Op.iLike]: normalizedStatut }
+      },
     });
 
     if (!statutObj) {
@@ -279,7 +285,7 @@ const signalementService = {
     const filtered = [];
     for (const s of signalements) {
       const currentStatut = await this.getSignalementCurrentStatut(s.id_signalements);
-      if (currentStatut?.libelle === statut) {
+      if (currentStatut?.libelle?.toLowerCase() === normalizedStatut) {
         // Récupérer le problème associé (le premier s'il y en a plusieurs)
         const probleme = s.problemes?.[0];
         
