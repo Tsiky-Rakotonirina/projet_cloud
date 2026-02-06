@@ -20,24 +20,8 @@ const {
 // Service de gestion des sessions de synchronisation
 const syncSessionService = require('./sync-session.service');
 
-// Configuration Firebase Admin SDK
-const admin = require('firebase-admin');
-const serviceAccount = require('../config/firebase-admin-sdk.json');
-
-// Vérifier si Firebase n'est pas déjà initialisé
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
-
-const firebaseDB = admin.firestore();
-// Ensure Firestore ignores undefined properties when updating documents
-try {
-  firebaseDB.settings({ ignoreUndefinedProperties: true });
-} catch (e) {
-  // ignore if settings not supported in this environment
-}
+// Configuration Firebase Admin SDK (utilise variables d'env ou fichier JSON)
+const { admin, firebaseDB } = require('../config/firebase-admin.config');
 
 const syncService = {
   /**
