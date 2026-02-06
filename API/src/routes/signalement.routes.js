@@ -53,6 +53,40 @@ router.get('/', signalementController.getAllSignalements);
 
 /**
  * @swagger
+ * /api/signalement/statut/{statut}:
+ *   get:
+ *     tags:
+ *       - Signalement
+ *     summary: Récupérer tous les signalements par statut
+ *     description: Filtre et retourne tous les signalements avec un statut spécifique
+ *     parameters:
+ *       - name: statut
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: nouveau
+ *     responses:
+ *       200:
+ *         description: Signalements avec le statut spécifié
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *       404:
+ *         description: Statut non trouvé
+ */
+router.get('/statut/:statut', signalementController.getSignalementsByStatut);
+
+/**
+ * @swagger
  * /api/signalement/{signalementId}:
  *   get:
  *     tags:
@@ -273,39 +307,5 @@ router.get('/:signalementId/historique', signalementController.getSignalementSta
  *                         format: date-time
  */
 router.get('/:signalementId/images', signalementController.getSignalementImages);
-
-/**
- * @swagger
- * /api/signalement/statut/{statut}:
- *   get:
- *     tags:
- *       - Signalement
- *     summary: Récupérer tous les signalements par statut
- *     description: Filtre et retourne tous les signalements avec un statut spécifique
- *     parameters:
- *       - name: statut
- *         in: path
- *         required: true
- *         schema:
- *           type: string
- *           example: nouveau
- *     responses:
- *       200:
- *         description: Signalements avec le statut spécifié
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 message:
- *                   type: string
- *                 data:
- *                   type: array
- *       404:
- *         description: Statut non trouvé
- */
-router.get('/statut/:statut', signalementController.getSignalementsByStatut);
 
 module.exports = router;

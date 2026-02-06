@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { colors } from '@assets/colors';
 import Button from '@components/Button';
 import { useAuth } from '@context/AuthContext';
-import { RefreshCw, Users, AlertTriangle, Map } from 'lucide-react';
+import { RefreshCw, Users, AlertTriangle, MapPin, BarChart3 } from 'lucide-react';
 
 /**
  * Composant Navbar pour les managers
@@ -94,7 +94,7 @@ const NavbarManager = () => {
         {/* Logo - Sans lien */}
         <div style={logoStyle}>
           <img src="/logo.svg" alt="Logo" style={{ width: '32px', height: '32px' }} />
-          <span>Lalan-tsara Admin</span>
+          <span>Lalan-tsara</span>
         </div>
 
         {/* Navigation Links */}
@@ -144,16 +144,30 @@ const NavbarManager = () => {
           <div
             style={{
               ...linkStyle(isActive('/manager/carte')),
-              ...(hoveredLink === 'map' && !isActive('/manager/carte') ? {
+              ...(hoveredLink === 'carte' && !isActive('/manager/carte') ? {
                 backgroundColor: `${colors.secondary}15`,
                 color: colors.secondary
               } : {})
             }}
             onClick={() => navigate('/manager/carte')}
-            onMouseEnter={() => setHoveredLink('map')}
+            onMouseEnter={() => setHoveredLink('carte')}
             onMouseLeave={() => setHoveredLink(null)}
           >
-            <Map size={18} /> Voir la Carte
+            <MapPin size={18} /> Carte
+          </div>
+          <div
+            style={{
+              ...linkStyle(isActive('/manager/tableau')),
+              ...(hoveredLink === 'tableau' && !isActive('/manager/tableau') ? {
+                backgroundColor: `${colors.secondary}15`,
+                color: colors.secondary
+              } : {})
+            }}
+            onClick={() => navigate('/manager/tableau')}
+            onMouseEnter={() => setHoveredLink('tableau')}
+            onMouseLeave={() => setHoveredLink(null)}
+          >
+            <BarChart3 size={18} /> Tableau
           </div>
         </div>
 

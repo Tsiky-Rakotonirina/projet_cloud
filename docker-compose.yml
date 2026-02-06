@@ -33,6 +33,10 @@ services:
       DB_NAME: route
       DB_USER: admin
       DB_PASSWORD: admin
+      JWT_SECRET: lalan_tsara_secret_key_2026
+      JWT_EXPIRES_IN: 24h
+      MAX_LOGIN_ATTEMPTS: 5
+      LOGIN_LOCK_DURATION: 120000
     depends_on:
       - db
 

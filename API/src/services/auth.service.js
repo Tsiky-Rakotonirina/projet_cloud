@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { Utilisateur } = require('../models');
 const { generateToken } = require('../utils/jwt');
 const loginAttemptService = require('./login-attempt.service');

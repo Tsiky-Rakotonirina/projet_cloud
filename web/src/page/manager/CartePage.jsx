@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import Navbar from '@components/Navbar';
+import NavbarManager from '@components/NavbarManager';
 import { colors } from '@assets/colors';
 import { Map as MapIcon, Locate, X, Filter, ChevronDown, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import { pointVisiteurApi } from '../../api/visiteur/PointVisiteur';
@@ -70,7 +70,7 @@ const createStatusIcon = (status) => {
   });
 };
 
-const PointsPage = () => {
+const CartePage = () => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]);
@@ -80,7 +80,6 @@ const PointsPage = () => {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('all');
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
-
   const [error, setError] = useState(null);
 
   // Charger les problèmes depuis l'API
@@ -111,7 +110,6 @@ const PointsPage = () => {
       } catch (error) {
         console.error('Erreur chargement problèmes:', error);
         setError('Impossible de charger les problèmes depuis le serveur');
-        // Réinitialiser avec une liste vide en cas d'erreur
         setProblemes([]);
       } finally {
         setLoading(false);
@@ -517,7 +515,7 @@ const PointsPage = () => {
 
   return (
     <>
-      <Navbar />
+      <NavbarManager />
       <div style={styles.page}>
         <div style={styles.mapWrapper}>
           {/* Container de la carte */}
@@ -715,4 +713,4 @@ const PointsPage = () => {
   );
 };
 
-export default PointsPage;
+export default CartePage;

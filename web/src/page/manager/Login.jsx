@@ -19,13 +19,24 @@ const Login = () => {
     setLoading(true);
 
     try {
+      console.log('Tentative de login avec:', email);
       const response = await authApi.login(email, password);
-      login(response.user, response.token);
-      navigate('/manager/synchronisation');
+      console.log('Réponse API:', response);
+      
+      // L'API retourne { success, message, data: { token, user } }
+      if (response.success && response.data) {
+        console.log('Login réussi, token:', response.data.token);
+        login(response.data.user, response.data.token);
+        navigate('/manager/synchronisation');
+      } else {
+        console.error('Login échoué, réponse:', response);
+        setError(response.message || 'Erreur de connexion');
+      }
     } catch (err) {
       // Rester sur /manager/login en cas d'erreur
+      console.error('Erreur login:', err);
+      console.error('Response data:', err.response?.data);
       setError(err.response?.data?.message || 'Email ou mot de passe incorrect');
-      navigate('/manager/login');
     } finally {
       setLoading(false);
     }

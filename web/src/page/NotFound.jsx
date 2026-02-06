@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Container from '@components/Container';
 import Button from '@components/Button';
 import { colors } from '@assets/colors';
+import { MapPin } from 'lucide-react';
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ const NotFound = () => {
   return (
     <Container>
       <div style={contentStyle}>
-        <div style={iconStyle}><MapOff size={80} /></div>
+        <div style={iconStyle}><MapPin size={80} /></div>
         <div style={errorCodeStyle}>404</div>
         <h1 style={titleStyle}>Page non trouvée</h1>
         <p style={messageStyle}>

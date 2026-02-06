@@ -141,7 +141,7 @@ const mapService = {
         description: s.description,
         lat,
         lng,
-        statut: s.statut?.libelle || 'nouveau',
+        statut: s.statut?.libelle || 'Nouveau',
         email_utilisateur: s.utilisateur?.email,
         images
       };

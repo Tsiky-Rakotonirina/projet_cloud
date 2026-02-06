@@ -16,7 +16,7 @@ export const signalementApi = {
    * Récupérer les nouveaux signalements (à traiter)
    */
   getNouveaux: async () => {
-    const response = await callApi('/api/signalement/statut/nouveau', 'GET');
+    const response = await callApi('/api/signalement/statut/Nouveau', 'GET');
     return response.data || [];
   },
 
@@ -24,7 +24,7 @@ export const signalementApi = {
    * Récupérer les signalements en cours de traitement
    */
   getEnCours: async () => {
-    const response = await callApi('/api/signalement/statut/en_cours', 'GET');
+    const response = await callApi('/api/signalement/statut/En cours', 'GET');
     return response.data || [];
   },
 
@@ -32,7 +32,7 @@ export const signalementApi = {
    * Récupérer les signalements résolus
    */
   getResolus: async () => {
-    const response = await callApi('/api/signalement/statut/resolu', 'GET');
+    const response = await callApi('/api/signalement/statut/Resolu', 'GET');
     return response.data || [];
   },
   
@@ -40,7 +40,7 @@ export const signalementApi = {
    * Récupérer les signalements rejetés
    */
   getRejetes: async () => {
-    const response = await callApi('/api/signalement/statut/rejete', 'GET');
+    const response = await callApi('/api/signalement/statut/Rejete', 'GET');
     return response.data || [];
   },
 

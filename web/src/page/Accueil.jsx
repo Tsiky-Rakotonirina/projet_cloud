@@ -98,8 +98,8 @@ const Accueil = () => {
         </p>
        
         <div style={buttonContainerStyle}>
-          <Button size="large" onClick={() => navigate('/visiteur/carte')}>
-            <Map size={24} style={{ marginRight: '8px' }} /> Voir la carte des rues
+          <Button size="large" onClick={() => navigate('/visiteur/carte')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Map size={24} /> Voir la carte des rues
           </Button>
         </div>
 

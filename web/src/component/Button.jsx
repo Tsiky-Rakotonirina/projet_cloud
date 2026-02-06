@@ -11,7 +11,8 @@ const Button = ({
   size = 'medium',
   fullWidth = false,
   disabled = false,
-  type = 'button'
+  type = 'button',
+  style = {}
 }) => {
   const variants = {
     primary: {
@@ -64,8 +65,12 @@ const Button = ({
 
   const dynamicStyle = !disabled && isHovered ? {
     ...baseStyle,
-    backgroundColor: variants[variant].hoverBackground
-  } : baseStyle;
+    backgroundColor: variants[variant].hoverBackground,
+    ...style
+  } : {
+    ...baseStyle,
+    ...style
+  };
 
   return (
     <button

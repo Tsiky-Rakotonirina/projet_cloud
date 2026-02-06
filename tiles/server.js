@@ -41,22 +41,56 @@ function getCachePath(z, x, y) {
   return path.join(CACHE_DIR, z.toString(), x.toString(), `${y}.png`);
 }
 
-// Télécharger une tuile
-async function downloadTile(z, x, y) {
-  const sourceIndex = Math.floor(Math.random() * TILE_SOURCES.length);
-  const url = TILE_SOURCES[sourceIndex]
-    .replace('{z}', z)
-    .replace('{x}', x)
-    .replace('{y}', y);
+// Tuile transparente de fallback (1x1 PNG transparent)
+const TRANSPARENT_TILE = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+  'base64'
+);
 
-  const response = await axios.get(url, {
-    responseType: 'arraybuffer',
-    timeout: 15000,
-    headers: {
-      'User-Agent': 'TileServer-Antananarivo/1.0'
+// Délai entre requêtes pour éviter le rate limiting
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 100; // 100ms entre chaque requête
+
+// Télécharger une tuile avec retry
+async function downloadTile(z, x, y, retries = 3) {
+  // Rate limiting côté client
+  const now = Date.now();
+  const timeSinceLastRequest = now - lastRequestTime;
+  if (timeSinceLastRequest < MIN_REQUEST_INTERVAL) {
+    await new Promise(resolve => setTimeout(resolve, MIN_REQUEST_INTERVAL - timeSinceLastRequest));
+  }
+  lastRequestTime = Date.now();
+
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const sourceIndex = (attempt) % TILE_SOURCES.length;
+    const url = TILE_SOURCES[sourceIndex]
+      .replace('{z}', z)
+      .replace('{x}', x)
+      .replace('{y}', y);
+
+    try {
+      const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        timeout: 10000,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; TileCache/1.0)',
+          'Accept': 'image/png,image/*',
+          'Referer': 'https://www.openstreetmap.org/'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      const errorMsg = error.response?.status || error.code || error.message || 'Unknown error';
+      console.warn(`Tuile ${z}/${x}/${y} tentative ${attempt + 1}/${retries}: ${errorMsg}`);
+      
+      if (attempt < retries - 1) {
+        // Attendre avant de réessayer (backoff exponentiel)
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+      }
     }
-  });
-  return response.data;
+  }
+  
+  throw new Error(`Échec après ${retries} tentatives`);
 }
 
 // Route principale des tuiles
@@ -87,8 +121,11 @@ app.get('/tiles/:z/:x/:y.png', async (req, res) => {
 
   } catch (error) {
     stats.errors++;
-    console.error(`Erreur tuile ${z}/${x}/${y}:`, error.message);
-    res.status(404).send('Tile not found');
+    console.error(`Erreur tuile ${z}/${x}/${y}: ${error.message || 'Erreur inconnue'}`);
+    // Retourner une tuile transparente au lieu d'une erreur 404
+    res.set('Content-Type', 'image/png');
+    res.set('Cache-Control', 'no-cache');
+    res.send(TRANSPARENT_TILE);
   }
 });
 
