@@ -103,4 +103,16 @@
       ]
     }
   ]
+
+  "notifications": [
+    {
+      "_id": "notificationId",
+      "utilisateurId": "userId",
+      "signalementId": "signalementId",
+      "message": "Votre signalement a été mis à jour.",
+      "createdAt": "2026-01-21T10:00:00Z",
+      "lue": false,
+      "readAt": null
+    }
+  ]
 }
