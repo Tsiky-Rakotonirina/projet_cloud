@@ -30,6 +30,7 @@ npm run seed
 
 <!-- notification added -->
 npm install @capacitor/push-notifications
+ npm install @capacitor/local-notifications
 
 npx cap sync android
 

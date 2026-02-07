@@ -21,7 +21,11 @@ import {
   ActionPerformed,
   Token
 } from "@capacitor/push-notifications";
+import { LocalNotifications } from "@capacitor/local-notifications";
 import type { UserNotification } from "@/types/entities";
+
+// Compteur pour les IDs de notifications locales
+let localNotificationId = 1;
 
 // Stockage des listeners actifs
 let problemsUnsubscribe: Unsubscribe | null = null;
@@ -196,8 +200,36 @@ const showLocalNotification = async (title: string, body: string): Promise<void>
   console.log(`🔔 [NOTIFICATION] ${title}: ${body}`);
   
   if (Capacitor.isNativePlatform()) {
-    // Sur mobile, les notifications sont gérées par FCM/système
-    // TODO: Utiliser LocalNotifications plugin si nécessaire pour foreground
+    // Sur mobile, utiliser LocalNotifications pour afficher une vraie notification
+    try {
+      // Demander la permission si nécessaire
+      const permStatus = await LocalNotifications.checkPermissions();
+      if (permStatus.display !== 'granted') {
+        const newPerm = await LocalNotifications.requestPermissions();
+        if (newPerm.display !== 'granted') {
+          console.log('⚠️ Permission de notification locale refusée');
+          return;
+        }
+      }
+      
+      // Envoyer la notification locale
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: localNotificationId++,
+            title: title,
+            body: body,
+            schedule: { at: new Date(Date.now() + 100) }, // Afficher immédiatement
+            sound: 'default',
+            smallIcon: 'ic_notification',
+            iconColor: '#3880ff'
+          }
+        ]
+      });
+      console.log('✅ Notification locale envoyée sur mobile');
+    } catch (error) {
+      console.error('Erreur notification locale:', error);
+    }
     return;
   }
   
