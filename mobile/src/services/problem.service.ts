@@ -19,31 +19,35 @@ export const getAllProblems = async (): Promise<Problem[]> => {
       const statutId = problemData.statutId;
 
       // Récupérer le signalement associé
-      const signalementRef = collection(db, "signalements");
-      const signalementQuery = query(signalementRef, where("__name__", "==", signalementId));
-      const signalementDocs = await getDocs(signalementQuery);
-
       let signalement: Signalement | undefined;
-      if (!signalementDocs.empty) {
-        const signalementDoc = signalementDocs.docs[0];
-        signalement = {
-          id: signalementDoc.id,
-          ...signalementDoc.data() as Omit<Signalement, 'id'>
-        };
+      if (signalementId) {
+        const signalementRef = collection(db, "signalements");
+        const signalementQuery = query(signalementRef, where("__name__", "==", signalementId));
+        const signalementDocs = await getDocs(signalementQuery);
+
+        if (!signalementDocs.empty) {
+          const signalementDoc = signalementDocs.docs[0];
+          signalement = {
+            id: signalementDoc.id,
+            ...signalementDoc.data() as Omit<Signalement, 'id'>
+          };
+        }
       }
 
       // Récupérer l'entreprise associée
-      const entrepriseRef = collection(db, "entreprises");
-      const entrepriseQuery = query(entrepriseRef, where("__name__", "==", entrepriseId));
-      const entrepriseDocs = await getDocs(entrepriseQuery);
-
       let entreprise: Entreprise | undefined;
-      if (!entrepriseDocs.empty) {
-        const entrepriseDoc = entrepriseDocs.docs[0];
-        entreprise = {
-          id: entrepriseDoc.id,
-          ...entrepriseDoc.data() as Omit<Entreprise, 'id'>
-        };
+      if (entrepriseId) {
+        const entrepriseRef = collection(db, "entreprises");
+        const entrepriseQuery = query(entrepriseRef, where("__name__", "==", entrepriseId));
+        const entrepriseDocs = await getDocs(entrepriseQuery);
+
+        if (!entrepriseDocs.empty) {
+          const entrepriseDoc = entrepriseDocs.docs[0];
+          entreprise = {
+            id: entrepriseDoc.id,
+            ...entrepriseDoc.data() as Omit<Entreprise, 'id'>
+          };
+        }
       }
 
       // Récupérer le statut du problème basé sur le dernier historique
@@ -56,17 +60,19 @@ export const getAllProblems = async (): Promise<Problem[]> => {
         ? sortedHistoriques[0].statutId 
         : statutId;
 
-      const statutRef = collection(db, "probleme_statuts");
-      const statutQuery = query(statutRef, where("__name__", "==", latestStatutId));
-      const statutDocs = await getDocs(statutQuery);
-
       let statut: ProblemeStatut | undefined;
-      if (!statutDocs.empty) {
-        const statutDoc = statutDocs.docs[0];
-        statut = {
-          id: statutDoc.id,
-          ...statutDoc.data() as Omit<ProblemeStatut, 'id'>
-        };
+      if (latestStatutId) {
+        const statutRef = collection(db, "probleme_statuts");
+        const statutQuery = query(statutRef, where("__name__", "==", latestStatutId));
+        const statutDocs = await getDocs(statutQuery);
+
+        if (!statutDocs.empty) {
+          const statutDoc = statutDocs.docs[0];
+          statut = {
+            id: statutDoc.id,
+            ...statutDoc.data() as Omit<ProblemeStatut, 'id'>
+          };
+        }
       }
 
       problems.push({
@@ -202,11 +208,14 @@ export const getMySignalements = async (): Promise<Signalement[]> => {
         ? sortedHistoriques[0].statutId 
         : data.statutId;
 
-      // Résoudre le statut
-      const statutData = statutsMap.get(latestStatutId);
-      const statut = statutData 
-        ? { id: latestStatutId, libelle: statutData.libelle, descri: statutData.descri }
-        : undefined;
+      // Résoudre le statut (avec vérification null)
+      let statut = undefined;
+      if (latestStatutId) {
+        const statutData = statutsMap.get(latestStatutId);
+        if (statutData) {
+          statut = { id: latestStatutId, libelle: statutData.libelle, descri: statutData.descri };
+        }
+      }
 
       return {
         id: docItem.id,
