@@ -9,6 +9,9 @@ import {
   setDoc, 
   getDoc,
   getDocs,
+  addDoc,
+  updateDoc,
+  orderBy,
   Unsubscribe 
 } from "firebase/firestore";
 import { Capacitor } from "@capacitor/core";
@@ -18,13 +21,16 @@ import {
   ActionPerformed,
   Token
 } from "@capacitor/push-notifications";
+import type { UserNotification } from "@/types/entities";
 
 // Stockage des listeners actifs
 let problemsUnsubscribe: Unsubscribe | null = null;
+let signalementsUnsubscribe: Unsubscribe | null = null;
 let isListening = false;
 
 // Cache pour suivre les historiques déjà vus (éviter les notifications en double)
 const seenHistoriques: Map<string, number> = new Map();
+const seenSignalementHistoriques: Map<string, number> = new Map();
 
 /**
  * Initialiser les notifications push
@@ -242,6 +248,74 @@ export const startListeningToMyProblemsHistoriques = async (): Promise<void> => 
 };
 
 /**
+ * Démarrer l'écoute des changements d'historiques sur les signalements
+ * de l'utilisateur connecté
+ */
+export const startListeningToMySignalementsHistoriques = async (): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user) {
+    console.log("Utilisateur non connecté, impossible d'écouter les historiques de signalements");
+    return;
+  }
+
+  if (signalementsUnsubscribe) {
+    console.log("Déjà en écoute des historiques de signalements");
+    return;
+  }
+
+  try {
+    // Récupérer les libellés des statuts de signalement
+    const statutsRef = collection(db, "signalement_statuts");
+    const statutsDocs = await getDocs(statutsRef);
+    const statutsMap = new Map<string, string>();
+    statutsDocs.docs.forEach(doc => {
+      const data = doc.data();
+      statutsMap.set(doc.id, data.libelle || doc.id);
+    });
+
+    // Écouter les signalements de l'utilisateur
+    const signalementRef = collection(db, "signalements");
+    const signalementQuery = query(signalementRef, where("utilisateurId", "==", user.uid));
+
+    signalementsUnsubscribe = onSnapshot(signalementQuery, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const sigData = change.doc.data();
+        const sigId = change.doc.id;
+        
+        const historiques = sigData.historiques || [];
+        const previousCount = seenSignalementHistoriques.get(sigId) || 0;
+        
+        if (change.type === "added") {
+          // Premier chargement, initialiser le cache
+          seenSignalementHistoriques.set(sigId, historiques.length);
+        } else if (change.type === "modified" && historiques.length > previousCount) {
+          // Nouvel historique ajouté !
+          const newHistoriques = historiques.slice(previousCount);
+          seenSignalementHistoriques.set(sigId, historiques.length);
+          
+          // Envoyer une notification pour chaque nouvel historique
+          newHistoriques.forEach((historique: any) => {
+            const statutLibelle = statutsMap.get(historique.statutId) || historique.statutId;
+            const description = sigData.description?.substring(0, 50) || 'Votre signalement';
+            const title = "📢 Mise à jour de votre signalement";
+            const body = `"${description}${sigData.description?.length > 50 ? '...' : ''}" - Nouveau statut: ${statutLibelle}`;
+            
+            console.log("Notification signalement:", title, body);
+            showLocalNotification(title, body);
+          });
+        }
+      });
+    }, (error) => {
+      console.error("Erreur écoute signalements:", error);
+    });
+
+    console.log("Écoute des historiques de signalements démarrée");
+  } catch (error) {
+    console.error("Erreur démarrage écoute historiques signalements:", error);
+  }
+};
+
+/**
  * Arrêter l'écoute des changements
  */
 export const stopListeningToMyProblemsHistoriques = (): void => {
@@ -249,8 +323,13 @@ export const stopListeningToMyProblemsHistoriques = (): void => {
     problemsUnsubscribe();
     problemsUnsubscribe = null;
   }
+  if (signalementsUnsubscribe) {
+    signalementsUnsubscribe();
+    signalementsUnsubscribe = null;
+  }
   isListening = false;
   seenHistoriques.clear();
+  seenSignalementHistoriques.clear();
   console.log("Écoute des historiques arrêtée");
 };
 

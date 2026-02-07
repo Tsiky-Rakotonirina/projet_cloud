@@ -50,6 +50,16 @@ const createSignalementIcon = () => {
   });
 };
 
+// Déterminer la couleur de fond et texte pour le statut de signalement
+const getSignalementStatutStyle = (libelle: string): { bg: string; color: string } => {
+  const lower = libelle.toLowerCase();
+  if (lower.includes('nouveau')) return { bg: '#FFF3CD', color: '#856404' };
+  if (lower.includes('en cours')) return { bg: '#D1ECF1', color: '#0C5460' };
+  if (lower.includes('resolu') || lower.includes('résolu')) return { bg: '#D4EDDA', color: '#155724' };
+  if (lower.includes('rejete') || lower.includes('rejeté')) return { bg: '#F8D7DA', color: '#721C24' };
+  return { bg: '#E2E3E5', color: '#383D41' };
+};
+
 // Créer le contenu HTML du popup pour un signalement (avec images)
 const createSignalementPopupContent = (sig: Signalement): string => {
   let imagesHtml = '';
@@ -68,6 +78,10 @@ const createSignalementPopupContent = (sig: Signalement): string => {
       </div>
     `;
   }
+
+  // Utiliser le statut résolu depuis l'historique
+  const statutLibelle = sig.statut?.libelle || 'En attente';
+  const statutStyle = getSignalementStatutStyle(statutLibelle);
   
   return `
     <div style="width: 250px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -83,8 +97,8 @@ const createSignalementPopupContent = (sig: Signalement): string => {
         <div style="font-size: 12px; color: #666; margin-bottom: 6px;">
           ${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
         </div>
-        <span style="display: inline-block; background: #FFF3CD; color: #856404; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;">
-          En attente de traitement
+        <span style="display: inline-block; background: ${statutStyle.bg}; color: ${statutStyle.color}; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+          ${statutLibelle}
         </span>
       </div>
     </div>
@@ -125,10 +139,12 @@ const loadProblems = async (filterByUser: boolean = false) => {
             icon: createSignalementIcon() 
           }).addTo(map);
           
+          const sigStatutLibelle = sig.statut?.libelle || 'En attente';
+          const sigStatutStyle = getSignalementStatutStyle(sigStatutLibelle);
           const tooltipContent = `
             <div style="text-align: center;">
               <b style="color: #FFC107;">📍 ${sig.description}</b><br/>
-              <span style="color: #6c757d;">En attente de traitement</span>
+              <span style="color: ${sigStatutStyle.color};">${sigStatutLibelle}</span>
             </div>
           `;
           marker.bindTooltip(tooltipContent, { 

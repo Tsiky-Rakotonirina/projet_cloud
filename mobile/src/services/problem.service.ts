@@ -46,9 +46,18 @@ export const getAllProblems = async (): Promise<Problem[]> => {
         };
       }
 
-      // Récupérer le statut du problème
+      // Récupérer le statut du problème basé sur le dernier historique
+      const historiques = problemData.historiques || [];
+      // Trier par date décroissante et prendre le dernier statut
+      const sortedHistoriques = [...historiques].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      const latestStatutId = sortedHistoriques.length > 0 
+        ? sortedHistoriques[0].statutId 
+        : statutId;
+
       const statutRef = collection(db, "probleme_statuts");
-      const statutQuery = query(statutRef, where("__name__", "==", statutId));
+      const statutQuery = query(statutRef, where("__name__", "==", latestStatutId));
       const statutDocs = await getDocs(statutQuery);
 
       let statut: ProblemeStatut | undefined;
@@ -160,7 +169,7 @@ export const createSignalement = async (
   }
 };
 
-// Récupérer les signalements de l'utilisateur connecté
+// Récupérer les signalements de l'utilisateur connecté avec le dernier statut de l'historique
 export const getMySignalements = async (): Promise<Signalement[]> => {
   try {
     const user = auth.currentUser;
@@ -172,10 +181,39 @@ export const getMySignalements = async (): Promise<Signalement[]> => {
     const q = query(signalementCollectionRef, where("utilisateurId", "==", user.uid));
     const signalementDocs = await getDocs(q);
 
-    const signalements: Signalement[] = signalementDocs.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data() as Omit<Signalement, 'id'>
-    }));
+    // Récupérer tous les statuts de signalement pour résoudre les libellés
+    const statutsRef = collection(db, "signalement_statuts");
+    const statutsDocs = await getDocs(statutsRef);
+    const statutsMap = new Map<string, { libelle: string; descri: string }>();
+    statutsDocs.docs.forEach(doc => {
+      const data = doc.data();
+      statutsMap.set(doc.id, { libelle: data.libelle, descri: data.descri });
+    });
+
+    const signalements: Signalement[] = signalementDocs.docs.map(docItem => {
+      const data = docItem.data() as Omit<Signalement, 'id' | 'statut'>;
+      
+      // Récupérer le dernier statut de l'historique
+      const historiques = data.historiques || [];
+      const sortedHistoriques = [...historiques].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      const latestStatutId = sortedHistoriques.length > 0 
+        ? sortedHistoriques[0].statutId 
+        : data.statutId;
+
+      // Résoudre le statut
+      const statutData = statutsMap.get(latestStatutId);
+      const statut = statutData 
+        ? { id: latestStatutId, libelle: statutData.libelle, descri: statutData.descri }
+        : undefined;
+
+      return {
+        id: docItem.id,
+        ...data,
+        statut
+      };
+    });
 
     console.log(`${signalements.length} signalements trouvés pour l'utilisateur`);
     return signalements;

@@ -11,6 +11,7 @@ import { initActivityDetection, setSessionTimeout } from './services/firebase/au
 import { 
   initNotifications, 
   startListeningToMyProblemsHistoriques,
+  startListeningToMySignalementsHistoriques,
   stopListeningToMyProblemsHistoriques 
 } from './services/firebase/notification.service';
 import { auth } from './services/firebase/firebase';
@@ -54,8 +55,9 @@ onMounted(async () => {
       // Afficher notification de bienvenue
       await showWelcomeNotification(user.displayName, user.email);
       
-      // Démarrer l'écoute des historiques
+      // Démarrer l'écoute des historiques des problèmes et signalements
       await startListeningToMyProblemsHistoriques();
+      await startListeningToMySignalementsHistoriques();
     } else {
       // Utilisateur déconnecté: arrêter l'écoute
       console.log('Utilisateur déconnecté, arrêt écoute notifications');
