@@ -31,6 +31,12 @@ export interface ProblemeStatut {
   pourcentage: number;
 }
 
+export interface SignalementStatut {
+  id: string;
+  libelle: string;
+  descri: string;
+}
+
 export interface SignalementImage {
   base64?: string;  // Image en base64 (stockée dans Firestore)
   url?: string;     // URL de l'image (après sync vers API)
@@ -54,4 +60,15 @@ export interface Signalement {
     utilisateurId: string;
     statutId: string;
   }>;
+  statut?: SignalementStatut;  // Statut résolu basé sur le dernier historique
+}
+
+export interface UserNotification {
+  id: string;
+  utilisateurId: string;
+  signalementId: string;
+  message: string;
+  createdAt: string;
+  readAt: string | null;
+  lue: boolean;
 }

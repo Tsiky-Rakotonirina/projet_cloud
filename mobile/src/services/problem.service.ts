@@ -19,45 +19,60 @@ export const getAllProblems = async (): Promise<Problem[]> => {
       const statutId = problemData.statutId;
 
       // Récupérer le signalement associé
-      const signalementRef = collection(db, "signalements");
-      const signalementQuery = query(signalementRef, where("__name__", "==", signalementId));
-      const signalementDocs = await getDocs(signalementQuery);
-
       let signalement: Signalement | undefined;
-      if (!signalementDocs.empty) {
-        const signalementDoc = signalementDocs.docs[0];
-        signalement = {
-          id: signalementDoc.id,
-          ...signalementDoc.data() as Omit<Signalement, 'id'>
-        };
+      if (signalementId) {
+        const signalementRef = collection(db, "signalements");
+        const signalementQuery = query(signalementRef, where("__name__", "==", signalementId));
+        const signalementDocs = await getDocs(signalementQuery);
+
+        if (!signalementDocs.empty) {
+          const signalementDoc = signalementDocs.docs[0];
+          signalement = {
+            id: signalementDoc.id,
+            ...signalementDoc.data() as Omit<Signalement, 'id'>
+          };
+        }
       }
 
       // Récupérer l'entreprise associée
-      const entrepriseRef = collection(db, "entreprises");
-      const entrepriseQuery = query(entrepriseRef, where("__name__", "==", entrepriseId));
-      const entrepriseDocs = await getDocs(entrepriseQuery);
-
       let entreprise: Entreprise | undefined;
-      if (!entrepriseDocs.empty) {
-        const entrepriseDoc = entrepriseDocs.docs[0];
-        entreprise = {
-          id: entrepriseDoc.id,
-          ...entrepriseDoc.data() as Omit<Entreprise, 'id'>
-        };
+      if (entrepriseId) {
+        const entrepriseRef = collection(db, "entreprises");
+        const entrepriseQuery = query(entrepriseRef, where("__name__", "==", entrepriseId));
+        const entrepriseDocs = await getDocs(entrepriseQuery);
+
+        if (!entrepriseDocs.empty) {
+          const entrepriseDoc = entrepriseDocs.docs[0];
+          entreprise = {
+            id: entrepriseDoc.id,
+            ...entrepriseDoc.data() as Omit<Entreprise, 'id'>
+          };
+        }
       }
 
-      // Récupérer le statut du problème
-      const statutRef = collection(db, "probleme_statuts");
-      const statutQuery = query(statutRef, where("__name__", "==", statutId));
-      const statutDocs = await getDocs(statutQuery);
+      // Récupérer le statut du problème basé sur le dernier historique
+      const historiques = problemData.historiques || [];
+      // Trier par date décroissante et prendre le dernier statut
+      const sortedHistoriques = [...historiques].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      const latestStatutId = sortedHistoriques.length > 0 
+        ? sortedHistoriques[0].statutId 
+        : statutId;
 
       let statut: ProblemeStatut | undefined;
-      if (!statutDocs.empty) {
-        const statutDoc = statutDocs.docs[0];
-        statut = {
-          id: statutDoc.id,
-          ...statutDoc.data() as Omit<ProblemeStatut, 'id'>
-        };
+      if (latestStatutId) {
+        const statutRef = collection(db, "probleme_statuts");
+        const statutQuery = query(statutRef, where("__name__", "==", latestStatutId));
+        const statutDocs = await getDocs(statutQuery);
+
+        if (!statutDocs.empty) {
+          const statutDoc = statutDocs.docs[0];
+          statut = {
+            id: statutDoc.id,
+            ...statutDoc.data() as Omit<ProblemeStatut, 'id'>
+          };
+        }
       }
 
       problems.push({
@@ -160,7 +175,7 @@ export const createSignalement = async (
   }
 };
 
-// Récupérer les signalements de l'utilisateur connecté
+// Récupérer les signalements de l'utilisateur connecté avec le dernier statut de l'historique
 export const getMySignalements = async (): Promise<Signalement[]> => {
   try {
     const user = auth.currentUser;
@@ -172,10 +187,42 @@ export const getMySignalements = async (): Promise<Signalement[]> => {
     const q = query(signalementCollectionRef, where("utilisateurId", "==", user.uid));
     const signalementDocs = await getDocs(q);
 
-    const signalements: Signalement[] = signalementDocs.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data() as Omit<Signalement, 'id'>
-    }));
+    // Récupérer tous les statuts de signalement pour résoudre les libellés
+    const statutsRef = collection(db, "signalement_statuts");
+    const statutsDocs = await getDocs(statutsRef);
+    const statutsMap = new Map<string, { libelle: string; descri: string }>();
+    statutsDocs.docs.forEach(doc => {
+      const data = doc.data();
+      statutsMap.set(doc.id, { libelle: data.libelle, descri: data.descri });
+    });
+
+    const signalements: Signalement[] = signalementDocs.docs.map(docItem => {
+      const data = docItem.data() as Omit<Signalement, 'id' | 'statut'>;
+      
+      // Récupérer le dernier statut de l'historique
+      const historiques = data.historiques || [];
+      const sortedHistoriques = [...historiques].sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      const latestStatutId = sortedHistoriques.length > 0 
+        ? sortedHistoriques[0].statutId 
+        : data.statutId;
+
+      // Résoudre le statut (avec vérification null)
+      let statut = undefined;
+      if (latestStatutId) {
+        const statutData = statutsMap.get(latestStatutId);
+        if (statutData) {
+          statut = { id: latestStatutId, libelle: statutData.libelle, descri: statutData.descri };
+        }
+      }
+
+      return {
+        id: docItem.id,
+        ...data,
+        statut
+      };
+    });
 
     console.log(`${signalements.length} signalements trouvés pour l'utilisateur`);
     return signalements;
