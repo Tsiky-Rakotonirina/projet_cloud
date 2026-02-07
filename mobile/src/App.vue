@@ -12,7 +12,10 @@ import {
   initNotifications, 
   startListeningToMyProblemsHistoriques,
   startListeningToMySignalementsHistoriques,
-  stopListeningToMyProblemsHistoriques 
+  stopListeningToMyProblemsHistoriques,
+  pushUnreadNotificationsOnConnect,
+  syncMissingNotifications,
+  requestNotificationPermission
 } from './services/firebase/notification.service';
 import { auth } from './services/firebase/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -52,8 +55,17 @@ onMounted(async () => {
       // Utilisateur connecté: démarrer l'écoute des historiques de problèmes
       console.log('Utilisateur connecté, démarrage écoute notifications...');
       
+      // Demander la permission de notification sur le web
+      await requestNotificationPermission();
+      
       // Afficher notification de bienvenue
       await showWelcomeNotification(user.displayName, user.email);
+      
+      // Synchroniser les notifications manquantes (historiques non encore notifiés)
+      await syncMissingNotifications();
+      
+      // Afficher les notifications non lues stockées dans Firestore
+      await pushUnreadNotificationsOnConnect();
       
       // Démarrer l'écoute des historiques des problèmes et signalements
       await startListeningToMyProblemsHistoriques();

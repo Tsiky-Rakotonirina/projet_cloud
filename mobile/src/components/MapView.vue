@@ -119,7 +119,10 @@ const loadProblems = async (filterByUser: boolean = false) => {
     clearProblemMarkers();
     
     const currentUserId = auth.currentUser?.uid;
+    console.log(`📍 loadProblems: filterByUser=${filterByUser}, currentUserId=${currentUserId}`);
+    
     let allProblems = await getAllProblems();
+    console.log(`📍 Total problèmes récupérés: ${allProblems.length}`);
     
     // Si on filtre par utilisateur connecté
     if (filterByUser && currentUserId) {
@@ -127,9 +130,11 @@ const loadProblems = async (filterByUser: boolean = false) => {
       const mySignalementsList = await getMySignalements();
       signalements.value = mySignalementsList;
       const mySignalementIds = mySignalementsList.map(s => s.id);
+      console.log(`📍 Mes signalements: ${mySignalementIds.length}`, mySignalementIds);
       
       // Filtrer les problèmes liés à mes signalements
       allProblems = allProblems.filter(p => mySignalementIds.includes(p.signalementId));
+      console.log(`📍 Problèmes filtrés pour mes signalements: ${allProblems.length}`);
       
       // Ajouter aussi les signalements qui n'ont pas encore de problème associé
       mySignalementsList.forEach(sig => {

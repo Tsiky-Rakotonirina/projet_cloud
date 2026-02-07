@@ -32,3 +32,8 @@ npm run seed
 npm install @capacitor/push-notifications
 
 npx cap sync android
+
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
