@@ -7,7 +7,7 @@ import { colors } from '@assets/colors';
 const Container = ({ children, className = '', style = {} }) => {
   const containerStyle = {
     minHeight: '100vh',
-    backgroundColor: colors.darker,
+    backgroundColor: '#FFFFFF',
     position: 'relative',
     ...style
   };

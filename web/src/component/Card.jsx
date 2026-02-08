@@ -2,7 +2,7 @@ import React from 'react';
 import { colors } from '@assets/colors';
 
 /**
- * Composant carte réutilisable avec effet glassmorphism
+ * Composant carte réutilisable avec style épuré
  */
 const Card = ({ 
   children, 
@@ -15,20 +15,21 @@ const Card = ({
   const [isHovered, setIsHovered] = React.useState(false);
 
   const baseStyle = {
-    backgroundColor: 'white',
-    borderRadius: '8px',
+    backgroundColor: colors.surface,
+    borderRadius: '16px',
     padding: padding,
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-    border: `1px solid ${colors.primary}20`,
-    transition: 'box-shadow 0.2s',
+    boxShadow: '0 2px 12px rgba(39, 76, 119, 0.08)',
+    border: `1px solid ${colors.border}`,
+    transition: 'all 0.2s ease',
     cursor: onClick ? 'pointer' : 'default',
     ...style
   };
 
   const hoverStyle = hoverable && isHovered ? {
     ...baseStyle,
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    borderColor: colors.primary
+    boxShadow: '0 8px 24px rgba(39, 76, 119, 0.12)',
+    borderColor: colors.primary,
+    transform: 'translateY(-2px)'
   } : baseStyle;
 
   return (

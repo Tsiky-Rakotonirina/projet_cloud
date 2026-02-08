@@ -17,47 +17,47 @@ const Button = ({
   const variants = {
     primary: {
       background: colors.primary,
-      color: 'white',
-      hoverBackground: '#6BA9CC',
+      color: '#FFFFFF',
+      hoverBackground: '#1e3a5f',
       border: 'none'
     },
     secondary: {
-      background: 'transparent',
-      color: colors.primary,
-      hoverBackground: `${colors.primary}20`,
-      border: `2px solid ${colors.primary}`
+      background: colors.secondary,
+      color: '#FFFFFF',
+      hoverBackground: '#4a7fa8',
+      border: 'none'
     },
     outline: {
       background: 'transparent',
-      color: 'white',
-      hoverBackground: colors.primary,
+      color: colors.primary,
+      hoverBackground: `${colors.primary}12`,
       border: `2px solid ${colors.primary}`
     },
     ghost: {
       background: 'transparent',
-      color: colors.primary,
-      hoverBackground: `${colors.primary}15`,
+      color: colors.text,
+      hoverBackground: `${colors.primary}08`,
       border: 'none'
     }
   };
 
   const sizes = {
     small: { padding: '8px 20px', fontSize: '14px' },
-    medium: { padding: '12px 30px', fontSize: '16px' },
-    large: { padding: '16px 40px', fontSize: '18px' }
+    medium: { padding: '12px 28px', fontSize: '15px' },
+    large: { padding: '14px 36px', fontSize: '16px' }
   };
 
   const baseStyle = {
     ...sizes[size],
-    borderRadius: '8px',
+    borderRadius: '10px',
     fontWeight: '600',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: 'background-color 0.2s',
+    transition: 'all 0.2s ease',
     border: variants[variant].border,
-    backgroundColor: disabled ? '#ccc' : variants[variant].background,
-    color: disabled ? '#666' : variants[variant].color,
+    backgroundColor: disabled ? '#E5E5E5' : variants[variant].background,
+    color: disabled ? '#999' : variants[variant].color,
     width: fullWidth ? '100%' : 'auto',
-    opacity: disabled ? 0.6 : 1,
+    opacity: disabled ? 0.7 : 1,
     fontFamily: 'inherit'
   };
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { X, ChevronLeft, ChevronRight, Download, ZoomIn, Image as ImageIcon } from 'lucide-react';
 import { colors } from '@assets/colors';
 
 const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
@@ -84,18 +83,18 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       maxHeight: '90vh',
       display: 'flex',
       flexDirection: 'column',
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '16px',
       overflow: 'hidden',
-      border: `1px solid ${colors.primary}20`
+      border: `1px solid ${colors.border}`
     },
     header: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '16px 24px',
-      borderBottom: `1px solid ${colors.primary}15`,
-      backgroundColor: colors.darker
+      borderBottom: `1px solid ${colors.border}`,
+      backgroundColor: colors.surface
     },
     headerTitle: {
       display: 'flex',
@@ -115,12 +114,12 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       margin: 0,
       fontSize: '18px',
       fontWeight: '600',
-      color: 'white'
+      color: colors.text
     },
     subtitle: {
       margin: 0,
       fontSize: '13px',
-      color: 'rgba(255,255,255,0.5)'
+      color: colors.tertiary
     },
     closeBtn: {
       display: 'flex',
@@ -129,9 +128,9 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       width: '40px',
       height: '40px',
       backgroundColor: 'transparent',
-      border: '1px solid rgba(255,255,255,0.1)',
+      border: `1px solid ${colors.border}`,
       borderRadius: '10px',
-      color: 'rgba(255,255,255,0.6)',
+      color: colors.tertiary,
       cursor: 'pointer',
       transition: 'all 0.2s'
     },
@@ -143,7 +142,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       justifyContent: 'center',
       padding: '24px',
       minHeight: '400px',
-      backgroundColor: colors.darker
+      backgroundColor: '#F8FAFC'
     },
     image: {
       maxWidth: '100%',
@@ -157,12 +156,12 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       flexDirection: 'column',
       alignItems: 'center',
       gap: '16px',
-      color: 'rgba(255,255,255,0.5)'
+      color: colors.tertiary
     },
     spinner: {
       width: '40px',
       height: '40px',
-      border: '3px solid rgba(255,255,255,0.1)',
+      border: `3px solid ${colors.border}`,
       borderTopColor: colors.primary,
       borderRadius: '50%',
       animation: 'spin 1s linear infinite'
@@ -176,10 +175,10 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       justifyContent: 'center',
       width: '48px',
       height: '48px',
-      backgroundColor: `${colors.dark}90`,
-      border: '1px solid rgba(255,255,255,0.1)',
+      backgroundColor: `${colors.surface}90`,
+      border: `1px solid ${colors.border}`,
       borderRadius: '50%',
-      color: 'white',
+      color: colors.text,
       cursor: 'pointer',
       transition: 'all 0.2s',
       zIndex: 10
@@ -195,8 +194,8 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '16px 24px',
-      borderTop: `1px solid ${colors.primary}15`,
-      backgroundColor: colors.dark
+      borderTop: `1px solid ${colors.border}`,
+      backgroundColor: colors.surface
     },
     imageInfo: {
       display: 'flex',
@@ -207,7 +206,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       margin: 0,
       fontSize: '14px',
       fontWeight: '500',
-      color: 'white',
+      color: colors.text,
       maxWidth: '300px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
@@ -216,7 +215,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
     imageDate: {
       margin: 0,
       fontSize: '12px',
-      color: 'rgba(255,255,255,0.5)'
+      color: colors.tertiary
     },
     footerActions: {
       display: 'flex',
@@ -227,8 +226,8 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       padding: '8px 16px',
       fontSize: '13px',
       fontWeight: '500',
-      color: 'rgba(255,255,255,0.7)',
-      backgroundColor: `${colors.primary}15`,
+      color: colors.tertiary,
+      backgroundColor: `${colors.secondary}20`,
       borderRadius: '20px'
     },
     downloadBtn: {
@@ -239,7 +238,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       fontSize: '13px',
       fontWeight: '500',
       fontFamily: 'inherit',
-      color: colors.darker,
+      color: colors.surface,
       backgroundColor: colors.primary,
       border: 'none',
       borderRadius: '8px',
@@ -267,27 +266,27 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
       margin: 0,
       fontSize: '16px',
       fontWeight: '500',
-      color: 'rgba(255,255,255,0.7)'
+      color: colors.text
     },
     emptySubtext: {
       margin: 0,
       fontSize: '14px',
-      color: 'rgba(255,255,255,0.4)'
+      color: colors.tertiary
     },
     errorState: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       gap: '12px',
-      color: 'rgba(255,255,255,0.5)'
+      color: colors.tertiary
     },
     thumbnails: {
       display: 'flex',
       gap: '8px',
       padding: '12px 24px',
       overflowX: 'auto',
-      backgroundColor: colors.darker,
-      borderTop: `1px solid ${colors.primary}10`
+      backgroundColor: '#F8FAFC',
+      borderTop: `1px solid ${colors.border}`
     },
     thumbnail: {
       width: '60px',
@@ -324,7 +323,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
         <div style={styles.header}>
           <div style={styles.headerTitle}>
             <div style={styles.headerIcon}>
-              <ImageIcon size={20} color={colors.primary} />
+              <i className="fas fa-images" style={{ fontSize: '20px', color: colors.primary }}></i>
             </div>
             <div>
               <h3 style={styles.title}>Images du signalement</h3>
@@ -337,15 +336,15 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
             style={styles.closeBtn} 
             onClick={onClose}
             onMouseEnter={(e) => {
-              e.target.style.backgroundColor = 'rgba(255,255,255,0.1)';
-              e.target.style.color = 'white';
+              e.target.style.backgroundColor = `${colors.secondary}30`;
+              e.target.style.color = colors.text;
             }}
             onMouseLeave={(e) => {
               e.target.style.backgroundColor = 'transparent';
-              e.target.style.color = 'rgba(255,255,255,0.6)';
+              e.target.style.color = colors.tertiary;
             }}
           >
-            <X size={20} />
+            <i className="fas fa-times" style={{ fontSize: '20px' }}></i>
           </button>
         </div>
 
@@ -353,7 +352,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
         {!hasImages ? (
           <div style={styles.emptyState}>
             <div style={styles.emptyIcon}>
-              <ImageIcon size={40} color={colors.primary} strokeWidth={1.5} />
+              <i className="fas fa-images" style={{ fontSize: '40px', color: colors.primary }}></i>
             </div>
             <p style={styles.emptyText}>Aucune image disponible</p>
             <p style={styles.emptySubtext}>
@@ -372,24 +371,28 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
                     onClick={handlePrevious}
                     onMouseEnter={(e) => {
                       e.target.style.backgroundColor = colors.primary;
+                      e.target.style.color = colors.surface;
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = `${colors.dark}90`;
+                      e.target.style.backgroundColor = `${colors.surface}90`;
+                      e.target.style.color = colors.text;
                     }}
                   >
-                    <ChevronLeft size={24} />
+                    <i className="fas fa-chevron-left" style={{ fontSize: '24px' }}></i>
                   </button>
                   <button
                     style={{ ...styles.navBtn, ...styles.navBtnNext }}
                     onClick={handleNext}
                     onMouseEnter={(e) => {
                       e.target.style.backgroundColor = colors.primary;
+                      e.target.style.color = colors.surface;
                     }}
                     onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = `${colors.dark}90`;
+                      e.target.style.backgroundColor = `${colors.surface}90`;
+                      e.target.style.color = colors.text;
                     }}
                   >
-                    <ChevronRight size={24} />
+                    <i className="fas fa-chevron-right" style={{ fontSize: '24px' }}></i>
                   </button>
                 </>
               )}
@@ -404,7 +407,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
               
               {imageError ? (
                 <div style={styles.errorState}>
-                  <ImageIcon size={48} strokeWidth={1} />
+                  <i className="fas fa-image" style={{ fontSize: '48px' }}></i>
                   <span>Impossible de charger l'image</span>
                 </div>
               ) : (
@@ -470,7 +473,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
                     e.target.style.transform = 'translateY(0)';
                   }}
                 >
-                  <Download size={16} />
+                  <i className="fas fa-download" style={{ fontSize: '16px' }}></i>
                   Télécharger
                 </button>
               </div>
