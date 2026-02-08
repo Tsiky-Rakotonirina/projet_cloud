@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Container from '@components/Container';
 import Button from '@components/Button';
 import { colors } from '@assets/colors';
-import { MapPin } from 'lucide-react';
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -19,42 +18,43 @@ const NotFound = () => {
   };
 
   const errorCodeStyle = {
-    fontSize: '160px',
+    fontSize: '140px',
     fontWeight: '800',
     background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     marginBottom: '24px',
-    letterSpacing: '-4px',
-    textShadow: '0 8px 32px rgba(135, 188, 222, 0.3)'
+    letterSpacing: '-4px'
   };
 
   const titleStyle = {
-    fontSize: '36px',
-    color: 'white',
+    fontSize: '32px',
+    color: colors.text,
     marginBottom: '16px',
     fontWeight: '700',
     letterSpacing: '-0.5px'
   };
 
   const messageStyle = {
-    fontSize: '18px',
-    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: '17px',
+    color: colors.tertiary,
     marginBottom: '48px',
-    maxWidth: '500px',
+    maxWidth: '480px',
     lineHeight: '1.6'
   };
 
   const iconStyle = {
-    fontSize: '80px',
+    fontSize: '72px',
     marginBottom: '32px',
-    opacity: 0.5
+    color: colors.primary
   };
 
   return (
     <Container>
       <div style={contentStyle}>
-        <div style={iconStyle}><MapPin size={80} /></div>
+        <div style={iconStyle}>
+          <i className="fas fa-map-marker-alt"></i>
+        </div>
         <div style={errorCodeStyle}>404</div>
         <h1 style={titleStyle}>Page non trouvée</h1>
         <p style={messageStyle}>
@@ -62,7 +62,8 @@ const NotFound = () => {
           Retournez à l'accueil pour continuer votre navigation.
         </p>
         <Button size="large" onClick={() => navigate('/')}>
-          ← Revenir à l'accueil
+          <i className="fas fa-arrow-left" style={{ marginRight: '8px' }}></i>
+          Revenir à l'accueil
         </Button>
       </div>
     </Container>
