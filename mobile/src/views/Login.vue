@@ -210,44 +210,11 @@ const handleGithubLogin = async () => {
 
 <style scoped>
 .login-page {
-  --background: #243B4A;
+  --background: #FFFFFF;
 }
 
 .bg-decoration {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.bg-shape {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.bg-shape-1 {
-  top: -10%;
-  left: -15%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(135, 188, 222, 0.15) 0%, transparent 70%);
-}
-
-.bg-shape-2 {
-  bottom: -15%;
-  right: -10%;
-  width: 350px;
-  height: 350px;
-  background: radial-gradient(circle, rgba(128, 94, 115, 0.12) 0%, transparent 70%);
-}
-
-.bg-lines {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(135, 188, 222, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(135, 188, 222, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
+  display: none;
 }
 
 .login-container {
@@ -272,28 +239,28 @@ const handleGithubLogin = async () => {
   justify-content: center;
   width: 72px;
   height: 72px;
-  background: rgba(135, 188, 222, 0.12);
-  border: 2px solid rgba(135, 188, 222, 0.2);
+  background: rgba(39, 76, 119, 0.1);
+  border: 2px solid rgba(39, 76, 119, 0.15);
   border-radius: 20px;
   margin-bottom: 16px;
 }
 
 .logo-container i {
   font-size: 32px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .app-title {
   font-size: 28px;
   font-weight: 700;
-  color: white;
+  color: #1a1a2e;
   margin: 0 0 4px 0;
   letter-spacing: -0.5px;
 }
 
 .app-subtitle {
   font-size: 14px;
-  color: #87BCDE;
+  color: #6096ba;
   margin: 0;
   font-weight: 500;
 }
@@ -301,10 +268,11 @@ const handleGithubLogin = async () => {
 .login-card {
   width: 100%;
   max-width: 400px;
-  background: #2D4654;
+  background: #FFFFFF;
   border-radius: 24px;
   padding: 32px;
-  border: 1px solid rgba(135, 188, 222, 0.15);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .card-header {
@@ -321,19 +289,19 @@ const handleGithubLogin = async () => {
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: rgba(135, 188, 222, 0.15);
+  background: rgba(39, 76, 119, 0.1);
   border-radius: 12px;
 }
 
 .card-icon i {
   font-size: 18px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .card-title {
   font-size: 20px;
   font-weight: 600;
-  color: white;
+  color: #1a1a2e;
   margin: 0;
 }
 
@@ -352,7 +320,7 @@ const handleGithubLogin = async () => {
 .form-label {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -366,7 +334,7 @@ const handleGithubLogin = async () => {
   left: 16px;
   top: 50%;
   transform: translateY(-50%);
-  color: #87BCDE;
+  color: #274c77;
   font-size: 16px;
   pointer-events: none;
 }
@@ -376,20 +344,20 @@ const handleGithubLogin = async () => {
   padding: 16px 48px 16px 48px;
   font-size: 15px;
   font-family: inherit;
-  color: white;
-  background: #243B4A;
-  border: 2px solid rgba(135, 188, 222, 0.2);
+  color: #1a1a2e;
+  background: #F8FAFC;
+  border: 2px solid #E2E8F0;
   border-radius: 12px;
   outline: none;
   transition: border-color 0.2s;
 }
 
 .form-input:focus {
-  border-color: #87BCDE;
+  border-color: #274c77;
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: #9CA3AF;
 }
 
 .toggle-password {
@@ -399,13 +367,13 @@ const handleGithubLogin = async () => {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.5);
+  color: #9CA3AF;
   cursor: pointer;
   padding: 4px;
 }
 
 .toggle-password:hover {
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .error-box {
@@ -414,9 +382,9 @@ const handleGithubLogin = async () => {
   gap: 10px;
   padding: 14px 16px;
   font-size: 14px;
-  color: #F87171;
+  color: #EF4444;
   background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid rgba(239, 68, 68, 0.2);
   border-radius: 12px;
 }
 
@@ -434,8 +402,8 @@ const handleGithubLogin = async () => {
   font-size: 16px;
   font-weight: 600;
   font-family: inherit;
-  color: #243B4A;
-  background: #87BCDE;
+  color: #FFFFFF;
+  background: #274c77;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -443,7 +411,7 @@ const handleGithubLogin = async () => {
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #6fa8cc;
+  background: #1d3a5c;
 }
 
 .btn-submit:disabled {
@@ -496,12 +464,12 @@ const handleGithubLogin = async () => {
   content: '';
   flex: 1;
   height: 1px;
-  background: rgba(135, 188, 222, 0.2);
+  background: #E2E8F0;
 }
 
 .divider span {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #9CA3AF;
   text-transform: uppercase;
 }
 
@@ -512,7 +480,7 @@ const handleGithubLogin = async () => {
   gap: 8px;
   margin-top: 24px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #9CA3AF;
 }
 
 .footer-text i {

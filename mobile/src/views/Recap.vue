@@ -231,7 +231,7 @@ onMounted(() => {
 
 <style scoped>
 .recap-toolbar {
-  --background: #2D4654;
+  --background: #274c77;
 }
 
 .loading-container {
@@ -241,7 +241,7 @@ onMounted(() => {
   justify-content: center;
   height: 100%;
   gap: 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6B7280;
 }
 
 .recap-container {
@@ -262,14 +262,14 @@ onMounted(() => {
 
 .page-header i {
   font-size: 28px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .page-header h1 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: white;
+  color: #1a1a2e;
 }
 
 /* Stats Grid */
@@ -281,10 +281,12 @@ onMounted(() => {
 }
 
 .stat-card {
-  background: #2D4654;
+  background: #FFFFFF;
   border-radius: 16px;
   padding: 20px;
   text-align: center;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .stat-icon {
@@ -302,49 +304,49 @@ onMounted(() => {
 }
 
 .stat-icon-primary {
-  background: rgba(135, 188, 222, 0.15);
+  background: rgba(39, 76, 119, 0.1);
 }
-.stat-icon-primary i { color: #87BCDE; }
+.stat-icon-primary i { color: #274c77; }
 
 .stat-icon-secondary {
-  background: rgba(128, 94, 115, 0.15);
+  background: rgba(96, 150, 186, 0.15);
 }
-.stat-icon-secondary i { color: #805E73; }
+.stat-icon-secondary i { color: #6096ba; }
 
 .stat-icon-success {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.12);
 }
 .stat-icon-success i { color: #10B981; }
 
 .stat-icon-warning {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.12);
 }
 .stat-icon-warning i { color: #F59E0B; }
 
 .stat-value {
   font-size: 28px;
   font-weight: 700;
-  color: white;
+  color: #1a1a2e;
   margin-bottom: 4px;
 }
 
 .stat-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .progress-bar {
   margin-top: 12px;
-  background: #243B4A;
+  background: #E5E7EB;
   border-radius: 10px;
   height: 8px;
   overflow: hidden;
 }
 
 .progress-fill {
-  background: linear-gradient(90deg, #87BCDE, #10B981);
+  background: linear-gradient(90deg, #274c77, #10B981);
   height: 100%;
   border-radius: 10px;
   transition: width 0.5s ease;
@@ -352,10 +354,12 @@ onMounted(() => {
 
 /* Details Card */
 .details-card {
-  background: #2D4654;
+  background: #FFFFFF;
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 24px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
@@ -364,19 +368,19 @@ onMounted(() => {
   gap: 12px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .card-header i {
   font-size: 18px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: #1a1a2e;
 }
 
 .status-list {
@@ -390,7 +394,7 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #243B4A;
+  background: #F8FAFC;
   border-radius: 12px;
 }
 
@@ -403,12 +407,12 @@ onMounted(() => {
 .status-name {
   font-size: 14px;
   font-weight: 600;
-  color: white;
+  color: #1a1a2e;
 }
 
 .status-count {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6B7280;
 }
 
 .status-badge {
@@ -419,23 +423,23 @@ onMounted(() => {
 }
 
 .badge-primary {
-  background: rgba(135, 188, 222, 0.2);
-  color: #87BCDE;
+  background: rgba(39, 76, 119, 0.12);
+  color: #274c77;
 }
 
 .badge-warning {
-  background: rgba(245, 158, 11, 0.2);
+  background: rgba(245, 158, 11, 0.12);
   color: #F59E0B;
 }
 
 .badge-success {
-  background: rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.12);
   color: #10B981;
 }
 
 .badge-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.7);
+  background: #F3F4F6;
+  color: #6B7280;
 }
 
 /* Action Button */
@@ -456,12 +460,12 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #87BCDE;
-  color: #243B4A;
+  background: #274c77;
+  color: #FFFFFF;
 }
 
 .btn-primary:hover {
-  background: #6fa8cc;
+  background: #1d3a5c;
 }
 
 /* Toolbar button */

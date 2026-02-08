@@ -297,7 +297,7 @@ onMounted(() => {
 
 <style scoped>
 .profile-toolbar {
-  --background: #2D4654;
+  --background: #274c77;
 }
 
 .loading-container {
@@ -307,7 +307,7 @@ onMounted(() => {
   justify-content: center;
   height: 100%;
   gap: 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6B7280;
 }
 
 .profile-container {
@@ -332,11 +332,11 @@ onMounted(() => {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #87BCDE, #805E73);
+  background: linear-gradient(135deg, #274c77, #6096ba);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 32px rgba(135, 188, 222, 0.3);
+  box-shadow: 0 8px 32px rgba(39, 76, 119, 0.25);
 }
 
 .avatar i {
@@ -346,7 +346,7 @@ onMounted(() => {
 
 .user-email {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #1a1a2e;
   margin: 0 0 8px 0;
   font-weight: 400;
 }
@@ -356,10 +356,10 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 6px 12px;
-  background: rgba(135, 188, 222, 0.15);
+  background: rgba(39, 76, 119, 0.1);
   border-radius: 20px;
   font-size: 12px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .user-badge i {
@@ -369,10 +369,12 @@ onMounted(() => {
 /* Form Card */
 .form-card,
 .stats-card {
-  background: #2D4654;
+  background: #FFFFFF;
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .card-header {
@@ -381,19 +383,19 @@ onMounted(() => {
   gap: 12px;
   margin-bottom: 24px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .card-header i {
   font-size: 18px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .card-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: #1a1a2e;
 }
 
 .form-group {
@@ -404,7 +406,7 @@ onMounted(() => {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.6);
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -413,19 +415,19 @@ onMounted(() => {
 .input-wrapper {
   display: flex;
   align-items: center;
-  background: #243B4A;
+  background: #F8FAFC;
   border-radius: 12px;
-  border: 2px solid transparent;
+  border: 2px solid #E2E8F0;
   transition: border-color 0.2s;
 }
 
 .input-wrapper:focus-within {
-  border-color: #87BCDE;
+  border-color: #274c77;
 }
 
 .input-wrapper i {
   padding: 0 16px;
-  color: rgba(255, 255, 255, 0.4);
+  color: #9CA3AF;
   font-size: 16px;
 }
 
@@ -433,7 +435,7 @@ onMounted(() => {
   flex: 1;
   padding: 14px 16px 14px 0;
   font-size: 15px;
-  color: white;
+  color: #1a1a2e;
   background: transparent;
   border: none;
   outline: none;
@@ -441,11 +443,11 @@ onMounted(() => {
 }
 
 .form-input:disabled {
-  color: rgba(255, 255, 255, 0.5);
+  color: #9CA3AF;
 }
 
 .form-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: #9CA3AF;
 }
 
 /* Action Buttons */
@@ -478,12 +480,12 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #87BCDE;
-  color: #243B4A;
+  background: #274c77;
+  color: #FFFFFF;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #6fa8cc;
+  background: #1d3a5c;
 }
 
 .btn-success {
@@ -496,22 +498,22 @@ onMounted(() => {
 }
 
 .btn-secondary {
-  background: #4E4D5C;
+  background: #6B7280;
   color: white;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #5d5c6d;
+  background: #5a6270;
 }
 
 .btn-outline {
   background: transparent;
-  color: #87BCDE;
-  border: 2px solid #87BCDE;
+  color: #274c77;
+  border: 2px solid #274c77;
 }
 
 .btn-outline:hover {
-  background: rgba(135, 188, 222, 0.1);
+  background: rgba(39, 76, 119, 0.08);
 }
 
 /* Stats Card */
@@ -520,7 +522,7 @@ onMounted(() => {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: #243B4A;
+  background: #F8FAFC;
   border-radius: 12px;
   margin-bottom: 16px;
 }
@@ -529,7 +531,7 @@ onMounted(() => {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -548,12 +550,12 @@ onMounted(() => {
 .stats-value {
   font-size: 24px;
   font-weight: 700;
-  color: white;
+  color: #1a1a2e;
 }
 
 .stats-label {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #6B7280;
 }
 
 /* Toolbar button */

@@ -143,10 +143,10 @@ defineExpose({ reset });
 
 <style scoped>
 .image-picker {
-  background: rgba(45, 70, 84, 0.5);
+  background: #F8FAFC;
   border-radius: 16px;
   padding: 16px;
-  border: 1px solid rgba(135, 188, 222, 0.15);
+  border: 1px solid #E2E8F0;
 }
 
 .picker-header {
@@ -155,7 +155,7 @@ defineExpose({ reset });
   justify-content: space-between;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid rgba(135, 188, 222, 0.15);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .picker-title {
@@ -166,20 +166,20 @@ defineExpose({ reset });
 
 .picker-title i {
   font-size: 18px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .picker-label {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: #1a1a2e;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .picker-hint {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6B7280;
   font-style: italic;
 }
 
@@ -196,8 +196,8 @@ defineExpose({ reset });
   height: 90px;
   border-radius: 12px;
   overflow: hidden;
-  border: 2px solid rgba(135, 188, 222, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 2px solid #E2E8F0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .image-preview {
@@ -221,7 +221,7 @@ defineExpose({ reset });
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-remove:hover {
@@ -268,25 +268,25 @@ defineExpose({ reset });
 }
 
 .btn-camera {
-  background: linear-gradient(135deg, #87BCDE 0%, #6fa8cc 100%);
-  color: #1a2e3a;
+  background: linear-gradient(135deg, #274c77 0%, #1d3a5c 100%);
+  color: #FFFFFF;
 }
 
 .btn-camera:hover:not(:disabled) {
-  background: linear-gradient(135deg, #9cc8e6 0%, #87BCDE 100%);
+  background: linear-gradient(135deg, #355a87 0%, #274c77 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(135, 188, 222, 0.4);
+  box-shadow: 0 4px 12px rgba(39, 76, 119, 0.3);
 }
 
 .btn-gallery {
-  background: rgba(135, 188, 222, 0.15);
-  color: #87BCDE;
-  border: 1px solid rgba(135, 188, 222, 0.3);
+  background: rgba(39, 76, 119, 0.08);
+  color: #274c77;
+  border: 1px solid rgba(39, 76, 119, 0.2);
 }
 
 .btn-gallery:hover:not(:disabled) {
-  background: rgba(135, 188, 222, 0.25);
-  border-color: #87BCDE;
+  background: rgba(39, 76, 119, 0.15);
+  border-color: #274c77;
 }
 
 .loader {
@@ -295,15 +295,15 @@ defineExpose({ reset });
   justify-content: center;
   gap: 12px;
   padding: 20px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #6B7280;
   font-size: 14px;
 }
 
 .loader-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(135, 188, 222, 0.3);
-  border-top-color: #87BCDE;
+  border: 2px solid rgba(39, 76, 119, 0.2);
+  border-top-color: #274c77;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

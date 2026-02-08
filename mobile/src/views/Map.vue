@@ -425,12 +425,12 @@ const submitSignalement = async () => {
 }
 
 .filter-toolbar {
-  --background: #2D4654;
+  --background: #274c77;
 }
 
 /* FAB Buttons */
 ion-fab-button {
-  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  --box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 ion-fab-button i {
@@ -443,11 +443,11 @@ ion-fab-button i {
 }
 
 .modal-header {
-  background: #1a2e3a;
+  background: #274c77;
 }
 
 .modal-toolbar {
-  --background: #1a2e3a;
+  --background: #274c77;
   --border-width: 0;
   --padding-top: 16px;
   --padding-bottom: 16px;
@@ -461,7 +461,7 @@ ion-fab-button i {
 }
 
 .btn-close-modal {
-  --color: rgba(255, 255, 255, 0.7);
+  --color: rgba(255, 255, 255, 0.85);
   font-size: 20px;
 }
 
@@ -470,7 +470,7 @@ ion-fab-button i {
 }
 
 .modal-content-wrapper {
-  --background: #243B4A;
+  --background: #FFFFFF;
   --padding-top: 20px;
   --padding-bottom: 30px;
 }
@@ -486,8 +486,8 @@ ion-fab-button i {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  background: rgba(135, 188, 222, 0.1);
-  border: 1px solid rgba(135, 188, 222, 0.2);
+  background: rgba(39, 76, 119, 0.06);
+  border: 1px solid #E2E8F0;
   padding: 16px;
   border-radius: 12px;
   text-align: center;
@@ -496,12 +496,29 @@ ion-fab-button i {
 
 .instruction-box i {
   font-size: 20px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .instruction-box span {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  color: #6B7280;
+}
+
+.btn-select-location {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #FFFFFF;
+  background: #274c77;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-select-location:hover {
+  background: #1d3a5c;
 }
 
 .selected-location {
@@ -514,7 +531,7 @@ ion-fab-button i {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.12);
   border-radius: 20px;
   margin-bottom: 8px;
 }
@@ -531,7 +548,7 @@ ion-fab-button i {
 
 .coordinates {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6B7280;
   margin: 0;
 }
 
@@ -547,7 +564,7 @@ ion-fab-button i {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 10px;
@@ -558,9 +575,9 @@ ion-fab-button i {
   padding: 14px 16px;
   font-size: 15px;
   font-family: inherit;
-  color: white;
-  background: #2D4654;
-  border: 2px solid rgba(135, 188, 222, 0.2);
+  color: #1a1a2e;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
   border-radius: 12px;
   outline: none;
   resize: vertical;
@@ -569,11 +586,11 @@ ion-fab-button i {
 }
 
 .form-textarea:focus {
-  border-color: #87BCDE;
+  border-color: #274c77;
 }
 
 .form-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.4);
+  color: #9CA3AF;
 }
 
 .btn-submit {
@@ -586,8 +603,8 @@ ion-fab-button i {
   font-size: 16px;
   font-weight: 600;
   font-family: inherit;
-  color: #243B4A;
-  background: #87BCDE;
+  color: #FFFFFF;
+  background: #274c77;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -595,7 +612,7 @@ ion-fab-button i {
 }
 
 .btn-submit:hover:not(:disabled) {
-  background: #6fa8cc;
+  background: #1d3a5c;
 }
 
 .btn-submit:disabled {
@@ -606,7 +623,7 @@ ion-fab-button i {
 .submit-spinner {
   width: 20px;
   height: 20px;
-  --color: #243B4A;
+  --color: #FFFFFF;
 }
 
 /* Header buttons */

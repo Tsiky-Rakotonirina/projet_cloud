@@ -126,7 +126,7 @@ const handleLogout = async () => {
 
 <style scoped>
 .home-content {
-  --background: #243B4A;
+  --background: #FFFFFF;
 }
 
 .welcome-section {
@@ -140,27 +140,27 @@ const handleLogout = async () => {
   justify-content: center;
   width: 64px;
   height: 64px;
-  background: rgba(135, 188, 222, 0.12);
-  border: 2px solid rgba(135, 188, 222, 0.2);
+  background: rgba(39, 76, 119, 0.1);
+  border: 2px solid rgba(39, 76, 119, 0.15);
   border-radius: 18px;
   margin-bottom: 16px;
 }
 
 .welcome-icon i {
   font-size: 28px;
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .welcome-title {
   font-size: 24px;
   font-weight: 700;
-  color: white;
+  color: #1a1a2e;
   margin: 0 0 4px 0;
 }
 
 .welcome-subtitle {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.6);
+  color: #6B7280;
   margin: 0;
 }
 
@@ -169,10 +169,10 @@ const handleLogout = async () => {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #87BCDE;
+  color: #274c77;
   margin-top: 12px;
   padding: 8px 16px;
-  background: rgba(135, 188, 222, 0.1);
+  background: rgba(39, 76, 119, 0.08);
   border-radius: 20px;
 }
 
@@ -181,11 +181,12 @@ const handleLogout = async () => {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #2D4654;
+  background: #FFFFFF;
   border-radius: 16px;
   padding: 20px;
   margin-bottom: 16px;
-  border: 1px solid rgba(135, 188, 222, 0.12);
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .card-icon-box {
@@ -203,27 +204,27 @@ const handleLogout = async () => {
 }
 
 .card-icon-primary {
-  background: rgba(135, 188, 222, 0.15);
+  background: rgba(39, 76, 119, 0.1);
 }
 
 .card-icon-primary i {
-  color: #87BCDE;
+  color: #274c77;
 }
 
 .card-icon-secondary {
-  background: rgba(128, 94, 115, 0.15);
+  background: rgba(96, 150, 186, 0.15);
 }
 
 .card-icon-secondary i {
-  color: #805E73;
+  color: #6096ba;
 }
 
 .card-icon-tertiary {
-  background: rgba(78, 77, 92, 0.2);
+  background: rgba(107, 114, 128, 0.12);
 }
 
 .card-icon-tertiary i {
-  color: #9090a0;
+  color: #6B7280;
 }
 
 .card-content {
@@ -234,19 +235,19 @@ const handleLogout = async () => {
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: white;
+  color: #1a1a2e;
   margin: 0 0 2px 0;
 }
 
 .card-subtitle {
   font-size: 13px;
-  color: #87BCDE;
+  color: #274c77;
   margin: 0 0 4px 0;
 }
 
 .card-description {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #6B7280;
   margin: 0;
   line-height: 1.4;
 }
@@ -269,30 +270,30 @@ const handleLogout = async () => {
 }
 
 .card-btn-primary {
-  background: #87BCDE;
-  color: #243B4A;
+  background: #274c77;
+  color: #FFFFFF;
 }
 
 .card-btn-primary:hover {
-  background: #6fa8cc;
+  background: #1d3a5c;
 }
 
 .card-btn-secondary {
-  background: #805E73;
+  background: #6096ba;
   color: white;
 }
 
 .card-btn-secondary:hover {
-  background: #6a4d60;
+  background: #4d7d9e;
 }
 
 .card-btn-tertiary {
-  background: #4E4D5C;
+  background: #6B7280;
   color: white;
 }
 
 .card-btn-tertiary:hover {
-  background: #5d5c6d;
+  background: #5a6070;
 }
 
 /* Header buttons */
