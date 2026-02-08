@@ -1,7 +1,6 @@
 import React from 'react';
 import { colors } from '@assets/colors';
 import Card from '@components/Card';
-import { MapPin } from 'lucide-react';
 
 /**
  * Composant carte pour afficher un point visiteur
@@ -10,9 +9,9 @@ const PointCard = ({ point, onClick }) => {
   if (!point) return null;
 
   const titleStyle = {
-    fontSize: '20px',
-    fontWeight: '700',
-    color: colors.dark,
+    fontSize: '18px',
+    fontWeight: '600',
+    color: colors.text,
     marginBottom: '12px',
     letterSpacing: '-0.3px'
   };
@@ -39,13 +38,12 @@ const PointCard = ({ point, onClick }) => {
 
   const badgeStyle = {
     display: 'inline-block',
-    padding: '6px 16px',
+    padding: '6px 14px',
     borderRadius: '20px',
     fontSize: '12px',
     fontWeight: '600',
-    background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`,
-    color: 'white',
-    boxShadow: `0 2px 8px ${colors.primary}40`
+    backgroundColor: `${colors.primary}15`,
+    color: colors.primary
   };
 
   return (
@@ -53,7 +51,7 @@ const PointCard = ({ point, onClick }) => {
       <h3 style={titleStyle}>{point.nom || 'Sans nom'}</h3>
       
       <div style={locationStyle}>
-        <MapPin size={16} />
+        <i className="fas fa-map-marker-alt" style={{ color: colors.primary }}></i>
         <span>{point.adresse || 'Adresse non disponible'}</span>
       </div>
 

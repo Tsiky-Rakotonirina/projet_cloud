@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Container from '@components/Container';
 import Button from '@components/Button';
-import { Map, MapPin, Navigation, Star } from 'lucide-react';
+import { colors } from '@assets/colors';
 
 const Accueil = () => {
   const navigate = useNavigate();
@@ -28,9 +28,9 @@ const Accueil = () => {
   };
 
   const logoStyle = {
-    fontSize: '28px',
+    fontSize: '24px',
     fontWeight: '700',
-    color: 'white',
+    color: colors.text,
     letterSpacing: '-0.5px',
     display: 'flex',
     alignItems: 'center',
@@ -48,44 +48,75 @@ const Accueil = () => {
   };
 
   const titleStyle = {
-    fontSize: '72px',
+    fontSize: '56px',
     fontWeight: '800',
-    color: 'white',
+    color: colors.text,
     opacity: isVisible ? 1 : 0,
     transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
     transition: 'opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s',
-    marginBottom: '24px',
-    letterSpacing: '-2px',
-    textShadow: '0 4px 24px rgba(0,0,0,0.3)'
+    marginBottom: '20px',
+    letterSpacing: '-1.5px'
   };
 
   const subtitleStyle = {
-    fontSize: '24px',
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: '56px',
+    fontSize: '20px',
+    color: colors.tertiary,
+    marginBottom: '48px',
     opacity: isVisible ? 1 : 0,
     transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
     transition: 'opacity 0.8s ease 0.4s, transform 0.8s ease 0.4s',
     fontWeight: '400',
-    maxWidth: '600px',
-    lineHeight: '1.5'
+    maxWidth: '550px',
+    lineHeight: '1.6'
   };
+
   const buttonContainerStyle = {
     display: 'flex',
-    gap: '20px',
+    gap: '16px',
     flexWrap: 'wrap',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    opacity: isVisible ? 1 : 0,
+    transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+    transition: 'opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s'
+  };
+
+  // Decorative shapes
+  const shapeStyle1 = {
+    position: 'absolute',
+    top: '10%',
+    right: '10%',
+    width: '300px',
+    height: '300px',
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${colors.primary}15 0%, transparent 70%)`,
+    pointerEvents: 'none'
+  };
+
+  const shapeStyle2 = {
+    position: 'absolute',
+    bottom: '15%',
+    left: '5%',
+    width: '250px',
+    height: '250px',
+    borderRadius: '50%',
+    background: `radial-gradient(circle, ${colors.secondary}20 0%, transparent 70%)`,
+    pointerEvents: 'none'
   };
 
   return (
     <Container>
+      {/* Decorative shapes */}
+      <div style={shapeStyle1}></div>
+      <div style={shapeStyle2}></div>
+
       {/* Header */}
       <div style={headerStyle}>
         <div style={logoStyle}>
-          <img src="/logo.svg" alt="Logo" style={{ width: '32px', height: '32px' }} />
+          <i className="fas fa-road" style={{ color: colors.primary }}></i>
           <span>Lalan-tsara</span>
         </div>
         <Button variant="outline" onClick={() => navigate('/manager/login')}>
+          <i className="fas fa-sign-in-alt" style={{ marginRight: '8px' }}></i>
           Se connecter
         </Button>
       </div>
@@ -98,11 +129,11 @@ const Accueil = () => {
         </p>
        
         <div style={buttonContainerStyle}>
-          <Button size="large" onClick={() => navigate('/visiteur/carte')} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Map size={24} /> Voir la carte des rues
+          <Button size="large" onClick={() => navigate('/visiteur/carte')}>
+            <i className="fas fa-map-marked-alt" style={{ marginRight: '8px' }}></i>
+            Voir la carte des rues
           </Button>
         </div>
-
       </div>
     </Container>
   );

@@ -9,21 +9,22 @@ import PointCard from '@components/PointCard';
 const PointList = ({ points, onPointClick }) => {
   const emptyStyle = {
     textAlign: 'center',
-    padding: '80px 40px',
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: '18px'
+    padding: '60px 40px',
+    color: colors.tertiary,
+    fontSize: '16px'
   };
 
   const emptyIconStyle = {
-    fontSize: '64px',
+    fontSize: '48px',
     marginBottom: '16px',
-    opacity: 0.5
+    opacity: 0.4,
+    color: colors.primary
   };
 
   if (!points || points.length === 0) {
     return (
       <div style={emptyStyle}>
-        <div style={emptyIconStyle}><Map size={64} /></div>
+        <div style={emptyIconStyle}><i className="fas fa-map"></i></div>
         <p>Aucun point visiteur disponible</p>
       </div>
     );

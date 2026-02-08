@@ -1,7 +1,6 @@
 import React from 'react';
 import { colors } from '@assets/colors';
 import Card from '@components/Card';
-import { BarChart3 } from 'lucide-react';
 
 /**
  * Composant tableau pour afficher les données visiteurs
@@ -15,21 +14,21 @@ const TableauData = ({ data, columns }) => {
   };
 
   const thStyle = {
-    backgroundColor: colors.dark,
-    color: 'white',
-    padding: '16px 20px',
+    backgroundColor: colors.surface,
+    color: colors.text,
+    padding: '14px 20px',
     textAlign: 'left',
     fontWeight: '600',
-    fontSize: '13px',
+    fontSize: '12px',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
-    borderBottom: `2px solid ${colors.primary}`
+    borderBottom: `1px solid ${colors.border}`
   };
 
   const tdStyle = {
-    padding: '16px 20px',
-    borderBottom: `1px solid rgba(135, 188, 222, 0.15)`,
-    color: colors.tertiary
+    padding: '14px 20px',
+    borderBottom: `1px solid ${colors.border}`,
+    color: colors.text
   };
 
   const trStyle = {
@@ -39,21 +38,22 @@ const TableauData = ({ data, columns }) => {
 
   const emptyStyle = {
     textAlign: 'center',
-    padding: '80px 40px',
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: '18px'
+    padding: '60px 40px',
+    color: colors.tertiary,
+    fontSize: '16px'
   };
 
   const emptyIconStyle = {
-    fontSize: '64px',
+    fontSize: '48px',
     marginBottom: '16px',
-    opacity: 0.5
+    opacity: 0.4,
+    color: colors.primary
   };
 
   if (!data || data.length === 0) {
     return (
       <div style={emptyStyle}>
-        <div style={emptyIconStyle}><BarChart3 size={64} /></div>
+        <div style={emptyIconStyle}><i className="fas fa-chart-bar"></i></div>
         <p>Aucune donnée disponible</p>
       </div>
     );
@@ -72,8 +72,8 @@ const TableauData = ({ data, columns }) => {
                   key={index} 
                   style={{
                     ...thStyle,
-                    ...(index === 0 ? { borderTopLeftRadius: '16px' } : {}),
-                    ...(index === displayColumns.length - 1 ? { borderTopRightRadius: '16px' } : {})
+                    ...(index === 0 ? { borderTopLeftRadius: '12px' } : {}),
+                    ...(index === displayColumns.length - 1 ? { borderTopRightRadius: '12px' } : {})
                   }}
                 >
                   {typeof col === 'object' ? col.label : col}

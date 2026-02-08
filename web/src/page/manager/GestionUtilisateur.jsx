@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import NavbarManager from '@components/NavbarManager';
 import { colors } from '@assets/colors';
 import utilisateurApi from '@api/manager/Utilisateur';
-import { Users, Unlock, Search, RefreshCw, UserPlus, Mail, Lock, Calendar, Shield, ChevronDown, ChevronUp } from 'lucide-react';
 
 const GestionUtilisateur = () => {
   const [utilisateurs, setUtilisateurs] = useState([]);
@@ -149,12 +148,12 @@ const GestionUtilisateur = () => {
     title: {
       fontSize: '28px',
       fontWeight: '700',
-      color: 'white',
+      color: colors.text,
       margin: 0
     },
     subtitle: {
       fontSize: '15px',
-      color: 'rgba(255,255,255,0.6)',
+      color: colors.tertiary,
       margin: 0,
       marginLeft: '64px'
     },
@@ -184,9 +183,9 @@ const GestionUtilisateur = () => {
       padding: '14px 16px 14px 48px',
       fontSize: '14px',
       fontFamily: 'inherit',
-      color: 'white',
-      backgroundColor: colors.dark,
-      border: `1px solid ${colors.primary}30`,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
       borderRadius: '12px',
       outline: 'none',
       boxSizing: 'border-box'
@@ -199,17 +198,17 @@ const GestionUtilisateur = () => {
       fontSize: '14px',
       fontWeight: '500',
       fontFamily: 'inherit',
-      color: 'white',
-      backgroundColor: colors.dark,
-      border: `1px solid ${colors.primary}30`,
+      color: colors.text,
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
       borderRadius: '12px',
       cursor: 'pointer',
       transition: 'all 0.2s'
     },
     card: {
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '16px',
-      border: `1px solid ${colors.primary}15`,
+      border: `1px solid ${colors.border}`,
       overflow: 'hidden'
     },
     cardHeader: {
@@ -217,12 +216,12 @@ const GestionUtilisateur = () => {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '20px 24px',
-      borderBottom: `1px solid ${colors.primary}15`
+      borderBottom: `1px solid ${colors.border}`
     },
     cardTitle: {
       fontSize: '16px',
       fontWeight: '600',
-      color: 'white',
+      color: colors.text,
       margin: 0
     },
     badge: {
@@ -241,29 +240,29 @@ const GestionUtilisateur = () => {
       padding: '16px 24px',
       fontSize: '12px',
       fontWeight: '600',
-      color: 'rgba(255,255,255,0.5)',
+      color: colors.tertiary,
       textAlign: 'left',
       textTransform: 'uppercase',
       letterSpacing: '0.5px',
-      backgroundColor: `${colors.darker}50`,
-      borderBottom: `1px solid ${colors.primary}10`
+      backgroundColor: colors.surface,
+      borderBottom: `1px solid ${colors.border}`
     },
     td: {
       padding: '16px 24px',
       fontSize: '14px',
-      color: 'rgba(255,255,255,0.85)',
-      borderBottom: `1px solid ${colors.primary}08`,
+      color: colors.text,
+      borderBottom: `1px solid ${colors.border}`,
       verticalAlign: 'middle'
     },
     emailCell: {
       fontWeight: '500',
-      color: 'white'
+      color: colors.text
     },
     githubCell: {
       color: colors.primary
     },
     ageCell: {
-      color: 'rgba(255,255,255,0.7)'
+      color: colors.tertiary
     },
     actionBtn: {
       display: 'inline-flex',
@@ -296,13 +295,13 @@ const GestionUtilisateur = () => {
     },
     emptyText: {
       fontSize: '15px',
-      color: 'rgba(255,255,255,0.5)',
+      color: colors.tertiary,
       margin: 0
     },
     loadingRow: {
       padding: '40px 24px',
       textAlign: 'center',
-      color: 'rgba(255,255,255,0.5)'
+      color: colors.tertiary
     },
     // Styles pour le formulaire d'inscription
     toggleBtn: {
@@ -313,7 +312,7 @@ const GestionUtilisateur = () => {
       fontSize: '14px',
       fontWeight: '500',
       fontFamily: 'inherit',
-      color: 'white',
+      color: colors.surface,
       backgroundColor: colors.secondary,
       border: 'none',
       borderRadius: '12px',
@@ -321,16 +320,16 @@ const GestionUtilisateur = () => {
       transition: 'all 0.2s'
     },
     formCard: {
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '16px',
-      border: `1px solid ${colors.secondary}30`,
+      border: `1px solid ${colors.border}`,
       padding: '24px',
       marginBottom: '24px'
     },
     formTitle: {
       fontSize: '18px',
       fontWeight: '600',
-      color: 'white',
+      color: colors.text,
       marginBottom: '20px',
       display: 'flex',
       alignItems: 'center',
@@ -352,7 +351,7 @@ const GestionUtilisateur = () => {
     label: {
       fontSize: '13px',
       fontWeight: '500',
-      color: 'rgba(255,255,255,0.7)',
+      color: colors.tertiary,
       display: 'flex',
       alignItems: 'center',
       gap: '6px'
@@ -361,9 +360,9 @@ const GestionUtilisateur = () => {
       padding: '12px 16px',
       fontSize: '14px',
       fontFamily: 'inherit',
-      color: 'white',
-      backgroundColor: colors.darker,
-      border: `1px solid ${colors.primary}30`,
+      color: colors.text,
+      backgroundColor: '#FFFFFF',
+      border: `1px solid ${colors.border}`,
       borderRadius: '10px',
       outline: 'none',
       transition: 'border-color 0.2s',
@@ -373,9 +372,9 @@ const GestionUtilisateur = () => {
       padding: '12px 16px',
       fontSize: '14px',
       fontFamily: 'inherit',
-      color: 'white',
-      backgroundColor: colors.darker,
-      border: `1px solid ${colors.primary}30`,
+      color: colors.text,
+      backgroundColor: '#FFFFFF',
+      border: `1px solid ${colors.border}`,
       borderRadius: '10px',
       outline: 'none',
       cursor: 'pointer',
@@ -391,7 +390,7 @@ const GestionUtilisateur = () => {
       fontSize: '14px',
       fontWeight: '600',
       fontFamily: 'inherit',
-      color: 'white',
+      color: colors.surface,
       backgroundColor: colors.secondary,
       border: 'none',
       borderRadius: '10px',
@@ -427,7 +426,7 @@ const GestionUtilisateur = () => {
           <header style={styles.header}>
             <div style={styles.titleRow}>
               <div style={styles.titleIcon}>
-                <Users size={24} color={colors.primary} />
+                <i className="fas fa-users" style={{ fontSize: '24px', color: colors.primary }}></i>
               </div>
               <h1 style={styles.title}>Gestion des Utilisateurs</h1>
             </div>
@@ -436,7 +435,7 @@ const GestionUtilisateur = () => {
 
           <div style={styles.toolbar}>
             <div style={styles.searchBox}>
-              <Search size={18} style={styles.searchIcon} />
+              <i className="fas fa-search" style={{ ...styles.searchIcon, fontSize: '18px' }}></i>
               <input
                 type="text"
                 placeholder="Rechercher par email ou GitHub..."
@@ -451,16 +450,16 @@ const GestionUtilisateur = () => {
               onMouseEnter={(e) => e.target.style.opacity = '0.9'}
               onMouseLeave={(e) => e.target.style.opacity = '1'}
             >
-              {showInscriptionForm ? <ChevronUp size={16} /> : <UserPlus size={16} />}
+              {showInscriptionForm ? <i className="fas fa-chevron-up" style={{ fontSize: '16px' }}></i> : <i className="fas fa-user-plus" style={{ fontSize: '16px' }}></i>}
               {showInscriptionForm ? 'Masquer' : 'Nouvel utilisateur'}
             </button>
             <button
               onClick={loadUtilisateurs}
               style={styles.refreshBtn}
               onMouseEnter={(e) => e.target.style.borderColor = colors.primary}
-              onMouseLeave={(e) => e.target.style.borderColor = `${colors.primary}30`}
+              onMouseLeave={(e) => e.target.style.borderColor = `${colors.border}`}
             >
-              <RefreshCw size={16} />
+              <i className="fas fa-sync" style={{ fontSize: '16px' }}></i>
               Actualiser
             </button>
           </div>
@@ -469,7 +468,7 @@ const GestionUtilisateur = () => {
           {showInscriptionForm && (
             <div style={styles.formCard}>
               <h3 style={styles.formTitle}>
-                <UserPlus size={20} />
+                <i className="fas fa-user-plus" style={{ fontSize: '20px' }}></i>
                 Inscrire un nouvel utilisateur
               </h3>
               
@@ -489,7 +488,7 @@ const GestionUtilisateur = () => {
 
                   <div style={styles.formGroup}>
                     <label style={styles.label}>
-                      <Mail size={14} />
+                      <i className="fas fa-envelope" style={{ fontSize: '14px' }}></i>
                       Email *
                     </label>
                     <input
@@ -507,7 +506,7 @@ const GestionUtilisateur = () => {
 
                   <div style={styles.formGroup}>
                     <label style={styles.label}>
-                      <Calendar size={14} />
+                      <i className="fas fa-calendar" style={{ fontSize: '14px' }}></i>
                       Date de naissance
                     </label>
                     <input
@@ -523,7 +522,7 @@ const GestionUtilisateur = () => {
 
                   <div style={styles.formGroup}>
                     <label style={styles.label}>
-                      <Lock size={14} />
+                      <i className="fas fa-lock" style={{ fontSize: '14px' }}></i>
                       Mot de passe *
                     </label>
                     <input
@@ -542,7 +541,7 @@ const GestionUtilisateur = () => {
 
                   <div style={styles.formGroup}>
                     <label style={styles.label}>
-                      <Lock size={14} />
+                      <i className="fas fa-lock" style={{ fontSize: '14px' }}></i>
                       Confirmer mot de passe *
                     </label>
                     <input
@@ -560,7 +559,7 @@ const GestionUtilisateur = () => {
 
                   <div style={{ ...styles.formGroup, ...styles.formGroupFull }}>
                     <label style={styles.label}>
-                      <Shield size={14} />
+                      <i className="fas fa-shield" style={{ fontSize: '14px' }}></i>
                       Profil
                     </label>
                     <select
@@ -587,7 +586,7 @@ const GestionUtilisateur = () => {
                     onMouseEnter={(e) => !formLoading && (e.target.style.opacity = '0.9')}
                     onMouseLeave={(e) => !formLoading && (e.target.style.opacity = '1')}
                   >
-                    <UserPlus size={16} />
+                    <i className="fas fa-user-plus" style={{ fontSize: '16px' }}></i>
                     {formLoading ? 'Création en cours...' : 'Créer l\'utilisateur'}
                   </button>
                 </div>
@@ -606,7 +605,7 @@ const GestionUtilisateur = () => {
             ) : filteredUsers.length === 0 ? (
               <div style={styles.emptyState}>
                 <div style={styles.emptyIcon}>
-                  <Users size={28} color={colors.primary} />
+                  <i className="fas fa-users" style={{ fontSize: '28px', color: colors.primary }}></i>
                 </div>
                 <p style={styles.emptyText}>Aucun utilisateur bloqué</p>
               </div>
@@ -637,7 +636,7 @@ const GestionUtilisateur = () => {
                             e.target.style.backgroundColor = 'rgba(16, 185, 129, 0.15)';
                           }}
                         >
-                          <Unlock size={14} />
+                          <i className="fas fa-unlock" style={{ fontSize: '14px' }}></i>
                           Débloquer
                         </button>
                       </td>

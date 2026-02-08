@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import NavbarManager from '@components/NavbarManager';
 import { colors } from '@assets/colors';
 import tableauVisiteurApi from '@api/visiteur/TableauVisiteur';
-import { BarChart3, MapPin, Ruler, TrendingUp, Wallet, RefreshCw } from 'lucide-react';
 
 const TableauPage = () => {
   const [totals, setTotals] = useState({
@@ -99,12 +98,12 @@ const TableauPage = () => {
     title: {
       fontSize: '28px',
       fontWeight: '700',
-      color: 'white',
+      color: colors.text,
       margin: 0
     },
     subtitle: {
       fontSize: '15px',
-      color: 'rgba(255,255,255,0.6)',
+      color: colors.tertiary,
       margin: 0,
       marginLeft: '64px'
     },
@@ -115,10 +114,10 @@ const TableauPage = () => {
       marginBottom: '32px'
     },
     statCard: {
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '16px',
       padding: '24px',
-      border: `1px solid ${colors.primary}15`
+      border: `1px solid ${colors.border}`
     },
     statHeader: {
       display: 'flex',
@@ -137,7 +136,7 @@ const TableauPage = () => {
     statLabel: {
       fontSize: '13px',
       fontWeight: '500',
-      color: 'rgba(255,255,255,0.6)',
+      color: colors.tertiary,
       margin: 0,
       textTransform: 'uppercase',
       letterSpacing: '0.5px'
@@ -145,7 +144,7 @@ const TableauPage = () => {
     statValue: {
       fontSize: '28px',
       fontWeight: '700',
-      color: 'white',
+      color: colors.text,
       margin: 0
     }
   };
@@ -158,7 +157,7 @@ const TableauPage = () => {
           <header style={styles.header}>
             <div style={styles.titleRow}>
               <div style={styles.titleIcon}>
-                <BarChart3 size={24} color={colors.primary} />
+                <i className="fas fa-chart-bar" style={{ fontSize: '24px', color: colors.primary }}></i>
               </div>
               <h1 style={styles.title}>Tableau de Bord</h1>
             </div>
@@ -185,7 +184,7 @@ const TableauPage = () => {
             <div style={styles.statCard}>
               <div style={styles.statHeader}>
                 <div style={{ ...styles.statIcon, backgroundColor: `${colors.primary}20` }}>
-                  <MapPin size={22} color={colors.primary} />
+                  <i className="fas fa-map-marker-alt" style={{ fontSize: '22px', color: colors.primary }}></i>
                 </div>
               </div>
               <p style={styles.statLabel}>Nombre de Points</p>
@@ -195,7 +194,7 @@ const TableauPage = () => {
             <div style={styles.statCard}>
               <div style={styles.statHeader}>
                 <div style={{ ...styles.statIcon, backgroundColor: `${colors.secondary}20` }}>
-                  <Ruler size={22} color={colors.secondary} />
+                  <i className="fas fa-ruler" style={{ fontSize: '22px', color: colors.secondary }}></i>
                 </div>
               </div>
               <p style={styles.statLabel}>Surface Totale</p>
@@ -205,7 +204,7 @@ const TableauPage = () => {
             <div style={styles.statCard}>
               <div style={styles.statHeader}>
                 <div style={{ ...styles.statIcon, backgroundColor: 'rgba(16, 185, 129, 0.2)' }}>
-                  <TrendingUp size={22} color="#10B981" />
+                  <i className="fas fa-arrow-trend-up" style={{ fontSize: '22px', color: '#10B981' }}></i>
                 </div>
               </div>
               <p style={styles.statLabel}>Avancement Moyen</p>
@@ -215,7 +214,7 @@ const TableauPage = () => {
             <div style={styles.statCard}>
               <div style={styles.statHeader}>
                 <div style={{ ...styles.statIcon, backgroundColor: 'rgba(245, 158, 11, 0.2)' }}>
-                  <Wallet size={22} color="#F59E0B" />
+                  <i className="fas fa-wallet" style={{ fontSize: '22px', color: '#F59E0B' }}></i>
                 </div>
               </div>
               <p style={styles.statLabel}>Budget Total</p>
@@ -244,7 +243,7 @@ const TableauPage = () => {
                 opacity: loading ? 0.6 : 1
               }}
             >
-              <RefreshCw size={18} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+              <i className="fas fa-sync" style={{ fontSize: '18px', animation: loading ? 'spin 1s linear infinite' : 'none' }}></i>
               {loading ? 'Chargement...' : 'Actualiser'}
             </button>
           </div>

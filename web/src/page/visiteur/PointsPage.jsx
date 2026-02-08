@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import Navbar from '@components/Navbar';
 import { colors } from '@assets/colors';
-import { Map as MapIcon, Locate, X, Filter, ChevronDown, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import { pointVisiteurApi } from '../../api/visiteur/PointVisiteur';
 import 'leaflet/dist/leaflet.css';
 
@@ -256,11 +255,11 @@ const PointsPage = () => {
       justifyContent: 'center',
       width: '44px',
       height: '44px',
-      backgroundColor: colors.dark,
-      border: `1px solid ${colors.primary}30`,
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
       borderRadius: '12px',
       cursor: 'pointer',
-      color: 'white',
+      color: colors.text,
       transition: 'all 0.2s'
     },
     header: {
@@ -272,9 +271,9 @@ const PointsPage = () => {
       alignItems: 'center',
       gap: '12px',
       padding: '12px 24px',
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '12px',
-      border: `1px solid ${colors.primary}30`,
+      border: `1px solid ${colors.border}`,
       zIndex: 1000
     },
     headerIcon: {
@@ -289,12 +288,12 @@ const PointsPage = () => {
     headerTitle: {
       fontSize: '16px',
       fontWeight: '600',
-      color: 'white',
+      color: colors.text,
       margin: 0
     },
     headerSubtitle: {
       fontSize: '12px',
-      color: 'rgba(255,255,255,0.6)',
+      color: colors.tertiary,
       margin: 0
     },
     filterContainer: {
@@ -308,11 +307,11 @@ const PointsPage = () => {
       alignItems: 'center',
       gap: '8px',
       padding: '10px 16px',
-      backgroundColor: colors.dark,
-      border: `1px solid ${colors.primary}30`,
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
       borderRadius: '12px',
       cursor: 'pointer',
-      color: 'white',
+      color: colors.text,
       fontSize: '14px',
       transition: 'all 0.2s'
     },
@@ -321,12 +320,12 @@ const PointsPage = () => {
       top: '100%',
       left: 0,
       marginTop: '8px',
-      backgroundColor: colors.dark,
-      border: `1px solid ${colors.primary}30`,
+      backgroundColor: colors.surface,
+      border: `1px solid ${colors.border}`,
       borderRadius: '12px',
       overflow: 'hidden',
       minWidth: '180px',
-      boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+      boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
     },
     filterOption: {
       display: 'flex',
@@ -334,10 +333,10 @@ const PointsPage = () => {
       gap: '10px',
       padding: '12px 16px',
       cursor: 'pointer',
-      color: 'white',
+      color: colors.text,
       fontSize: '14px',
       transition: 'all 0.2s',
-      borderBottom: `1px solid ${colors.primary}10`
+      borderBottom: `1px solid ${colors.border}`
     },
     filterOptionActive: {
       backgroundColor: `${colors.primary}20`
@@ -352,15 +351,15 @@ const PointsPage = () => {
       bottom: '30px',
       left: '16px',
       padding: '16px',
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '12px',
-      border: `1px solid ${colors.primary}30`,
+      border: `1px solid ${colors.border}`,
       zIndex: 1000
     },
     legendTitle: {
       fontSize: '12px',
       fontWeight: '600',
-      color: 'rgba(255,255,255,0.6)',
+      color: colors.tertiary,
       margin: '0 0 12px 0',
       textTransform: 'uppercase',
       letterSpacing: '0.5px'
@@ -382,16 +381,16 @@ const PointsPage = () => {
     },
     legendText: {
       fontSize: '13px',
-      color: 'rgba(255,255,255,0.85)'
+      color: colors.text
     },
     infoPanel: {
       position: 'absolute',
       top: '16px',
       right: '16px',
       width: '300px',
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '16px',
-      border: `1px solid ${colors.primary}30`,
+      border: `1px solid ${colors.border}`,
       overflow: 'hidden',
       zIndex: 1000
     },
@@ -400,12 +399,12 @@ const PointsPage = () => {
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '16px',
-      borderBottom: `1px solid ${colors.primary}15`
+      borderBottom: `1px solid ${colors.border}`
     },
     infoPanelTitle: {
       fontSize: '14px',
       fontWeight: '600',
-      color: 'white',
+      color: colors.text,
       margin: 0
     },
     infoPanelClose: {
@@ -413,7 +412,7 @@ const PointsPage = () => {
       padding: '6px',
       backgroundColor: 'transparent',
       border: 'none',
-      color: 'rgba(255,255,255,0.5)',
+      color: colors.tertiary,
       cursor: 'pointer',
       borderRadius: '6px'
     },
@@ -426,14 +425,14 @@ const PointsPage = () => {
     infoLabel: {
       fontSize: '11px',
       fontWeight: '600',
-      color: 'rgba(255,255,255,0.5)',
+      color: colors.tertiary,
       textTransform: 'uppercase',
       letterSpacing: '0.5px',
       marginBottom: '4px'
     },
     infoValue: {
       fontSize: '14px',
-      color: 'white'
+      color: colors.text
     },
     statusBadge: {
       display: 'inline-flex',
@@ -447,7 +446,7 @@ const PointsPage = () => {
     progressBar: {
       width: '100%',
       height: '8px',
-      backgroundColor: 'rgba(255,255,255,0.1)',
+      backgroundColor: '#E2E8F0',
       borderRadius: '4px',
       overflow: 'hidden',
       marginTop: '8px'
@@ -463,26 +462,42 @@ const PointsPage = () => {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.7)',
+      backgroundColor: 'rgba(255, 255, 255, 0.92)',
+      backdropFilter: 'blur(8px)',
+      WebkitBackdropFilter: 'blur(8px)',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
+      gap: '20px',
       zIndex: 2000
     },
+    loadingSpinner: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px'
+    },
+    loadingDot: {
+      width: '10px',
+      height: '10px',
+      borderRadius: '50%',
+      background: `linear-gradient(135deg, ${colors.primary}, ${colors.secondary})`
+    },
     loadingText: {
-      color: 'white',
-      fontSize: '16px'
+      color: colors.text,
+      fontSize: '15px',
+      fontWeight: '500'
     },
     counter: {
       position: 'absolute',
       bottom: '30px',
       right: '16px',
       padding: '12px 20px',
-      backgroundColor: colors.dark,
+      backgroundColor: colors.surface,
       borderRadius: '12px',
-      border: `1px solid ${colors.primary}30`,
+      border: `1px solid ${colors.border}`,
       zIndex: 1000,
-      color: 'white',
+      color: colors.text,
       fontSize: '14px'
     }
   };
@@ -523,7 +538,24 @@ const PointsPage = () => {
           {/* Loading overlay */}
           {loading && (
             <div style={styles.loadingOverlay}>
-              <span style={styles.loadingText}>Chargement des problèmes...</span>
+              <style>{`
+                @keyframes mapBounce {
+                  0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+                  40% { transform: scale(1); opacity: 1; }
+                }
+              `}</style>
+              <div style={styles.loadingSpinner}>
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    style={{
+                      ...styles.loadingDot,
+                      animation: `mapBounce 1.4s ease-in-out ${i * 0.16}s infinite`
+                    }}
+                  />
+                ))}
+              </div>
+              <span style={styles.loadingText}>Chargement de la carte...</span>
             </div>
           )}
 
@@ -549,7 +581,7 @@ const PointsPage = () => {
           {/* Header */}
           <div style={styles.header}>
             <div style={styles.headerIcon}>
-              <MapIcon size={20} color={colors.primary} />
+              <i className="fas fa-map" style={{ fontSize: '20px', color: colors.primary }}></i>
             </div>
             <div>
               <h2 style={styles.headerTitle}>Carte des Problèmes routiers</h2>
@@ -560,7 +592,7 @@ const PointsPage = () => {
           {/* Controls */}
           <div style={styles.controls}>
             <button style={styles.controlBtn} onClick={handleLocate} title="Recentrer">
-              <Locate size={20} />
+              <i className="fas fa-crosshairs" style={{ fontSize: '20px' }}></i>
             </button>
           </div>
 
@@ -570,11 +602,11 @@ const PointsPage = () => {
               style={styles.filterBtn} 
               onClick={() => setShowFilterDropdown(!showFilterDropdown)}
             >
-              <Filter size={18} />
+              <i className="fas fa-filter" style={{ fontSize: '18px' }}></i>
               <span>
                 {filterStatus === 'all' ? 'Tous les statuts' : getStatusConfig(filterStatus).label}
               </span>
-              <ChevronDown size={16} style={{ transform: showFilterDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <i className="fas fa-chevron-down" style={{ fontSize: '16px', transform: showFilterDropdown ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}></i>
             </button>
 
             {showFilterDropdown && (
@@ -612,19 +644,19 @@ const PointsPage = () => {
             <h4 style={styles.legendTitle}>Légende</h4>
             <div style={styles.legendItem}>
               <div style={{ ...styles.legendIcon, backgroundColor: '#EF4444' }}>
-                <AlertTriangle size={12} color="white" />
+                <i className="fas fa-exclamation-triangle" style={{ fontSize: '12px', color: 'white' }}></i>
               </div>
               <span style={styles.legendText}>Non commencé</span>
             </div>
             <div style={styles.legendItem}>
               <div style={{ ...styles.legendIcon, backgroundColor: '#F59E0B' }}>
-                <Clock size={12} color="white" />
+                <i className="fas fa-clock" style={{ fontSize: '12px', color: 'white' }}></i>
               </div>
               <span style={styles.legendText}>En cours</span>
             </div>
             <div style={{ ...styles.legendItem, marginBottom: 0 }}>
               <div style={{ ...styles.legendIcon, backgroundColor: '#10B981' }}>
-                <CheckCircle size={12} color="white" />
+                <i className="fas fa-check-circle" style={{ fontSize: '12px', color: 'white' }}></i>
               </div>
               <span style={styles.legendText}>Terminé</span>
             </div>
@@ -644,7 +676,7 @@ const PointsPage = () => {
                   style={styles.infoPanelClose}
                   onClick={() => setSelectedPoint(null)}
                 >
-                  <X size={18} />
+                  <i className="fas fa-times" style={{ fontSize: '18px' }}></i>
                 </button>
               </div>
               <div style={styles.infoPanelBody}>
@@ -667,9 +699,9 @@ const PointsPage = () => {
                       backgroundColor: `${getStatusConfig(selectedPoint.status).color}20`
                     }}
                   >
-                    {(selectedPoint.status === 'Non commence' || selectedPoint.status === 'Non commence') && <AlertTriangle size={14} />}
-                    {(selectedPoint.status === 'En cours' || selectedPoint.status === 'En cours') && <Clock size={14} />}
-                    {(selectedPoint.status === 'Termine' || selectedPoint.status === 'Termine') && <CheckCircle size={14} />}
+                    {(selectedPoint.status === 'Non commence' || selectedPoint.status === 'Non commence') && <i className="fas fa-exclamation-triangle" style={{ fontSize: '14px' }}></i>}
+                    {(selectedPoint.status === 'En cours' || selectedPoint.status === 'En cours') && <i className="fas fa-clock" style={{ fontSize: '14px' }}></i>}
+                    {(selectedPoint.status === 'Termine' || selectedPoint.status === 'Termine') && <i className="fas fa-check-circle" style={{ fontSize: '14px' }}></i>}
                     {getStatusConfig(selectedPoint.status).label}
                   </span>
                   <div style={styles.progressBar}>
@@ -681,7 +713,7 @@ const PointsPage = () => {
                       }}
                     />
                   </div>
-                  <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
+                  <p style={{ fontSize: '12px', color: colors.tertiary, marginTop: '4px' }}>
                     Avancement: {selectedPoint.pourcentage}%
                   </p>
                 </div>

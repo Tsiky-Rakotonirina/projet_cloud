@@ -231,7 +231,11 @@ const Synchronisation = () => {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '16px'
+    padding: '16px 20px',
+    backgroundColor: '#FAFBFC',
+    borderRadius: '10px',
+    marginBottom: '12px',
+    border: '1px solid #E5E7EB'
   };
 
   const syncInfoStyle = {
@@ -239,15 +243,15 @@ const Synchronisation = () => {
   };
 
   const syncTitleStyle = {
-    fontSize: '18px',
+    fontSize: '15px',
     fontWeight: '600',
     color: colors.dark,
-    marginBottom: '8px'
+    marginBottom: '4px'
   };
 
   const syncDescStyle = {
-    fontSize: '14px',
-    color: colors.tertiary
+    fontSize: '13px',
+    color: '#6B7280'
   };
 
   // Modal pour afficher la liste des utilisateurs synchronisés
@@ -305,7 +309,7 @@ const Synchronisation = () => {
                 color: colors.tertiary
               }}
             >
-              ✕
+              <i className="fas fa-times"></i>
             </button>
           </div>
 
@@ -388,7 +392,7 @@ const Synchronisation = () => {
                         {getStatusBadge(item.status)}
                       </td>
                       <td style={{ padding: '12px', fontSize: '13px' }}>
-                        {item.direction === 'firebase_to_postgres' ? '🔽 Firebase → PG' : '🔼 PG → Firebase'}
+                        {item.direction === 'firebase_to_postgres' ? <><i className="fas fa-arrow-down" style={{ color: '#3B82F6', marginRight: '4px' }}></i> Firebase → PG</> : <><i className="fas fa-arrow-up" style={{ color: '#10B981', marginRight: '4px' }}></i> PG → Firebase</>}
                       </td>
                       <td style={{ padding: '12px', fontSize: '13px', color: colors.tertiary }}>
                         {formatDate(item.syncedAt)}
@@ -598,36 +602,47 @@ const Synchronisation = () => {
 
   // Tabs pour switcher entre sync et historique
   const TabButtons = () => (
-    <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+    <div style={{ 
+      display: 'flex', 
+      gap: '0', 
+      marginBottom: '28px',
+      borderBottom: '2px solid #E5E7EB'
+    }}>
       <button
         onClick={() => setActiveTab('sync')}
         style={{
-          padding: '12px 24px',
+          padding: '14px 28px',
           border: 'none',
-          borderRadius: '8px',
-          backgroundColor: activeTab === 'sync' ? colors.primary : '#f0f0f0',
-          color: activeTab === 'sync' ? 'white' : colors.dark,
+          borderBottom: activeTab === 'sync' ? `3px solid ${colors.primary}` : '3px solid transparent',
+          backgroundColor: 'transparent',
+          color: activeTab === 'sync' ? colors.primary : '#6B7280',
           fontWeight: '600',
+          fontSize: '14px',
           cursor: 'pointer',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
+          marginBottom: '-2px'
         }}
       >
+        <i className="fas fa-sync-alt" style={{ marginRight: '8px' }}></i>
         Synchronisation
       </button>
       <button
         onClick={() => { setActiveTab('history'); loadSessionHistory(); }}
         style={{
-          padding: '12px 24px',
+          padding: '14px 28px',
           border: 'none',
-          borderRadius: '8px',
-          backgroundColor: activeTab === 'history' ? colors.primary : '#f0f0f0',
-          color: activeTab === 'history' ? 'white' : colors.dark,
+          borderBottom: activeTab === 'history' ? `3px solid ${colors.primary}` : '3px solid transparent',
+          backgroundColor: 'transparent',
+          color: activeTab === 'history' ? colors.primary : '#6B7280',
           fontWeight: '600',
+          fontSize: '14px',
           cursor: 'pointer',
-          transition: 'all 0.2s'
+          transition: 'all 0.2s',
+          marginBottom: '-2px'
         }}
       >
-        Historique & Utilisateurs
+        <i className="fas fa-history" style={{ marginRight: '8px' }}></i>
+        Historique
       </button>
     </div>
   );
@@ -690,7 +705,7 @@ const Synchronisation = () => {
                           justifyContent: 'space-between'
                         }}>
                           <span style={{ color: '#1565c0' }}>
-                            ✅ Synchronisation avec tracking activé - Session #{syncResult.pull?.data?.sessionId || syncResult.push?.data?.sessionId}
+                            <i className="fas fa-check-circle" style={{ marginRight: '6px', color: '#10B981' }}></i> Synchronisation avec tracking activé - Session #{syncResult.pull?.data?.sessionId || syncResult.push?.data?.sessionId}
                           </span>
                           <Button
                             variant="primary"
@@ -790,7 +805,7 @@ const Synchronisation = () => {
                         fontWeight: '600',
                         fontSize: '14px'
                       }}>
-                        ⚠️ Détails des avertissements ({
+                        <i className="fas fa-exclamation-triangle" style={{ marginRight: '6px' }}></i> Détails des avertissements ({
                           (syncResult.utilisateurs_pull?.data?.stats?.errors?.length || 0) +
                           (syncResult.signalements_pull?.data?.stats?.errors?.length || 0)
                         } éléments avec erreurs)
@@ -865,45 +880,81 @@ const Synchronisation = () => {
               )}
 
               {/* Statut général */}
-              <Card style={{ marginBottom: '32px' }} padding="32px">
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: colors.dark, marginBottom: '16px' }}>
-                  Dernière synchronisation
-                </h3>
-                <p style={{ color: colors.tertiary }}>
-                  {status?.lastSync ? new Date(status.lastSync).toLocaleString('fr-FR') : 'Jamais synchronisé'}
-                </p>
+              <Card style={{ marginBottom: '28px', border: '1px solid #E5E7EB' }} padding="24px">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', color: colors.dark, margin: 0 }}>
+                    <i className="fas fa-clock" style={{ marginRight: '10px', color: colors.primary }}></i>
+                    Statut de synchronisation
+                  </h3>
+                  <span style={{ 
+                    fontSize: '13px', 
+                    color: '#6B7280',
+                    backgroundColor: '#F3F4F6',
+                    padding: '6px 12px',
+                    borderRadius: '6px'
+                  }}>
+                    {status?.lastSync ? new Date(status.lastSync).toLocaleString('fr-FR') : 'Jamais synchronisé'}
+                  </span>
+                </div>
                 {status?.utilisateurs && (
-                  <div style={{ marginTop: '16px' }}>
-                    <p style={{ color: colors.dark }}>
-                      <strong>Utilisateurs:</strong> {status.utilisateurs.synchronises}/{status.utilisateurs.total_postgres} synchronisés
-                    </p>
-                    <p style={{ color: colors.dark }}>
-                      <strong>Signalements:</strong> {status.signalements?.synchronises}/{status.signalements?.total_postgres} synchronisés
-                    </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                    <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                      <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Utilisateurs</div>
+                      <div style={{ fontSize: '22px', fontWeight: '700', color: colors.primary }}>
+                        {status.utilisateurs.synchronises}<span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '400' }}>/{status.utilisateurs.total_postgres}</span>
+                      </div>
+                    </div>
+                    <div style={{ padding: '16px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                      <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Signalements</div>
+                      <div style={{ fontSize: '22px', fontWeight: '700', color: colors.primary }}>
+                        {status.signalements?.synchronises}<span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '400' }}>/{status.signalements?.total_postgres}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </Card>
 
               {/* Actions de synchronisation */}
-              <Card padding="32px">
-                <h3 style={{ fontSize: '20px', fontWeight: '700', color: colors.dark, marginBottom: '24px' }}>
-                  Actions disponibles
-                </h3>
-
-                <div style={syncCardStyle}>
-                  <div style={syncInfoStyle}>
-                    <div style={syncTitleStyle}>Synchronisation complète</div>
-                    <div style={syncDescStyle}>Synchronise toutes les données (utilisateurs, signalements, problèmes)</div>
+              <Card style={{ border: '1px solid #E5E7EB' }} padding="24px">
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  backgroundColor: colors.primary,
+                  borderRadius: '10px',
+                  marginBottom: '24px'
+                }}>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: '600', color: '#FFFFFF', marginBottom: '4px' }}>
+                      Synchronisation complète
+                    </div>
+                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)' }}>
+                      Synchronise toutes les données en une seule opération
+                    </div>
                   </div>
                   <Button
                     onClick={() => handleSync('all')}
                     disabled={syncing}
+                    style={{ 
+                      backgroundColor: '#FFFFFF', 
+                      color: colors.primary,
+                      fontWeight: '600',
+                      padding: '10px 20px'
+                    }}
                   >
                     {syncing ? 'En cours...' : 'Tout synchroniser'}
                   </Button>
                 </div>
 
-                <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.dark, marginTop: '24px', marginBottom: '16px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+                <h4 style={{ 
+                  fontSize: '13px', 
+                  fontWeight: '600', 
+                  color: '#6B7280', 
+                  marginBottom: '16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
                   Données principales
                 </h4>
 
@@ -924,9 +975,9 @@ const Synchronisation = () => {
                       variant="primary"
                       onClick={() => handleSync('utilisateurs_tracked')}
                       disabled={syncing}
-                      style={{ backgroundColor: '#1565c0' }}
+                      style={{ backgroundColor: colors.primary }}
                     >
-                      Sync avec tracking
+                      Avec tracking
                     </Button>
                   </div>
                 </div>
@@ -959,7 +1010,15 @@ const Synchronisation = () => {
                   </Button>
                 </div>
 
-                <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.dark, marginTop: '24px', marginBottom: '16px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+                <h4 style={{ 
+                  fontSize: '13px', 
+                  fontWeight: '600', 
+                  color: '#6B7280', 
+                  marginTop: '28px',
+                  marginBottom: '16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
                   Tables de référence
                 </h4>
 
@@ -1005,7 +1064,15 @@ const Synchronisation = () => {
                   </Button>
                 </div>
 
-                <h4 style={{ fontSize: '16px', fontWeight: '600', color: colors.dark, marginTop: '24px', marginBottom: '16px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
+                <h4 style={{ 
+                  fontSize: '13px', 
+                  fontWeight: '600', 
+                  color: '#6B7280', 
+                  marginTop: '28px',
+                  marginBottom: '16px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}>
                   Tables de statuts
                 </h4>
 

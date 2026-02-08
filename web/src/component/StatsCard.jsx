@@ -10,15 +10,17 @@ const StatsCard = ({ title, value, icon, color, trend }) => {
     primary: colors.primary,
     secondary: colors.secondary,
     tertiary: colors.tertiary,
-    dark: colors.dark
+    success: colors.success,
+    warning: colors.warning,
+    danger: colors.danger
   };
 
   const selectedColor = colorMap[color] || color || colors.primary;
 
   const valueStyle = {
-    fontSize: '40px',
+    fontSize: '36px',
     fontWeight: '700',
-    color: selectedColor,
+    color: colors.text,
     marginBottom: '8px',
     letterSpacing: '-1px'
   };
@@ -28,25 +30,30 @@ const StatsCard = ({ title, value, icon, color, trend }) => {
     color: colors.tertiary,
     textTransform: 'uppercase',
     fontWeight: '600',
-    letterSpacing: '0.5px'
+    letterSpacing: '0.5px',
+    opacity: 0.8
   };
 
   const iconContainerStyle = {
-    width: '56px',
-    height: '56px',
-    borderRadius: '8px',
-    backgroundColor: `${selectedColor}20`,
+    width: '52px',
+    height: '52px',
+    borderRadius: '12px',
+    backgroundColor: `${selectedColor}15`,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '28px'
+    fontSize: '22px',
+    color: selectedColor
   };
 
   const trendStyle = {
     fontSize: '12px',
     fontWeight: '600',
-    color: trend > 0 ? '#10B981' : trend < 0 ? '#EF4444' : colors.tertiary,
-    marginTop: '8px'
+    color: trend > 0 ? colors.success : trend < 0 ? colors.danger : colors.tertiary,
+    marginTop: '8px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px'
   };
 
   return (
@@ -57,7 +64,8 @@ const StatsCard = ({ title, value, icon, color, trend }) => {
           <div style={titleStyle}>{title}</div>
           {trend !== undefined && (
             <div style={trendStyle}>
-              {trend > 0 ? '↗' : trend < 0 ? '↘' : '→'} {Math.abs(trend)}%
+              <i className={`fas fa-arrow-${trend > 0 ? 'up' : trend < 0 ? 'down' : 'right'}`}></i>
+              {Math.abs(trend)}%
             </div>
           )}
         </div>

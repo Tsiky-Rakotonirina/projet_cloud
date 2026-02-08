@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { colors } from '@assets/colors';
 import { useAuth } from '@context/AuthContext';
 import authApi from '@api/manager/Auth';
-import { Lock, Mail, LogIn, ArrowLeft, AlertCircle } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -45,7 +44,7 @@ const Login = () => {
   const styles = {
     page: {
       minHeight: '100vh',
-      backgroundColor: colors.darker,
+      backgroundColor: '#FFFFFF',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -53,121 +52,89 @@ const Login = () => {
       position: 'relative',
       overflow: 'hidden'
     },
-    bgShape1: {
+    // Animated background gradient
+    bgGradient: {
       position: 'absolute',
-      top: '-10%',
-      left: '-5%',
-      width: '400px',
-      height: '400px',
-      borderRadius: '50%',
-      background: `radial-gradient(circle, ${colors.primary}15 0%, transparent 70%)`,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: '#F8FAFC',
       pointerEvents: 'none'
     },
-    bgShape2: {
-      position: 'absolute',
-      bottom: '-15%',
-      right: '-10%',
-      width: '500px',
-      height: '500px',
-      borderRadius: '50%',
-      background: `radial-gradient(circle, ${colors.secondary}12 0%, transparent 70%)`,
-      pointerEvents: 'none'
+    // Floating shapes - disabled for cleaner look
+    floatingShape1: {
+      display: 'none'
     },
-    bgLines: {
-      position: 'absolute',
-      top: '0',
-      left: '0',
-      right: '0',
-      bottom: '0',
-      backgroundImage: `
-        linear-gradient(${colors.primary}05 1px, transparent 1px),
-        linear-gradient(90deg, ${colors.primary}05 1px, transparent 1px)
-      `,
-      backgroundSize: '60px 60px',
-      pointerEvents: 'none'
+    floatingShape2: {
+      display: 'none'
+    },
+    floatingShape3: {
+      display: 'none'
     },
     content: {
       position: 'relative',
       zIndex: 1,
       width: '100%',
-      maxWidth: '400px'
+      maxWidth: '420px'
     },
     header: {
       textAlign: 'center',
-      marginBottom: '48px'
+      marginBottom: '32px'
     },
     logoContainer: {
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
-      width: '80px',
-      height: '80px',
-      backgroundColor: `${colors.primary}15`,
+      width: '72px',
+      height: '72px',
+      backgroundColor: colors.primary,
       borderRadius: '20px',
-      marginBottom: '24px',
-      border: `1px solid ${colors.primary}30`
+      marginBottom: '20px'
     },
     logo: {
-      width: '48px',
-      height: '48px'
+      fontSize: '32px',
+      color: '#FFFFFF'
     },
     title: {
-      fontSize: '32px',
+      fontSize: '28px',
       fontWeight: '700',
-      color: 'white',
-      margin: '0 0 8px 0',
+      color: colors.text,
+      margin: '0 0 6px 0',
       letterSpacing: '-0.5px'
     },
     subtitle: {
-      fontSize: '15px',
-      color: `${colors.primary}`,
+      fontSize: '14px',
+      color: colors.tertiary,
       margin: 0,
-      fontWeight: '500'
+      fontWeight: '500',
+      opacity: 0.8
     },
     formCard: {
-      backgroundColor: `${colors.dark}`,
-      borderRadius: '24px',
-      padding: '40px',
-      border: `1px solid ${colors.primary}20`
+      backgroundColor: '#FFFFFF',
+      borderRadius: '28px',
+      padding: '36px',
+      border: `1px solid ${colors.border}`,
+      boxShadow: '0 20px 60px rgba(39, 76, 119, 0.12)'
     },
     formTitle: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '12px',
-      marginBottom: '32px'
-    },
-    formTitleIcon: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: '44px',
-      height: '44px',
-      backgroundColor: `${colors.primary}20`,
-      borderRadius: '12px'
-    },
-    formTitleText: {
-      fontSize: '20px',
-      fontWeight: '600',
-      color: 'white',
-      margin: 0
+      display: 'none'
     },
     form: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '24px'
+      gap: '20px'
     },
     inputGroup: {
       display: 'flex',
       flexDirection: 'column',
-      gap: '8px'
+      gap: '6px'
     },
     label: {
       fontSize: '13px',
       fontWeight: '600',
-      color: `rgba(255,255,255,0.7)`,
-      textTransform: 'uppercase',
-      letterSpacing: '0.5px'
+      color: colors.text,
+      marginLeft: '4px'
     },
     inputWrapper: {
       position: 'relative'
@@ -177,21 +144,24 @@ const Login = () => {
       left: '16px',
       top: '50%',
       transform: 'translateY(-50%)',
-      color: colors.primary,
+      color: colors.tertiary,
       display: 'flex',
-      pointerEvents: 'none'
+      alignItems: 'center',
+      pointerEvents: 'none',
+      fontSize: '15px',
+      transition: 'color 0.2s'
     },
     input: {
       width: '100%',
-      padding: '16px 16px 16px 52px',
+      padding: '14px 16px 14px 48px',
       fontSize: '15px',
       fontFamily: 'inherit',
-      color: 'white',
-      backgroundColor: `${colors.darker}`,
-      border: `2px solid ${colors.primary}30`,
-      borderRadius: '12px',
+      color: colors.text,
+      backgroundColor: colors.surface,
+      border: `2px solid transparent`,
+      borderRadius: '14px',
       outline: 'none',
-      transition: 'border-color 0.2s, box-shadow 0.2s',
+      transition: 'all 0.2s ease',
       boxSizing: 'border-box'
     },
     errorBox: {
@@ -200,30 +170,41 @@ const Login = () => {
       gap: '10px',
       padding: '14px 16px',
       fontSize: '14px',
-      color: '#F87171',
-      backgroundColor: 'rgba(239, 68, 68, 0.1)',
-      border: '1px solid rgba(239, 68, 68, 0.3)',
+      color: colors.danger,
+      backgroundColor: `${colors.danger}10`,
+      border: `1px solid ${colors.danger}30`,
       borderRadius: '12px'
     },
     submitBtn: {
       width: '100%',
-      padding: '16px 24px',
-      fontSize: '16px',
+      padding: '15px 24px',
+      fontSize: '15px',
       fontWeight: '600',
       fontFamily: 'inherit',
-      color: colors.darker,
+      color: '#FFFFFF',
       backgroundColor: colors.primary,
       border: 'none',
-      borderRadius: '12px',
+      borderRadius: '14px',
       cursor: loading ? 'not-allowed' : 'pointer',
       opacity: loading ? 0.7 : 1,
-      transition: 'all 0.2s',
+      transition: 'all 0.3s ease',
       marginTop: '8px'
     },
     divider: {
-      height: '1px',
-      backgroundColor: `${colors.primary}20`,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '16px',
       margin: '24px 0'
+    },
+    dividerLine: {
+      flex: 1,
+      height: '1px',
+      backgroundColor: colors.border
+    },
+    dividerText: {
+      fontSize: '12px',
+      color: colors.tertiary,
+      fontWeight: '500'
     },
     backBtn: {
       display: 'flex',
@@ -231,63 +212,75 @@ const Login = () => {
       justifyContent: 'center',
       gap: '8px',
       width: '100%',
-      padding: '12px',
+      padding: '13px',
       fontSize: '14px',
       fontWeight: '500',
       fontFamily: 'inherit',
-      color: `rgba(255,255,255,0.6)`,
+      color: colors.text,
       backgroundColor: 'transparent',
-      border: `1px solid ${colors.primary}20`,
-      borderRadius: '10px',
+      border: `1.5px solid ${colors.border}`,
+      borderRadius: '14px',
       cursor: 'pointer',
-      transition: 'all 0.2s'
-    }
+      transition: 'all 0.2s ease'
+    },
+    // Animation keyframes in style tag
+    animations: `
+      @keyframes float1 {
+        0%, 100% { transform: rotate(15deg) translateY(0); }
+        50% { transform: rotate(15deg) translateY(-20px); }
+      }
+      @keyframes float2 {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-15px) scale(1.05); }
+      }
+      @keyframes float3 {
+        0%, 100% { transform: rotate(-20deg) translateX(0); }
+        50% { transform: rotate(-20deg) translateX(10px); }
+      }
+    `
   };
 
   return (
     <div style={styles.page}>
-      <div style={styles.bgShape1} />
-      <div style={styles.bgShape2} />
-      <div style={styles.bgLines} />
+      <style>{styles.animations}</style>
+      <div style={styles.bgGradient} />
+      <div style={styles.floatingShape1} />
+      <div style={styles.floatingShape2} />
+      <div style={styles.floatingShape3} />
 
       <div style={styles.content}>
         <header style={styles.header}>
           <div style={styles.logoContainer}>
-            <img src="/logo.svg" alt="Lalan-tsara" style={styles.logo} />
+            <i className="fas fa-road" style={styles.logo}></i>
           </div>
           <h1 style={styles.title}>Lalan-tsara</h1>
           <p style={styles.subtitle}>Espace Administration</p>
         </header>
 
         <div style={styles.formCard}>
-          <div style={styles.formTitle}>
-            <div style={styles.formTitleIcon}>
-              <LogIn size={22} color={colors.primary} />
-            </div>
-            <h2 style={styles.formTitleText}>Connexion</h2>
-          </div>
-
           <form onSubmit={handleSubmit} style={styles.form}>
             <div style={styles.inputGroup}>
-              <label style={styles.label}>Email</label>
+              <label style={styles.label}>Adresse email</label>
               <div style={styles.inputWrapper}>
                 <div style={styles.inputIcon}>
-                  <Mail size={18} />
+                  <i className="fas fa-envelope"></i>
                 </div>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
+                  placeholder="admin@example.com"
                   required
                   style={styles.input}
                   onFocus={(e) => {
                     e.target.style.borderColor = colors.primary;
-                    e.target.style.boxShadow = `0 0 0 3px ${colors.primary}20`;
+                    e.target.style.backgroundColor = '#FFFFFF';
+                    e.target.parentNode.querySelector('.fa-envelope').parentNode.style.color = colors.primary;
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = `${colors.primary}30`;
-                    e.target.style.boxShadow = 'none';
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.backgroundColor = colors.surface;
+                    e.target.parentNode.querySelector('.fa-envelope').parentNode.style.color = colors.tertiary;
                   }}
                 />
               </div>
@@ -297,7 +290,7 @@ const Login = () => {
               <label style={styles.label}>Mot de passe</label>
               <div style={styles.inputWrapper}>
                 <div style={styles.inputIcon}>
-                  <Lock size={18} />
+                  <i className="fas fa-lock"></i>
                 </div>
                 <input
                   type="password"
@@ -308,11 +301,13 @@ const Login = () => {
                   style={styles.input}
                   onFocus={(e) => {
                     e.target.style.borderColor = colors.primary;
-                    e.target.style.boxShadow = `0 0 0 3px ${colors.primary}20`;
+                    e.target.style.backgroundColor = '#FFFFFF';
+                    e.target.parentNode.querySelector('.fa-lock').parentNode.style.color = colors.primary;
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = `${colors.primary}30`;
-                    e.target.style.boxShadow = 'none';
+                    e.target.style.borderColor = 'transparent';
+                    e.target.style.backgroundColor = colors.surface;
+                    e.target.parentNode.querySelector('.fa-lock').parentNode.style.color = colors.tertiary;
                   }}
                 />
               </div>
@@ -320,7 +315,7 @@ const Login = () => {
 
             {error && (
               <div style={styles.errorBox}>
-                <AlertCircle size={18} />
+                <i className="fas fa-exclamation-circle"></i>
                 <span>{error}</span>
               </div>
             )}
@@ -332,33 +327,42 @@ const Login = () => {
               onMouseEnter={(e) => {
                 if (!loading) {
                   e.target.style.transform = 'translateY(-2px)';
-                  e.target.style.boxShadow = `0 8px 20px ${colors.primary}40`;
+                  e.target.style.boxShadow = `0 8px 24px ${colors.primary}40`;
                 }
               }}
               onMouseLeave={(e) => {
                 e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = 'none';
+                e.target.style.boxShadow = `0 4px 16px ${colors.primary}30`;
               }}
             >
-              {loading ? 'Connexion en cours...' : 'Se connecter'}
+              {loading ? (
+                <>
+                  <i className="fas fa-circle-notch fa-spin" style={{ marginRight: '8px' }}></i>
+                  Connexion...
+                </>
+              ) : 'Se connecter'}
             </button>
           </form>
 
-          <div style={styles.divider} />
+          <div style={styles.divider}>
+            <div style={styles.dividerLine} />
+            <span style={styles.dividerText}>ou</span>
+            <div style={styles.dividerLine} />
+          </div>
 
           <button
             onClick={() => navigate('/')}
             style={styles.backBtn}
             onMouseEnter={(e) => {
               e.target.style.borderColor = colors.primary;
-              e.target.style.color = 'white';
+              e.target.style.backgroundColor = `${colors.primary}08`;
             }}
             onMouseLeave={(e) => {
-              e.target.style.borderColor = `${colors.primary}20`;
-              e.target.style.color = 'rgba(255,255,255,0.6)';
+              e.target.style.borderColor = colors.border;
+              e.target.style.backgroundColor = 'transparent';
             }}
           >
-            <ArrowLeft size={16} />
+            <i className="fas fa-arrow-left"></i>
             Retour à l'accueil
           </button>
         </div>

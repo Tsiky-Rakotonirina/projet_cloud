@@ -1,4 +1,5 @@
 import React from 'react';
+import { colors } from '@assets/colors';
 
 /**
  * Composant section pour organiser le contenu
@@ -8,8 +9,8 @@ const Section = ({
   title,
   subtitle,
   maxWidth = '1400px',
-  padding = '60px 40px',
-  titleColor = 'white',
+  padding = '48px 40px',
+  titleColor = colors.text,
   style = {}
 }) => {
   const sectionStyle = {
@@ -20,7 +21,7 @@ const Section = ({
   };
 
   const titleStyle = {
-    fontSize: '36px',
+    fontSize: '32px',
     fontWeight: '700',
     color: titleColor,
     marginBottom: subtitle ? '12px' : '32px',
@@ -29,11 +30,12 @@ const Section = ({
   };
 
   const subtitleStyle = {
-    fontSize: '18px',
-    color: 'rgba(255, 255, 255, 0.7)',
-    marginBottom: '48px',
+    fontSize: '16px',
+    color: colors.tertiary,
+    marginBottom: '40px',
     textAlign: 'center',
-    fontWeight: '400'
+    fontWeight: '400',
+    opacity: 0.8
   };
 
   return (
