@@ -18,24 +18,64 @@
         </ion-buttons>
       </ion-toolbar>
       <!-- Barre de filtre pour les utilisateurs connectés -->
-      <ion-toolbar v-if="currentUser" class="filter-toolbar">
-        <ion-segment v-model="filterMode" @ionChange="onFilterChange">
-          <ion-segment-button value="all">
-            <ion-label>Tous</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="mine">
-            <ion-label>Mes signalements <br>
-              <span>(Cliques sur la carte pour signaler)</span></ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </ion-toolbar>
+      <div v-if="currentUser" class="filter-bar">
+        <div class="segment-container">
+          <button 
+            class="segment-btn" 
+            :class="{ active: filterMode === 'all' }" 
+            @click="filterMode = 'all'"
+          >
+            Tous
+          </button>
+          <button 
+            class="segment-btn" 
+            :class="{ active: filterMode === 'mine' }" 
+            @click="filterMode = 'mine'"
+          >
+            Mes signalements
+          </button>
+        </div>
+      </div>
     </ion-header>
     
     <ion-content :fullscreen="true">
       <div class="map-wrapper">
         <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" @mapClicked="onMapClicked" />
+        
+        <!-- Indicateur mode signalement actif -->
+        <div v-if="signalementMode" class="signal-mode-indicator">
+          <i class="fas fa-hand-pointer"></i>
+          <span>Cliquez sur la carte pour signaler</span>
+        </div>
+        
+        <!-- Bouton pour signaler depuis un clic sur la carte -->
+        <div 
+          v-if="clickedPoint && currentUser" 
+          class="signal-popup"
+          :style="clickedPixelPos ? {
+            left: clickedPixelPos.x + 'px',
+            top: (clickedPixelPos.y + 10) + 'px'
+          } : {}"
+        >
+          <div class="signal-arrow-top"></div>
+          <button class="signal-btn" @click="openSignalementFromMapClick">
+            <i class="fas fa-plus-circle"></i>
+            <span>Signaler ici</span>
+          </button>
+        </div>
       </div>
       
+      <!-- Bouton toggle mode signalement -->
+      <ion-fab v-if="currentUser" vertical="top" horizontal="end" slot="fixed" class="fab-signal-toggle">
+        <ion-fab-button 
+          @click="toggleSignalementMode" 
+          :class="{ 'fab-active': signalementMode }"
+          class="fab-signal"
+        >
+          <i class="fas" :class="signalementMode ? 'fa-times' : 'fa-plus'"></i>
+        </ion-fab-button>
+      </ion-fab>
+
       <!-- Bouton pour centrer sur Antananarivo -->
       <ion-fab vertical="bottom" horizontal="end" slot="fixed">
         <ion-fab-button @click="centerOnAntananarivo" class="fab-locate">
@@ -44,27 +84,9 @@
       </ion-fab>
 
       <!-- Bouton pour le tableau récapitulatif -->
-      <ion-fab vertical="bottom" horizontal="start" slot="fixed">
+      <ion-fab vertical="top" horizontal="end" slot="fixed" class="fab-recap">
         <ion-fab-button color="secondary" @click="goToRecap" class="fab-stats">
           <i class="fas fa-chart-bar"></i>
-        </ion-fab-button>
-      </ion-fab>
-
-      <!-- Bouton pour signaler depuis un clic sur la carte -->
-      <ion-fab 
-        v-if="clickedPoint && currentUser" 
-        slot="fixed"
-        :style="clickedPixelPos ? {
-          position: 'absolute',
-          left: (clickedPixelPos.x - 28) + 'px',
-          top: (clickedPixelPos.y - 28) + 'px',
-          right: 'auto',
-          bottom: 'auto'
-        } : {}"
-      >
-        <ion-fab-button color="warning" @click="openSignalementFromMapClick" class="fab-signal">
-          <i class="fas fa-exclamation-circle"></i>
-          <span>Signaler</span>
         </ion-fab-button>
       </ion-fab>
     </ion-content>
@@ -187,6 +209,7 @@ const signalementDescription = ref('');
 const selectedPoint = ref<{ lat: number; lng: number } | null>(null);
 const clickedPoint = ref<{ lat: number; lng: number } | null>(null);
 const clickedPixelPos = ref<{ x: number; y: number } | null>(null);
+const signalementMode = ref(false);
 const filterMode = ref<'all' | 'mine'>('all');
 const selectedImages = ref<File[]>([]);
 const isSubmitting = ref(false);
@@ -233,6 +256,10 @@ const handleLogout = async () => {
 
 const onMapClicked = (point: { lat: number; lng: number }) => {
   if (isModalOpen.value) return;
+  
+  // Ne montrer le popup que si le mode signalement est actif
+  if (!signalementMode.value) return;
+  
   clickedPoint.value = point;
   const map = mapViewRef.value?.getMap();
   if (map) {
@@ -250,6 +277,7 @@ const openSignalementFromMapClick = () => {
     isModalOpen.value = true;
     clickedPoint.value = null;
     clickedPixelPos.value = null;
+    signalementMode.value = false; // Désactiver le mode après ouverture
   } else if (!currentUser.value) {
     toastController.create({
       message: 'Vous devez être connecté pour signaler un problème.',
@@ -257,6 +285,14 @@ const openSignalementFromMapClick = () => {
       color: 'warning',
       position: 'top'
     }).then(toast => toast.present());
+  }
+};
+
+const toggleSignalementMode = () => {
+  signalementMode.value = !signalementMode.value;
+  if (!signalementMode.value) {
+    clickedPoint.value = null;
+    clickedPixelPos.value = null;
   }
 };
 
@@ -422,10 +458,54 @@ const submitSignalement = async () => {
 .map-wrapper {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
-.filter-toolbar {
-  --background: #274c77;
+/* Custom Filter Bar */
+.filter-bar {
+  background: #FFFFFF;
+  padding: 12px 16px;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.segment-container {
+  display: flex;
+  background: #F1F5F9;
+  border-radius: 12px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.segment-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  color: #4B5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1.3;
+}
+
+.segment-btn.active {
+  background: #274c77;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(39, 76, 119, 0.25);
+}
+
+.segment-btn .hint-text {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.7;
+  margin-top: 2px;
 }
 
 /* FAB Buttons */
@@ -435,6 +515,143 @@ ion-fab-button {
 
 ion-fab-button i {
   font-size: 20px;
+}
+
+/* Signal Popup Button on map click */
+.signal-popup {
+  position: absolute;
+  z-index: 1000;
+  transform: translateX(-50%);
+  animation: popIn 0.2s ease-out;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+.signal-arrow-top {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #274c77;
+}
+
+.signal-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #274c77;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(39, 76, 119, 0.35);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.signal-btn:active {
+  transform: scale(0.96);
+  background: #1d3a5c;
+}
+
+.signal-btn i {
+  font-size: 18px;
+}
+
+/* Locate & Stats FABs */
+.fab-locate {
+  --background: #274c77;
+}
+
+.fab-stats {
+  --background: #6096ba;
+}
+
+/* FAB Toggle Signalement */
+.fab-signal-toggle {
+  margin-top: 8px;
+}
+
+/* FAB Recap sous le toggle */
+.fab-recap {
+  margin-top: 70px;
+}
+
+.fab-signal {
+  --background: #10B981;
+  --background-activated: #059669;
+  transition: all 0.3s ease;
+}
+
+.fab-signal.fab-active {
+  --background: #EF4444;
+  --background-activated: #DC2626;
+}
+
+.fab-signal i {
+  transition: transform 0.3s ease;
+}
+
+.fab-signal.fab-active i {
+  transform: rotate(45deg);
+}
+
+/* Signal Mode Indicator */
+.signal-mode-indicator {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(16, 185, 129, 0.95);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+}
+
+.signal-mode-indicator i {
+  font-size: 16px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 /* Modal */

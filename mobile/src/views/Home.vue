@@ -296,7 +296,7 @@ const handleLogout = async () => {
   background: #5a6070;
 }
 
-/* Header buttons */
+/* Header toolbar button icon size */
 ion-toolbar ion-button i {
   font-size: 18px;
 }

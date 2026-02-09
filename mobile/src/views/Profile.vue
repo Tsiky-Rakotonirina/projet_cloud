@@ -15,10 +15,7 @@
     </ion-header>
     
     <ion-content :fullscreen="true">
-      <div v-if="loading" class="loading-container">
-        <ion-spinner name="crescent" color="primary"></ion-spinner>
-        <p>Chargement du profil...</p>
-      </div>
+      <Loader v-if="loading" text="Chargement du profil..." />
 
       <div v-else class="profile-container">
         <!-- Avatar et Email -->
@@ -42,73 +39,91 @@
             <h3>Informations personnelles</h3>
           </div>
           
-          <div class="form-group">
-            <label class="form-label">Nom d'affichage</label>
-            <div class="input-wrapper">
-              <i class="fas fa-id-card"></i>
-              <input
-                type="text"
-                v-model="profile.displayName"
-                placeholder="Votre nom"
-                :disabled="!isEditing"
-                class="form-input"
-              />
+          <!-- Mode Affichage -->
+          <template v-if="!isEditing">
+            <div class="info-row">
+              <div class="info-icon"><i class="fas fa-id-card"></i></div>
+              <div class="info-content">
+                <span class="info-label">Nom d'affichage</span>
+                <span class="info-value">{{ profile.displayName || 'Non défini' }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <div class="input-wrapper">
-              <i class="fas fa-envelope"></i>
-              <input
-                type="email"
-                :value="currentUser?.email"
-                disabled
-                class="form-input"
-              />
+            <div class="info-row">
+              <div class="info-icon"><i class="fas fa-envelope"></i></div>
+              <div class="info-content">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ currentUser?.email }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">Téléphone</label>
-            <div class="input-wrapper">
-              <i class="fas fa-phone"></i>
-              <input
-                type="tel"
-                v-model="profile.telephone"
-                placeholder="+261 XX XXX XX"
-                :disabled="!isEditing"
-                class="form-input"
-              />
+            <div class="info-row">
+              <div class="info-icon"><i class="fas fa-phone"></i></div>
+              <div class="info-content">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ profile.telephone || 'Non défini' }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">GitHub</label>
-            <div class="input-wrapper">
-              <i class="fab fa-github"></i>
-              <input
-                type="text"
-                v-model="profile.github"
-                placeholder="votre-username"
-                :disabled="!isEditing"
-                class="form-input"
-              />
+            <div class="info-row">
+              <div class="info-icon"><i class="fab fa-github"></i></div>
+              <div class="info-content">
+                <span class="info-label">GitHub</span>
+                <span class="info-value">{{ profile.github || 'Non défini' }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label">Date de naissance</label>
-            <div class="input-wrapper">
-              <i class="fas fa-calendar-alt"></i>
-              <input
-                type="date"
-                v-model="profile.dateNaissance"
-                :disabled="!isEditing"
-                class="form-input"
-              />
+            <div class="info-row">
+              <div class="info-icon"><i class="fas fa-calendar-alt"></i></div>
+              <div class="info-content">
+                <span class="info-label">Date de naissance</span>
+                <span class="info-value">{{ profile.dateNaissance || 'Non définie' }}</span>
+              </div>
             </div>
-          </div>
+          </template>
+
+          <!-- Mode Edition -->
+          <template v-else>
+            <div class="form-group">
+              <label class="form-label">Nom d'affichage</label>
+              <div class="input-wrapper">
+                <i class="fas fa-id-card"></i>
+                <input type="text" v-model="profile.displayName" placeholder="Votre nom" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <div class="input-wrapper disabled">
+                <i class="fas fa-envelope"></i>
+                <input type="email" :value="currentUser?.email" disabled class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <div class="input-wrapper">
+                <i class="fas fa-phone"></i>
+                <input type="tel" v-model="profile.telephone" placeholder="+261 XX XXX XX" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">GitHub</label>
+              <div class="input-wrapper">
+                <i class="fab fa-github"></i>
+                <input type="text" v-model="profile.github" placeholder="votre-username" class="form-input" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date de naissance</label>
+              <div class="input-wrapper">
+                <i class="fas fa-calendar-alt"></i>
+                <input type="date" v-model="profile.dateNaissance" class="form-input" />
+              </div>
+            </div>
+          </template>
         </div>
 
         <!-- Boutons d'action -->
@@ -190,6 +205,7 @@ import {
   IonBackButton,
   toastController
 } from '@ionic/vue';
+import Loader from '@/components/Loader.vue';
 import { logout, currentUser } from '@/services/firebase/auth.service';
 import { getMyProfile, updateMyProfile } from '@/services/user.service';
 import type { UserProfile } from '@/types/user';
@@ -300,16 +316,6 @@ onMounted(() => {
   --background: #274c77;
 }
 
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  gap: 16px;
-  color: #6B7280;
-}
-
 .profile-container {
   max-width: 500px;
   margin: 0 auto;
@@ -371,7 +377,7 @@ onMounted(() => {
 .stats-card {
   background: #FFFFFF;
   border-radius: 16px;
-  padding: 24px;
+  padding: 20px;
   margin-bottom: 20px;
   border: 1px solid #E2E8F0;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -381,7 +387,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   padding-bottom: 16px;
   border-bottom: 1px solid #E2E8F0;
 }
@@ -398,6 +404,57 @@ onMounted(() => {
   color: #1a1a2e;
 }
 
+/* Info Display Mode (non-editing) */
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #F0F4F8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.info-icon i {
+  font-size: 16px;
+  color: #274c77;
+}
+
+.info-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.info-value {
+  font-size: 15px;
+  font-weight: 500;
+  color: #1a1a2e;
+}
+
+/* Form Edit Mode */
 .form-group {
   margin-bottom: 20px;
 }
@@ -423,6 +480,11 @@ onMounted(() => {
 
 .input-wrapper:focus-within {
   border-color: #274c77;
+}
+
+.input-wrapper.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .input-wrapper i {

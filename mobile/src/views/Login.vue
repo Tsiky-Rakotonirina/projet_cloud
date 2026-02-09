@@ -142,14 +142,6 @@ const handleLogin = async () => {
 
     await login(formData.value.email, formData.value.password);
     await resetLoginAttempts(formData.value.email);
-    
-    const toast = await toastController.create({
-      message: 'Connexion réussie !',
-      duration: 1500,
-      position: 'bottom',
-      color: 'success'
-    });
-    await toast.present();
 
     router.push({ name: 'home' });
   } catch (err: any) {

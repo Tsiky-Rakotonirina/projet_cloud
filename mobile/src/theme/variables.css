@@ -135,14 +135,48 @@ ion-content {
   --background: var(--color-background);
 }
 
+/* Navbar / Toolbar - Style global amélioré */
 ion-toolbar {
   --background: var(--color-primary);
   --color: white;
   --border-color: transparent;
+  --min-height: 56px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+ion-header {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 ion-header ion-toolbar:first-of-type {
   padding-top: var(--ion-safe-area-top, 0);
+}
+
+ion-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding-inline-start: 8px;
+  padding-inline-end: 8px;
+}
+
+ion-toolbar ion-buttons {
+  margin: 0 4px;
+}
+
+ion-toolbar ion-button {
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --color: rgba(255, 255, 255, 0.9);
+  height: 40px;
+  margin: 0 2px;
+}
+
+ion-toolbar ion-button:hover {
+  --color: #ffffff;
 }
 
 /* ============ CARDS ============ */
@@ -187,6 +221,32 @@ ion-button {
 
 ion-button.button-solid {
   --box-shadow: none;
+}
+
+/* ============ SEGMENTS ============ */
+ion-segment {
+  --background: #F1F5F9;
+  border-radius: 10px;
+  padding: 4px;
+}
+
+ion-segment-button {
+  --background: transparent;
+  --background-checked: var(--color-primary);
+  --color: var(--color-tertiary);
+  --color-checked: #FFFFFF;
+  --indicator-color: transparent;
+  --border-radius: 8px;
+  min-height: 40px;
+  font-weight: 500;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+ion-segment-button ion-label {
+  margin: 0;
+  line-height: 1.3;
 }
 
 /* ============ ITEMS & INPUTS ============ */

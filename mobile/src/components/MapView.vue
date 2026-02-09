@@ -1,6 +1,27 @@
 <template>
   <div class="map-container">
     <div id="map" ref="mapContainer"></div>
+    
+    <!-- Légende compacte -->
+    <div class="map-legend" :class="{ collapsed: legendCollapsed }" @click="legendCollapsed = !legendCollapsed">
+      <div class="legend-header">
+        <span>Légende</span>
+        <i class="fas" :class="legendCollapsed ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+      </div>
+      <div class="legend-content" v-show="!legendCollapsed">
+        <div class="legend-row">
+          <span class="dot blue"></span><span>Moi</span>
+          <span class="dot violet"></span><span>Nouveau</span>
+        </div>
+        <div class="legend-row">
+          <span class="dot orange"></span><span>En cours</span>
+          <span class="dot green"></span><span>Résolu</span>
+        </div>
+        <div class="legend-row">
+          <span class="dot red"></span><span>Rejeté</span>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -20,6 +41,7 @@ const props = defineProps<{
 const emit = defineEmits(['problemsLoaded', 'mapClicked']);
 
 const mapContainer = ref<HTMLElement | null>(null);
+const legendCollapsed = ref(true);
 let map: L.Map | null = null;
 let problemMarkers: L.Marker[] = [];
 const problems = ref<Problem[]>([]);
@@ -27,27 +49,45 @@ const signalements = ref<Signalement[]>([]);
 
 // Coordonnées d'Antananarivo
 const ANTANANARIVO_CENTER: [number, number] = [-18.8792, 47.5079];
-const ANTANANARIVO_CITY_ID = "villeId"; // ID de la ville dans Firestore
 
-// Créer une icône personnalisée pour les problèmes
-const createProblemIcon = (isMine: boolean = false) => {
-  const color = isMine ? '%234CAF50' : '%23FF6B6B'; // Vert pour mes signalements, rouge pour les autres
+// Palette couleurs
+const COLORS = {
+  blue: '#4285F4',     // Google Blue
+  violet: '#A142F4',   // Google Purple
+  orange: '#FBBC04',   // Google Yellow/Orange
+  green: '#34A853',    // Google Green
+  red: '#EA4335',      // Google Red
+};
+
+// Créer une icône style Google Maps (cercle avec bordure blanche)
+const createSimpleIcon = (color: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="12" fill="${color}" stroke="white" stroke-width="3"/><circle cx="14" cy="14" r="4" fill="white"/></svg>`;
   return L.icon({
-    iconUrl: `data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}"%3E%3Cpath d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/%3E%3C/svg%3E`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
+    iconUrl: 'data:image/svg+xml,' + encodeURIComponent(svg),
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+    popupAnchor: [0, -16]
   });
 };
 
-// Créer une icône pour les signalements sans problème associé
-const createSignalementIcon = () => {
-  return L.icon({
-    iconUrl: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFC107"%3E%3Cpath d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/%3E%3C/svg%3E',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32]
-  });
+// Déterminer la couleur selon le statut
+const getStatusColor = (statutLibelle: string, isMine: boolean): string => {
+  const lower = statutLibelle.toLowerCase();
+  if (lower.includes('résolu') || lower.includes('resolu') || lower.includes('terminé')) return COLORS.green;
+  if (lower.includes('en cours') || lower.includes('traitement')) return COLORS.orange;
+  if (lower.includes('rejeté') || lower.includes('rejete')) return COLORS.red;
+  if (isMine) return COLORS.blue;
+  return COLORS.violet;
+};
+
+// Créer l'icône selon le statut
+const createProblemIcon = (statutLibelle: string, isMine: boolean) => {
+  return createSimpleIcon(getStatusColor(statutLibelle, isMine));
+};
+
+// Créer une icône pour les signalements
+const createSignalementIcon = (statutLibelle: string = 'En attente') => {
+  return createSimpleIcon(getStatusColor(statutLibelle, true));
 };
 
 // Déterminer la couleur de fond et texte pour le statut de signalement
@@ -66,15 +106,15 @@ const createSignalementPopupContent = (sig: Signalement): string => {
   if (sig.images && sig.images.length > 0) {
     const imageThumbs = sig.images.slice(0, 3).map(img => {
       const src = img.base64 || img.url || '';
-      return `<div style="width: 65px; height: 65px; border-radius: 6px; overflow: hidden; background: #f5f5f5;">
+      return `<div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; border: 2px solid #E5E7EB;">
         <img src="${src}" alt="${img.name || 'Image'}" style="width: 100%; height: 100%; object-fit: cover;"/>
       </div>`;
     }).join('');
     
     imagesHtml = `
       <div style="margin: 12px 0;">
-        <div style="display: flex; gap: 8px;">${imageThumbs}</div>
-        <span style="font-size: 11px; color: #888; margin-top: 6px; display: block;">${sig.images.length} photo(s)</span>
+        <div style="display: flex; gap: 6px;">${imageThumbs}</div>
+        <small style="color: #9CA3AF; font-size: 10px; margin-top: 4px; display: block;">${sig.images.length} photo(s)</small>
       </div>
     `;
   }
@@ -85,19 +125,20 @@ const createSignalementPopupContent = (sig: Signalement): string => {
   
   return `
     <div style="width: 250px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-      <div style="background: #FFC107; padding: 10px 12px; margin: -10px -10px 12px -10px; border-radius: 4px 4px 0 0;">
-        <span style="font-size: 13px; font-weight: 600; color: #333;">Mon Signalement</span>
+      <div style="background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%); padding: 10px 12px; margin: -10px -10px 12px -10px; border-radius: 4px 4px 0 0;">
+        <span style="font-size: 13px; font-weight: 600; color: #fff;">Mon Signalement</span>
       </div>
       
-      <p style="margin: 0 0 12px 0; font-size: 14px; color: #333; line-height: 1.4;">${sig.description}</p>
+      <p style="margin: 0 0 12px 0; font-size: 13px; color: #374151; line-height: 1.4;">${sig.description}</p>
       
       ${imagesHtml}
       
-      <div style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
-        <div style="font-size: 12px; color: #666; margin-bottom: 6px;">
-          ${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}
+      <div style="background: #F9FAFB; padding: 10px; border-radius: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+          <i class="fas fa-calendar" style="color: #6B7280; font-size: 12px;"></i>
+          <span style="font-size: 12px; color: #6B7280;">${new Date(sig.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
         </div>
-        <span style="display: inline-block; background: ${statutStyle.bg}; color: ${statutStyle.color}; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 500;">
+        <span style="display: inline-block; background: ${statutStyle.bg}; color: ${statutStyle.color}; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600;">
           ${statutLibelle}
         </span>
       </div>
@@ -140,23 +181,10 @@ const loadProblems = async (filterByUser: boolean = false) => {
       mySignalementsList.forEach(sig => {
         const hasProblem = allProblems.some(p => p.signalementId === sig.id);
         if (!hasProblem && map) {
+          const sigStatut = sig.statut?.libelle || 'En attente';
           const marker = L.marker([sig.point.lat, sig.point.lng], { 
-            icon: createSignalementIcon() 
+            icon: createSignalementIcon(sigStatut) 
           }).addTo(map);
-          
-          const sigStatutLibelle = sig.statut?.libelle || 'En attente';
-          const sigStatutStyle = getSignalementStatutStyle(sigStatutLibelle);
-          const tooltipContent = `
-            <div style="text-align: center;">
-              <b style="color: #FFC107;">📍 ${sig.description}</b><br/>
-              <span style="color: ${sigStatutStyle.color};">${sigStatutLibelle}</span>
-            </div>
-          `;
-          marker.bindTooltip(tooltipContent, { 
-            permanent: false, 
-            direction: 'top',
-            offset: [0, -20]
-          });
           
           const popupContent = createSignalementPopupContent(sig);
           marker.bindPopup(popupContent, { maxWidth: 300 });
@@ -174,35 +202,9 @@ const loadProblems = async (filterByUser: boolean = false) => {
         if (problem.signalement) {
           const { lat, lng } = problem.signalement.point;
           const isMine = !!(currentUserId && problem.signalement.utilisateurId === currentUserId);
-          const marker = L.marker([lat, lng], { icon: createProblemIcon(isMine) }).addTo(map!);
-          problemMarkers.push(marker);
-          
-          // Déterminer la couleur du statut
-          const getStatutColor = (libelle: string) => {
-            const lower = libelle.toLowerCase();
-            if (lower.includes('nouveau') || lower.includes('en cours')) return '#FFA500';
-            if (lower.includes('terminé') || lower.includes('résolu')) return '#28A745';
-            return '#6C757D';
-          };
-
           const statutLibelle = problem.statut?.libelle || 'Non défini';
-          const statutColor = getStatutColor(statutLibelle);
-          const pourcentage = problem.statut?.pourcentage || 0;
-          
-          // Tooltip au survol
-          const tooltipContent = `
-            <div style="text-align: center;">
-              <b style="color: #FF6B6B;">⚠️ ${problem.signalement.description}</b><br/>
-              <span style="color: ${statutColor}; font-weight: bold;">
-                ${statutLibelle} (${pourcentage}%)
-              </span>
-            </div>
-          `;
-          marker.bindTooltip(tooltipContent, { 
-            permanent: false, 
-            direction: 'top',
-            offset: [0, -20]
-          });
+          const marker = L.marker([lat, lng], { icon: createProblemIcon(statutLibelle, isMine) }).addTo(map!);
+          problemMarkers.push(marker);
           
           // Générer le contenu de la popup avec le composant réutilisable
           const popupContent = createPopupContent(problem);
@@ -236,22 +238,8 @@ onMounted(() => {
     emit('mapClicked', { lat, lng });
   });
 
-  // Ajouter un marqueur sur Antananarivo
-  const marker = L.marker(ANTANANARIVO_CENTER).addTo(map);
-  marker.bindPopup('<b>Antananarivo</b><br>Capitale de Madagascar').openPopup();
-
-  // Ajouter quelques points d'intérêt
-  const poiData = [
-    { name: 'Palais de la Reine (Rova)', coords: [-18.9150, 47.5328] as [number, number] },
-    { name: 'Avenue de l\'Indépendance', coords: [-18.9090, 47.5212] as [number, number] },
-    { name: 'Lac Anosy', coords: [-18.9250, 47.5260] as [number, number] },
-    { name: 'Tsimbazaza Zoo', coords: [-18.9282, 47.5270] as [number, number] },
-  ];
-
-  poiData.forEach(poi => {
-    const poiMarker = L.marker(poi.coords).addTo(map!);
-    poiMarker.bindPopup(`<b>${poi.name}</b>`);
-  });
+  // Note: Les marqueurs de la capitale et points d'intérêt ont été supprimés
+  // pour ne garder que les signalements utilisateurs
 
   // Charger et afficher les problèmes routiers
   loadProblems(props.filterMine);
@@ -299,6 +287,7 @@ defineExpose({
 .map-container {
   width: 100%;
   height: 100%;
+  position: relative;
 }
 
 #map {
@@ -306,4 +295,67 @@ defineExpose({
   height: 100%;
   min-height: 400px;
 }
+
+/* Légende compacte */
+.map-legend {
+  position: absolute;
+  bottom: 20px;
+  left: 8px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  background: #F9FAFB;
+}
+
+.legend-header i {
+  font-size: 10px;
+  color: #9CA3AF;
+}
+
+.legend-content {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #6B7280;
+}
+
+.legend-row span:not(.dot) {
+  margin-right: 8px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot.blue { background: #4285F4; }
+.dot.violet { background: #A142F4; }
+.dot.orange { background: #FBBC04; }
+.dot.green { background: #34A853; }
+.dot.red { background: #EA4335; }
 </style>
