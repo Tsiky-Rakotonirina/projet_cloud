@@ -9,16 +9,26 @@
         <i class="fas" :class="legendCollapsed ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
       </div>
       <div class="legend-content" v-show="!legendCollapsed">
-        <div class="legend-row">
-          <span class="dot blue"></span><span>Moi</span>
-          <span class="dot violet"></span><span>Nouveau</span>
+        <div class="legend-section">
+          <div class="legend-title">Types</div>
+          <div class="legend-row">
+            <span class="icon-flag blue"></span><span>Signalement</span>
+          </div>
+          <div class="legend-row">
+            <span class="icon-teardrop violet"></span><span>Problème</span>
+          </div>
         </div>
-        <div class="legend-row">
-          <span class="dot orange"></span><span>En cours</span>
-          <span class="dot green"></span><span>Résolu</span>
-        </div>
-        <div class="legend-row">
-          <span class="dot red"></span><span>Rejeté</span>
+        <div class="legend-divider"></div>
+        <div class="legend-section">
+          <div class="legend-title">Statuts</div>
+          <div class="legend-row">
+            <span class="dot violet"></span><span>Nouveau</span>
+            <span class="dot orange"></span><span>En cours</span>
+          </div>
+          <div class="legend-row">
+            <span class="dot green"></span><span>Résolu</span>
+            <span class="dot red"></span><span>Rejeté</span>
+          </div>
         </div>
       </div>
     </div>
@@ -59,35 +69,51 @@ const COLORS = {
   red: '#EA4335',      // Google Red
 };
 
-// Créer une icône style Google Maps (cercle avec bordure blanche)
-const createSimpleIcon = (color: string) => {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="28" height="28"><circle cx="14" cy="14" r="12" fill="${color}" stroke="white" stroke-width="3"/><circle cx="14" cy="14" r="4" fill="white"/></svg>`;
+// Créer une icône teardrop (goutte) pour les PROBLÈMES
+const createTeardropIcon = (color: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 36" width="24" height="36">
+    <path d="M12 0C5.4 0 0 5.4 0 12c0 7.2 12 24 12 24s12-16.8 12-24C24 5.4 18.6 0 12 0z" fill="${color}" stroke="white" stroke-width="2"/>
+    <circle cx="12" cy="12" r="5" fill="white"/>
+  </svg>`;
   return L.icon({
     iconUrl: 'data:image/svg+xml,' + encodeURIComponent(svg),
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -16]
+    iconSize: [24, 36],
+    iconAnchor: [12, 36],
+    popupAnchor: [0, -36]
+  });
+};
+
+// Créer une icône drapeau pour les SIGNALEMENTS
+const createFlagIcon = (color: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 32" width="24" height="32">
+    <rect x="3" y="0" width="3" height="32" fill="#555" rx="1"/>
+    <path d="M6 2 L22 2 L18 9 L22 16 L6 16 Z" fill="${color}" stroke="white" stroke-width="1.5"/>
+  </svg>`;
+  return L.icon({
+    iconUrl: 'data:image/svg+xml,' + encodeURIComponent(svg),
+    iconSize: [24, 32],
+    iconAnchor: [4, 32],
+    popupAnchor: [8, -32]
   });
 };
 
 // Déterminer la couleur selon le statut
-const getStatusColor = (statutLibelle: string, isMine: boolean): string => {
+const getStatusColor = (statutLibelle: string): string => {
   const lower = statutLibelle.toLowerCase();
   if (lower.includes('résolu') || lower.includes('resolu') || lower.includes('terminé')) return COLORS.green;
   if (lower.includes('en cours') || lower.includes('traitement')) return COLORS.orange;
   if (lower.includes('rejeté') || lower.includes('rejete')) return COLORS.red;
-  if (isMine) return COLORS.blue;
-  return COLORS.violet;
+  return COLORS.violet; // Nouveau/En attente
 };
 
-// Créer l'icône selon le statut
-const createProblemIcon = (statutLibelle: string, isMine: boolean) => {
-  return createSimpleIcon(getStatusColor(statutLibelle, isMine));
+// Créer l'icône teardrop selon le statut (pour PROBLÈMES)
+const createProblemIcon = (statutLibelle: string) => {
+  return createTeardropIcon(getStatusColor(statutLibelle));
 };
 
-// Créer une icône pour les signalements
+// Créer une icône drapeau selon le statut (pour SIGNALEMENTS)
 const createSignalementIcon = (statutLibelle: string = 'En attente') => {
-  return createSimpleIcon(getStatusColor(statutLibelle, true));
+  return createFlagIcon(getStatusColor(statutLibelle));
 };
 
 // Déterminer la couleur de fond et texte pour le statut de signalement
@@ -196,14 +222,13 @@ const loadProblems = async (filterByUser: boolean = false) => {
     problems.value = allProblems;
     emit('problemsLoaded', allProblems.length);
     
-    // Afficher les marqueurs des problèmes sur la carte
+    // Afficher les marqueurs des problèmes sur la carte (icône teardrop)
     if (map) {
       allProblems.forEach(problem => {
         if (problem.signalement) {
           const { lat, lng } = problem.signalement.point;
-          const isMine = !!(currentUserId && problem.signalement.utilisateurId === currentUserId);
           const statutLibelle = problem.statut?.libelle || 'Non défini';
-          const marker = L.marker([lat, lng], { icon: createProblemIcon(statutLibelle, isMine) }).addTo(map!);
+          const marker = L.marker([lat, lng], { icon: createProblemIcon(statutLibelle) }).addTo(map!);
           problemMarkers.push(marker);
           
           // Générer le contenu de la popup avec le composant réutilisable
@@ -331,7 +356,27 @@ defineExpose({
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+
+.legend-section {
+  display: flex;
+  flex-direction: column;
   gap: 4px;
+}
+
+.legend-title {
+  font-size: 9px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-divider {
+  height: 1px;
+  background: #E5E7EB;
+  margin: 4px 0;
 }
 
 .legend-row {
@@ -342,7 +387,7 @@ defineExpose({
   color: #6B7280;
 }
 
-.legend-row span:not(.dot) {
+.legend-row span:not(.dot):not(.icon-flag):not(.icon-teardrop) {
   margin-right: 8px;
 }
 
@@ -352,6 +397,47 @@ defineExpose({
   border-radius: 50%;
   flex-shrink: 0;
 }
+
+/* Icône drapeau pour signalements */
+.icon-flag {
+  width: 14px;
+  height: 16px;
+  position: relative;
+  flex-shrink: 0;
+}
+.icon-flag::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: #555;
+  border-radius: 1px;
+}
+.icon-flag::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 10px;
+  height: 8px;
+  clip-path: polygon(0 0, 100% 0, 75% 50%, 100% 100%, 0 100%);
+}
+.icon-flag.blue::after { background: #4285F4; }
+.icon-flag.violet::after { background: #A142F4; }
+
+/* Icône teardrop pour problèmes */
+.icon-teardrop {
+  width: 12px;
+  height: 16px;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  transform: rotate(180deg);
+  flex-shrink: 0;
+  border: 1.5px solid white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.icon-teardrop.violet { background: #A142F4; }
 
 .dot.blue { background: #4285F4; }
 .dot.violet { background: #A142F4; }
