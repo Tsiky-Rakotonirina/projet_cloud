@@ -907,57 +907,6 @@ const Synchronisation = () => {
                 </Card>
               )}
 
-              {/* Barre de progression globale (visible même en changeant de page) */}
-              {globalSyncing && (
-                <Card style={{ marginBottom: '28px', border: '2px solid #4caf50', backgroundColor: '#e8f5e9' }} padding="24px">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '50%',
-                      backgroundColor: '#4caf50',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      animation: 'pulse 1.5s infinite'
-                    }}>
-                      <i className="fas fa-sync-alt fa-spin" style={{ color: 'white', fontSize: '20px' }}></i>
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                        <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#2e7d32', margin: 0 }}>
-                          Synchronisation en cours...
-                        </h3>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: '#2e7d32' }}>
-                          {Math.round(currentProgress.percentage)}%
-                        </span>
-                      </div>
-                      <p style={{ fontSize: '13px', color: '#2e7d32', margin: '0 0 12px 0' }}>
-                        {currentProgress.currentStep || 'Traitement des données...'}
-                      </p>
-                      {/* Barre de progression */}
-                      <div style={{ backgroundColor: 'rgba(76, 175, 80, 0.3)', borderRadius: '4px', height: '8px', overflow: 'hidden' }}>
-                        <div style={{
-                          width: `${currentProgress.percentage}%`,
-                          height: '100%',
-                          backgroundColor: '#4caf50',
-                          transition: 'width 0.3s ease',
-                          borderRadius: '4px'
-                        }} />
-                      </div>
-                      {currentProgress.processedItems > 0 && (
-                        <div style={{ marginTop: '8px', fontSize: '12px', color: '#666' }}>
-                          {currentProgress.processedItems} / {currentProgress.totalItems} éléments traités
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <p style={{ marginTop: '16px', fontSize: '12px', color: '#666', textAlign: 'center', fontStyle: 'italic' }}>
-                    💡 Cette barre de progression reste visible même si vous changez de page
-                  </p>
-                </Card>
-              )}
-
               {/* Statut général */}
               <Card style={{ marginBottom: '28px', border: '1px solid #E5E7EB' }} padding="24px">
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -1014,7 +963,7 @@ const Synchronisation = () => {
                   </div>
                   <Button
                     onClick={() => handleSync('all')}
-                    disabled={syncing || globalSyncing}
+                    disabled={syncing || (globalSyncing && currentProgress.percentage < 100)}
                     style={{ 
                       backgroundColor: '#FFFFFF', 
                       color: colors.primary,
@@ -1022,7 +971,7 @@ const Synchronisation = () => {
                       padding: '10px 20px'
                     }}
                   >
-                    {syncing || globalSyncing ? 'En cours...' : 'Tout synchroniser'}
+                    {(syncing || globalSyncing) && currentProgress.percentage < 100 ? 'En cours...' : 'Tout synchroniser'}
                   </Button>
                 </div>
 
