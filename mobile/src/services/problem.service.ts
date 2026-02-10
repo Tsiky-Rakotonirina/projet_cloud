@@ -4,87 +4,96 @@ import { db } from "@/services/firebase/firebase";
 import type { Problem, Entreprise, ProblemeStatut, Signalement, SignalementImage } from "@/types/entities";
 import { prepareImagesForFirestore, type UploadedImage } from "@/services/imageService";
 
-// Récupérer tous les problèmes avec leurs signalements, entreprises et statuts associés
+// Cache pour les données statiques
+let cachedEntreprises: Map<string, Entreprise> | null = null;
+let cachedProblemeStatuts: Map<string, ProblemeStatut> | null = null;
+let cachedSignalementStatuts: Map<string, { libelle: string; descri: string }> | null = null;
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Charger toutes les données de référence en parallèle
+const loadReferenceData = async () => {
+  const now = Date.now();
+  if (cachedEntreprises && cachedProblemeStatuts && cachedSignalementStatuts && (now - cacheTimestamp) < CACHE_DURATION) {
+    return { entreprises: cachedEntreprises, problemeStatuts: cachedProblemeStatuts, signalementStatuts: cachedSignalementStatuts };
+  }
+
+  const [entrepriseDocs, problemeStatutDocs, signalementStatutDocs] = await Promise.all([
+    getDocs(collection(db, "entreprises")),
+    getDocs(collection(db, "probleme_statuts")),
+    getDocs(collection(db, "signalement_statuts"))
+  ]);
+
+  cachedEntreprises = new Map();
+  entrepriseDocs.docs.forEach(doc => {
+    cachedEntreprises!.set(doc.id, { id: doc.id, ...doc.data() as Omit<Entreprise, 'id'> });
+  });
+
+  cachedProblemeStatuts = new Map();
+  problemeStatutDocs.docs.forEach(doc => {
+    cachedProblemeStatuts!.set(doc.id, { id: doc.id, ...doc.data() as Omit<ProblemeStatut, 'id'> });
+  });
+
+  cachedSignalementStatuts = new Map();
+  signalementStatutDocs.docs.forEach(doc => {
+    const data = doc.data();
+    cachedSignalementStatuts!.set(doc.id, { libelle: data.libelle, descri: data.descri });
+  });
+
+  cacheTimestamp = now;
+  console.log(`📦 Cache chargé: ${cachedEntreprises.size} entreprises, ${cachedProblemeStatuts.size} statuts problème, ${cachedSignalementStatuts.size} statuts signalement`);
+  
+  return { entreprises: cachedEntreprises, problemeStatuts: cachedProblemeStatuts, signalementStatuts: cachedSignalementStatuts };
+};
+
+// Récupérer tous les problèmes avec leurs signalements, entreprises et statuts associés - OPTIMISÉ
 export const getAllProblems = async (): Promise<Problem[]> => {
   try {
-    const problemsCollectionRef = collection(db, "problemes");
-    const problemDocs = await getDocs(problemsCollectionRef);
-    
-    const problems: Problem[] = [];
+    // Charger données de référence + problèmes + signalements EN PARALLÈLE
+    const [refData, problemDocs, signalementDocs] = await Promise.all([
+      loadReferenceData(),
+      getDocs(collection(db, "problemes")),
+      getDocs(collection(db, "signalements"))
+    ]);
 
-    for (const doc of problemDocs.docs) {
+    const { entreprises, problemeStatuts } = refData;
+
+    // Créer une map des signalements pour lookup O(1)
+    const signalementsMap = new Map<string, Signalement>();
+    signalementDocs.docs.forEach(doc => {
+      signalementsMap.set(doc.id, { id: doc.id, ...doc.data() as Omit<Signalement, 'id'> });
+    });
+
+    // Traiter les problèmes
+    const problems: Problem[] = problemDocs.docs.map(doc => {
       const problemData = doc.data() as Omit<Problem, 'id'>;
-      const signalementId = problemData.signalementId;
-      const entrepriseId = problemData.entrepriseId;
-      const statutId = problemData.statutId;
-
-      // Récupérer le signalement associé
-      let signalement: Signalement | undefined;
-      if (signalementId) {
-        const signalementRef = collection(db, "signalements");
-        const signalementQuery = query(signalementRef, where("__name__", "==", signalementId));
-        const signalementDocs = await getDocs(signalementQuery);
-
-        if (!signalementDocs.empty) {
-          const signalementDoc = signalementDocs.docs[0];
-          signalement = {
-            id: signalementDoc.id,
-            ...signalementDoc.data() as Omit<Signalement, 'id'>
-          };
-        }
-      }
-
-      // Récupérer l'entreprise associée
-      let entreprise: Entreprise | undefined;
-      if (entrepriseId) {
-        const entrepriseRef = collection(db, "entreprises");
-        const entrepriseQuery = query(entrepriseRef, where("__name__", "==", entrepriseId));
-        const entrepriseDocs = await getDocs(entrepriseQuery);
-
-        if (!entrepriseDocs.empty) {
-          const entrepriseDoc = entrepriseDocs.docs[0];
-          entreprise = {
-            id: entrepriseDoc.id,
-            ...entrepriseDoc.data() as Omit<Entreprise, 'id'>
-          };
-        }
-      }
-
-      // Récupérer le statut du problème basé sur le dernier historique
+      
+      // Lookup signalement (O(1))
+      const signalement = problemData.signalementId ? signalementsMap.get(problemData.signalementId) : undefined;
+      
+      // Lookup entreprise (O(1))
+      const entreprise = problemData.entrepriseId ? entreprises.get(problemData.entrepriseId) : undefined;
+      
+      // Déterminer le dernier statut depuis l'historique
       const historiques = problemData.historiques || [];
-      // Trier par date décroissante et prendre le dernier statut
       const sortedHistoriques = [...historiques].sort((a, b) => 
         new Date(b.date).getTime() - new Date(a.date).getTime()
       );
-      const latestStatutId = sortedHistoriques.length > 0 
-        ? sortedHistoriques[0].statutId 
-        : statutId;
+      const latestStatutId = sortedHistoriques.length > 0 ? sortedHistoriques[0].statutId : problemData.statutId;
+      
+      // Lookup statut (O(1))
+      const statut = latestStatutId ? problemeStatuts.get(latestStatutId) : undefined;
 
-      let statut: ProblemeStatut | undefined;
-      if (latestStatutId) {
-        const statutRef = collection(db, "probleme_statuts");
-        const statutQuery = query(statutRef, where("__name__", "==", latestStatutId));
-        const statutDocs = await getDocs(statutQuery);
-
-        if (!statutDocs.empty) {
-          const statutDoc = statutDocs.docs[0];
-          statut = {
-            id: statutDoc.id,
-            ...statutDoc.data() as Omit<ProblemeStatut, 'id'>
-          };
-        }
-      }
-
-      problems.push({
+      return {
         id: doc.id,
         ...problemData,
         signalement,
         entreprise,
         statut
-      });
-    }
+      };
+    });
 
-    console.log(`${problems.length} problèmes récupérés`);
+    console.log(`✅ ${problems.length} problèmes récupérés (optimisé)`);
     return problems;
   } catch (error) {
     console.error("Erreur lors de la récupération des problèmes :", error);
@@ -175,7 +184,7 @@ export const createSignalement = async (
   }
 };
 
-// Récupérer les signalements de l'utilisateur connecté avec le dernier statut de l'historique
+// Récupérer les signalements de l'utilisateur connecté avec le dernier statut de l'historique - OPTIMISÉ
 export const getMySignalements = async (): Promise<Signalement[]> => {
   try {
     const user = auth.currentUser;
@@ -183,18 +192,13 @@ export const getMySignalements = async (): Promise<Signalement[]> => {
       return [];
     }
 
-    const signalementCollectionRef = collection(db, "signalements");
-    const q = query(signalementCollectionRef, where("utilisateurId", "==", user.uid));
-    const signalementDocs = await getDocs(q);
+    // Charger cache et signalements en parallèle
+    const [refData, signalementDocs] = await Promise.all([
+      loadReferenceData(),
+      getDocs(query(collection(db, "signalements"), where("utilisateurId", "==", user.uid)))
+    ]);
 
-    // Récupérer tous les statuts de signalement pour résoudre les libellés
-    const statutsRef = collection(db, "signalement_statuts");
-    const statutsDocs = await getDocs(statutsRef);
-    const statutsMap = new Map<string, { libelle: string; descri: string }>();
-    statutsDocs.docs.forEach(doc => {
-      const data = doc.data();
-      statutsMap.set(doc.id, { libelle: data.libelle, descri: data.descri });
-    });
+    const { signalementStatuts } = refData;
 
     const signalements: Signalement[] = signalementDocs.docs.map(docItem => {
       const data = docItem.data() as Omit<Signalement, 'id' | 'statut'>;
@@ -208,10 +212,10 @@ export const getMySignalements = async (): Promise<Signalement[]> => {
         ? sortedHistoriques[0].statutId 
         : data.statutId;
 
-      // Résoudre le statut (avec vérification null)
+      // Résoudre le statut depuis le cache (O(1))
       let statut = undefined;
       if (latestStatutId) {
-        const statutData = statutsMap.get(latestStatutId);
+        const statutData = signalementStatuts.get(latestStatutId);
         if (statutData) {
           statut = { id: latestStatutId, libelle: statutData.libelle, descri: statutData.descri };
         }

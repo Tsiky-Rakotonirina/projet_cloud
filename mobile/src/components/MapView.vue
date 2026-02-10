@@ -48,14 +48,19 @@ const props = defineProps<{
   filterMine?: boolean;
 }>();
 
-const emit = defineEmits(['problemsLoaded', 'mapClicked']);
+const emit = defineEmits(['problemsLoaded', 'mapClicked', 'loadingChange']);
 
 const mapContainer = ref<HTMLElement | null>(null);
 const legendCollapsed = ref(true);
+const isLoading = ref(false);
 let map: L.Map | null = null;
+let markersLayer: L.LayerGroup | null = null;
 let problemMarkers: L.Marker[] = [];
 const problems = ref<Problem[]>([]);
 const signalements = ref<Signalement[]>([]);
+
+// Cache des icônes pour éviter de les recréer
+const iconCache: Map<string, L.Icon> = new Map();
 
 // Coordonnées d'Antananarivo
 const ANTANANARIVO_CENTER: [number, number] = [-18.8792, 47.5079];
@@ -106,14 +111,24 @@ const getStatusColor = (statutLibelle: string): string => {
   return COLORS.violet; // Nouveau/En attente
 };
 
-// Créer l'icône teardrop selon le statut (pour PROBLÈMES)
+// Créer l'icône teardrop selon le statut (pour PROBLÈMES) - avec cache
 const createProblemIcon = (statutLibelle: string) => {
-  return createTeardropIcon(getStatusColor(statutLibelle));
+  const color = getStatusColor(statutLibelle);
+  const cacheKey = `problem_${color}`;
+  if (!iconCache.has(cacheKey)) {
+    iconCache.set(cacheKey, createTeardropIcon(color));
+  }
+  return iconCache.get(cacheKey)!;
 };
 
-// Créer une icône drapeau selon le statut (pour SIGNALEMENTS)
+// Créer une icône drapeau selon le statut (pour SIGNALEMENTS) - avec cache
 const createSignalementIcon = (statutLibelle: string = 'En attente') => {
-  return createFlagIcon(getStatusColor(statutLibelle));
+  const color = getStatusColor(statutLibelle);
+  const cacheKey = `signalement_${color}`;
+  if (!iconCache.has(cacheKey)) {
+    iconCache.set(cacheKey, createFlagIcon(color));
+  }
+  return iconCache.get(cacheKey)!;
 };
 
 // Déterminer la couleur de fond et texte pour le statut de signalement
@@ -173,72 +188,101 @@ const createSignalementPopupContent = (sig: Signalement): string => {
 };
 
 const clearProblemMarkers = () => {
-  if (map) {
-    problemMarkers.forEach(marker => {
-      map!.removeLayer(marker);
-    });
-    problemMarkers = [];
+  if (markersLayer && map) {
+    markersLayer.clearLayers();
   }
+  problemMarkers = [];
 };
 
 const loadProblems = async (filterByUser: boolean = false) => {
   try {
+    isLoading.value = true;
+    emit('loadingChange', true);
     clearProblemMarkers();
     
     const currentUserId = auth.currentUser?.uid;
     console.log(`📍 loadProblems: filterByUser=${filterByUser}, currentUserId=${currentUserId}`);
     
-    let allProblems = await getAllProblems();
-    console.log(`📍 Total problèmes récupérés: ${allProblems.length}`);
+    // Charger les données en parallèle quand possible
+    let allProblems: Problem[];
+    let mySignalementsList: Signalement[] = [];
     
-    // Si on filtre par utilisateur connecté
     if (filterByUser && currentUserId) {
-      // Récupérer mes signalements
-      const mySignalementsList = await getMySignalements();
+      // Charger problèmes et signalements en parallèle
+      const [problemsResult, signalementsResult] = await Promise.all([
+        getAllProblems(),
+        getMySignalements()
+      ]);
+      allProblems = problemsResult;
+      mySignalementsList = signalementsResult;
       signalements.value = mySignalementsList;
+      
       const mySignalementIds = mySignalementsList.map(s => s.id);
-      console.log(`📍 Mes signalements: ${mySignalementIds.length}`, mySignalementIds);
+      console.log(`📍 Mes signalements: ${mySignalementIds.length}`);
       
       // Filtrer les problèmes liés à mes signalements
       allProblems = allProblems.filter(p => mySignalementIds.includes(p.signalementId));
-      console.log(`📍 Problèmes filtrés pour mes signalements: ${allProblems.length}`);
-      
-      // Ajouter aussi les signalements qui n'ont pas encore de problème associé
-      mySignalementsList.forEach(sig => {
-        const hasProblem = allProblems.some(p => p.signalementId === sig.id);
-        if (!hasProblem && map) {
-          const sigStatut = sig.statut?.libelle || 'En attente';
-          const marker = L.marker([sig.point.lat, sig.point.lng], { 
-            icon: createSignalementIcon(sigStatut) 
-          }).addTo(map);
-          
-          const popupContent = createSignalementPopupContent(sig);
-          marker.bindPopup(popupContent, { maxWidth: 300 });
-          problemMarkers.push(marker);
-        }
-      });
+      console.log(`📍 Problèmes filtrés: ${allProblems.length}`);
+    } else {
+      allProblems = await getAllProblems();
     }
     
+    console.log(`📍 Total problèmes: ${allProblems.length}`);
     problems.value = allProblems;
     emit('problemsLoaded', allProblems.length);
     
-    // Afficher les marqueurs des problèmes sur la carte (icône teardrop)
-    if (map) {
+    // Créer tous les marqueurs en batch
+    if (map && markersLayer) {
+      const markers: L.Marker[] = [];
+      
+      // Ajouter les signalements sans problème (si filtre utilisateur)
+      if (filterByUser && currentUserId && mySignalementsList.length > 0) {
+        const problemSignalementIds = new Set(allProblems.map(p => p.signalementId));
+        
+        mySignalementsList.forEach(sig => {
+          if (!problemSignalementIds.has(sig.id)) {
+            const sigStatut = sig.statut?.libelle || 'En attente';
+            const marker = L.marker([sig.point.lat, sig.point.lng], { 
+              icon: createSignalementIcon(sigStatut) 
+            });
+            // Lazy popup - créer le contenu seulement au clic
+            marker.on('click', () => {
+              if (!marker.getPopup()) {
+                marker.bindPopup(createSignalementPopupContent(sig), { maxWidth: 300 });
+              }
+              marker.openPopup();
+            });
+            markers.push(marker);
+          }
+        });
+      }
+      
+      // Ajouter les problèmes
       allProblems.forEach(problem => {
         if (problem.signalement) {
           const { lat, lng } = problem.signalement.point;
           const statutLibelle = problem.statut?.libelle || 'Non défini';
-          const marker = L.marker([lat, lng], { icon: createProblemIcon(statutLibelle) }).addTo(map!);
-          problemMarkers.push(marker);
-          
-          // Générer le contenu de la popup avec le composant réutilisable
-          const popupContent = createPopupContent(problem);
-          marker.bindPopup(popupContent, { maxWidth: 300 });
+          const marker = L.marker([lat, lng], { icon: createProblemIcon(statutLibelle) });
+          // Lazy popup - créer le contenu seulement au clic
+          marker.on('click', () => {
+            if (!marker.getPopup()) {
+              marker.bindPopup(createPopupContent(problem), { maxWidth: 300 });
+            }
+            marker.openPopup();
+          });
+          markers.push(marker);
         }
       });
+      
+      // Ajouter tous les marqueurs en une seule opération
+      markers.forEach(m => markersLayer!.addLayer(m));
+      problemMarkers = markers;
     }
   } catch (error) {
     console.error("Erreur lors du chargement des problèmes:", error);
+  } finally {
+    isLoading.value = false;
+    emit('loadingChange', false);
   }
 };
 
@@ -250,6 +294,9 @@ onMounted(() => {
     center: ANTANANARIVO_CENTER,
     zoom: 13,
   });
+
+  // Créer le layer group pour les marqueurs (optimisation performance)
+  markersLayer = L.layerGroup().addTo(map);
 
   // Ajouter le layer de tuiles OpenStreetMap standard
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -282,10 +329,16 @@ watch(() => props.filterMine, (newValue) => {
 
 onUnmounted(() => {
   // Nettoyer la carte lors du démontage du composant
+  if (markersLayer) {
+    markersLayer.clearLayers();
+    markersLayer = null;
+  }
   if (map) {
     map.remove();
     map = null;
   }
+  // Vider le cache des icônes
+  iconCache.clear();
 });
 
 // Exposer des méthodes pour manipuler la carte
