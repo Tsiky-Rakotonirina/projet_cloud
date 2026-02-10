@@ -50,24 +50,45 @@
 
       <!-- Notifications list -->
       <div v-else class="notifications-list">
+        <!-- Unread count header -->
+        <div v-if="unreadCount > 0" class="unread-header">
+          <div class="unread-badge">
+            <i class="fas fa-envelope"></i>
+            <span>{{ unreadCount }} nouvelle{{ unreadCount > 1 ? 's' : '' }}</span>
+          </div>
+          <button class="mark-all-btn" @click="markAllAsRead">
+            <i class="fas fa-check-double"></i>
+            Tout marquer comme lu
+          </button>
+        </div>
+
         <div 
           v-for="notification in notifications" 
           :key="notification.id"
           :class="['notification-card', { 'unread': !notification.lue }]"
           @click="handleNotificationClick(notification)"
         >
-          <div :class="['card-icon-box', notification.lue ? 'card-icon-read' : 'card-icon-unread']">
-            <i class="fas fa-bell"></i>
-            <span v-if="!notification.lue" class="unread-dot"></span>
+          <div :class="['notification-icon', getNotificationType(notification)]">
+            <i :class="getNotificationIcon(notification)"></i>
+            <span v-if="!notification.lue" class="unread-indicator"></span>
           </div>
-          <div class="card-content">
-            <p class="card-message">{{ notification.message }}</p>
-            <p class="card-date">{{ formatDate(notification.createdAt) }}</p>
-            <p v-if="notification.readAt" class="card-read-date">
-              Lu le {{ formatDate(notification.readAt) }}
-            </p>
+          <div class="notification-body">
+            <div class="notification-header">
+              <span v-if="!notification.lue" class="new-badge">
+                <i class="fas fa-circle"></i> Nouveau
+              </span>
+              <span class="notification-time">
+                <i class="far fa-clock"></i>
+                {{ formatDate(notification.createdAt) }}
+              </span>
+            </div>
+            <p class="notification-message">{{ notification.message }}</p>
+            <div v-if="notification.lue && notification.readAt" class="notification-read-info">
+              <i class="fas fa-eye"></i>
+              Lu {{ formatDate(notification.readAt) }}
+            </div>
           </div>
-          <div class="card-arrow">
+          <div class="notification-action">
             <i class="fas fa-chevron-right"></i>
           </div>
         </div>
@@ -108,7 +129,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import {
   IonPage,
@@ -137,6 +158,52 @@ const loadingDetails = ref(false);
 const notifications = ref<UserNotification[]>([]);
 const showDetailsModal = ref(false);
 const selectedSignalement = ref<Signalement | null>(null);
+
+// Computed pour le nombre de non lues
+const unreadCount = computed(() => notifications.value.filter(n => !n.lue).length);
+
+// Marquer toutes comme lues
+const markAllAsRead = async () => {
+  try {
+    for (const notification of notifications.value.filter(n => !n.lue)) {
+      await markNotificationAsRead(notification.id);
+      notification.lue = true;
+      notification.readAt = new Date().toISOString();
+    }
+  } catch (error) {
+    console.error('Erreur marquage notifications:', error);
+  }
+};
+
+// Déterminer le type de notification pour le style
+const getNotificationType = (notification: UserNotification): string => {
+  const msg = notification.message?.toLowerCase() || '';
+  if (msg.includes('approuvé') || msg.includes('résolu') || msg.includes('terminé')) {
+    return 'type-success';
+  }
+  if (msg.includes('rejeté') || msg.includes('refusé') || msg.includes('erreur')) {
+    return 'type-danger';
+  }
+  if (msg.includes('en cours') || msg.includes('traitement') || msg.includes('attente')) {
+    return 'type-warning';
+  }
+  return 'type-info';
+};
+
+// Icône selon le type
+const getNotificationIcon = (notification: UserNotification): string => {
+  const msg = notification.message?.toLowerCase() || '';
+  if (msg.includes('approuvé') || msg.includes('résolu') || msg.includes('terminé')) {
+    return 'fas fa-check-circle';
+  }
+  if (msg.includes('rejeté') || msg.includes('refusé') || msg.includes('erreur')) {
+    return 'fas fa-times-circle';
+  }
+  if (msg.includes('en cours') || msg.includes('traitement') || msg.includes('attente')) {
+    return 'fas fa-hourglass-half';
+  }
+  return 'fas fa-bell';
+};
 
 // Charger les notifications quand l'utilisateur est connecté
 const loadNotifications = async () => {
@@ -234,95 +301,147 @@ const formatDate = (dateStr: string | null) => {
 
 <style scoped>
 .notifications-content {
-  --background: #FFFFFF;
+  --background: #F8FAFC;
 }
 
+/* Loading */
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 300px;
-  color: #6B7280;
+  color: var(--ion-color-medium);
 }
 
 .loading-container p {
-  margin-top: 12px;
+  margin-top: 16px;
   font-size: 14px;
+  font-weight: 500;
 }
 
+/* Empty State */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 300px;
+  height: 350px;
   text-align: center;
-  padding: 24px;
+  padding: 32px;
 }
 
 .empty-icon {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  background: rgba(156, 163, 175, 0.1);
-  border: 2px solid rgba(156, 163, 175, 0.15);
-  border-radius: 18px;
-  margin-bottom: 16px;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, rgba(107, 114, 128, 0.08) 0%, rgba(107, 114, 128, 0.15) 100%);
+  border: 2px solid rgba(107, 114, 128, 0.12);
+  border-radius: 24px;
+  margin-bottom: 20px;
 }
 
 .empty-icon i {
-  font-size: 28px;
-  color: #9CA3AF;
+  font-size: 32px;
+  color: var(--ion-color-medium);
 }
 
 .empty-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  color: #1a1a2e;
-  margin: 0 0 4px 0;
+  color: var(--ion-color-dark);
+  margin: 0 0 8px 0;
 }
 
 .empty-subtitle {
   font-size: 14px;
-  color: #6B7280;
-  margin: 0 0 20px 0;
+  color: var(--ion-color-medium);
+  margin: 0 0 24px 0;
+  line-height: 1.5;
 }
 
 .action-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 24px;
-  background: #274c77;
+  gap: 10px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
   color: #FFFFFF;
   border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(39, 76, 119, 0.3);
+  transition: all 0.2s ease;
+}
+
+.action-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(39, 76, 119, 0.3);
+}
+
+/* Unread Header */
+.unread-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(39, 76, 119, 0.06);
   border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(39, 76, 119, 0.1);
+}
+
+.unread-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}
+
+.unread-badge i {
   font-size: 14px;
+}
+
+.mark-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--ion-color-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.action-btn:active {
-  background: #1d3a5c;
+.mark-all-btn:active {
+  background: var(--ion-color-primary-shade);
 }
 
+/* Notifications List */
 .notifications-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
+/* Notification Card */
 .notification-card {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 14px;
   background: #FFFFFF;
   border-radius: 16px;
-  padding: 16px 20px;
-  border: 1px solid #E2E8F0;
+  padding: 16px;
+  border: 1px solid var(--color-border);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -330,86 +449,152 @@ const formatDate = (dateStr: string | null) => {
 
 .notification-card:active {
   transform: scale(0.98);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .notification-card.unread {
-  background: rgba(39, 76, 119, 0.04);
+  background: linear-gradient(135deg, rgba(39, 76, 119, 0.03) 0%, rgba(96, 150, 186, 0.05) 100%);
   border-color: rgba(39, 76, 119, 0.2);
+  box-shadow: 0 2px 12px rgba(39, 76, 119, 0.08);
 }
 
-.card-icon-box {
+/* Notification Icon */
+.notification-icon {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 14px;
   flex-shrink: 0;
 }
 
-.card-icon-box i {
-  font-size: 22px;
+.notification-icon i {
+  font-size: 20px;
 }
 
-.card-icon-read {
-  background: rgba(107, 114, 128, 0.12);
+.notification-icon.type-info {
+  background: rgba(59, 130, 246, 0.12);
+}
+.notification-icon.type-info i {
+  color: #3B82F6;
 }
 
-.card-icon-read i {
-  color: #6B7280;
+.notification-icon.type-success {
+  background: rgba(16, 185, 129, 0.12);
+}
+.notification-icon.type-success i {
+  color: var(--ion-color-success);
 }
 
-.card-icon-unread {
-  background: rgba(39, 76, 119, 0.1);
+.notification-icon.type-warning {
+  background: rgba(245, 158, 11, 0.12);
+}
+.notification-icon.type-warning i {
+  color: var(--ion-color-warning);
 }
 
-.card-icon-unread i {
-  color: #274c77;
+.notification-icon.type-danger {
+  background: rgba(239, 68, 68, 0.12);
+}
+.notification-icon.type-danger i {
+  color: var(--ion-color-danger);
 }
 
-.unread-dot {
+.unread-indicator {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: -2px;
+  right: -2px;
   width: 14px;
   height: 14px;
-  background: #EF4444;
+  background: var(--ion-color-danger);
   border-radius: 50%;
   border: 2px solid #FFFFFF;
+  animation: pulse 2s infinite;
 }
 
-.card-content {
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+/* Notification Body */
+.notification-body {
   flex: 1;
   min-width: 0;
 }
 
-.card-message {
+.notification-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.new-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--ion-color-danger);
+  color: #FFFFFF;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.new-badge i {
+  font-size: 6px;
+}
+
+.notification-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+.notification-time i {
+  font-size: 11px;
+}
+
+.notification-message {
   font-size: 14px;
   font-weight: 500;
-  color: #1a1a2e;
-  margin: 0 0 4px 0;
-  line-height: 1.4;
+  color: var(--ion-color-dark);
+  margin: 0 0 6px 0;
+  line-height: 1.45;
 }
 
-.notification-card.unread .card-message {
+.notification-card.unread .notification-message {
   font-weight: 600;
-  color: #274c77;
+  color: var(--ion-color-primary);
 }
 
-.card-date {
-  font-size: 13px;
-  color: #6B7280;
-  margin: 0;
+.notification-read-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  padding: 4px 8px;
+  background: rgba(107, 114, 128, 0.08);
+  border-radius: 6px;
+  width: fit-content;
 }
 
-.card-read-date {
-  font-size: 12px;
-  color: #9CA3AF;
-  margin: 4px 0 0 0;
+.notification-read-info i {
+  font-size: 10px;
+  color: var(--ion-color-success);
 }
 
-.card-arrow {
+/* Notification Action Arrow */
+.notification-action {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -418,18 +603,19 @@ const formatDate = (dateStr: string | null) => {
   border-radius: 10px;
   background: rgba(107, 114, 128, 0.08);
   flex-shrink: 0;
+  align-self: center;
 }
 
-.card-arrow i {
+.notification-action i {
   font-size: 12px;
-  color: #9CA3AF;
+  color: var(--ion-color-medium);
 }
 
-.notification-card.unread .card-arrow {
+.notification-card.unread .notification-action {
   background: rgba(39, 76, 119, 0.1);
 }
 
-.notification-card.unread .card-arrow i {
-  color: #274c77;
+.notification-card.unread .notification-action i {
+  color: var(--ion-color-primary);
 }
 </style>
