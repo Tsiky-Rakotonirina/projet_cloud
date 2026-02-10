@@ -189,6 +189,7 @@ const mapService = {
         'id_problemes',
         'surface',
         'budget',
+        'niveau',
         [
           db.sequelize.fn(
             'ST_AsGeoJSON',
@@ -202,11 +203,21 @@ const mapService = {
           model: db.Signalement,
           as: 'signalement',
           attributes: ['id_signalements', 'description'],
-          include: {
-            model: db.Point,
-            as: 'point',
-            attributes: [],
-          },
+          include: [
+            {
+              model: db.Point,
+              as: 'point',
+              attributes: [],
+            },
+            {
+              model: db.SignalementHistorique,
+              as: 'historiques',
+              attributes: ['date_historique'],
+              order: [['date_historique', 'ASC']],
+              limit: 1,
+              separate: false,
+            },
+          ],
         },
         {
           model: db.ProblemeStatut,
@@ -219,18 +230,20 @@ const mapService = {
           attributes: ['id_entreprises', 'nom'],
         },
       ],
-      raw: true,
     });
 
     return problemes.map((p) => ({
       id_problemes: p.id_problemes,
       surface: p.surface,
       budget: p.budget,
-      geometry: p.geometry ? JSON.parse(p.geometry) : null,
-      description: p['signalement.description'],
-      statut: p['statut.libelle'],
-      pourcentage: p['statut.pourcentage'],
-      entreprise: p['entreprise.nom'],
+      niveau: p.niveau || 1,
+      signalement_id: p.signalement?.id_signalements || null,
+      geometry: p.dataValues?.geometry ? JSON.parse(p.dataValues.geometry) : null,
+      description: p.signalement?.description || null,
+      statut: p.statut?.libelle || null,
+      pourcentage: p.statut?.pourcentage || 0,
+      entreprise: p.entreprise?.nom || null,
+      date_creation: p.signalement?.historiques?.[0]?.date_historique || null,
     }));
   },
 

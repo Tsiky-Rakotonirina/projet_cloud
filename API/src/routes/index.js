@@ -8,6 +8,7 @@ const entrepriseRoutes = require('./entreprise.routes');
 const problemeRoutes = require('./probleme.routes');
 const syncRoutes = require('./sync.routes');
 const syncSessionRoutes = require('./sync-session.routes');
+const configurationRoutes = require('./configuration.routes');
 
 const router = express.Router();
 
@@ -20,6 +21,7 @@ router.use('/entreprise', entrepriseRoutes);
 router.use('/probleme', problemeRoutes);
 router.use('/sync', syncRoutes);
 router.use('/sync-session', syncSessionRoutes);
+router.use('/config', configurationRoutes);
 
 /**
  * @swagger

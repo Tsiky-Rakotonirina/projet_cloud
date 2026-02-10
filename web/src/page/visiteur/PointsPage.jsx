@@ -100,7 +100,10 @@ const PointsPage = () => {
             pourcentage: parseFloat(p.pourcentage) || 0,
             surface: p.surface,
             budget: p.budget,
-            entreprise: p.entreprise
+            niveau: p.niveau || 1,
+            entreprise: p.entreprise,
+            signalement_id: p.signalement_id,
+            date_creation: p.date_creation
           };
         });
         setProblemes(formattedData);
@@ -159,17 +162,26 @@ const PointsPage = () => {
       }).addTo(mapInstanceRef.current);
 
       // Tooltip au survol avec infos du problème
+      const formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      };
+      
       const tooltipContent = `
-        <div style="min-width: 220px; padding: 8px;">
-          <div style="font-weight: 600; margin-bottom: 8px; color: #1f2937;">${point.description}</div>
-          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${getStatusConfig(point.status).color};"></span>
-            <span style="font-size: 12px; color: #6b7280;">${getStatusConfig(point.status).label} (${point.pourcentage}%)</span>
+        <div style="min-width: 260px; padding: 10px;">
+          <div style="font-weight: 600; margin-bottom: 10px; color: #1f2937; font-size: 14px;">${point.description}</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${getStatusConfig(point.status).color};"></span>
+            <span style="font-size: 13px; font-weight: 500; color: #374151;">${getStatusConfig(point.status).label} (${point.pourcentage}%)</span>
           </div>
-          ${point.surface ? `<div style="font-size: 12px; color: #6b7280;">📐 Surface: ${point.surface} m²</div>` : ''}
-          ${point.budget ? `<div style="font-size: 12px; color: #6b7280;">💰 Budget: ${point.budget.toLocaleString()} Ar</div>` : ''}
-          ${point.entreprise ? `<div style="font-size: 12px; color: #6b7280;">🏢 Entreprise: ${point.entreprise}</div>` : ''}
-          <div style="font-size: 11px; color: #9ca3af; margin-top: 8px; text-align: center; font-style: italic; border-top: 1px solid #e5e7eb; padding-top: 6px;">👆 Cliquer pour plus de détails</div>
+          <div style="display: grid; gap: 4px; margin-top: 8px;">
+            <div style="font-size: 12px; color: #6b7280;">📅 Date: ${formatDate(point.date_creation)}</div>
+            <div style="font-size: 12px; color: #6b7280;">⚡ Niveau: <strong style="color: #1f2937;">${point.niveau}/10</strong></div>
+            ${point.surface ? `<div style="font-size: 12px; color: #6b7280;">📐 Surface: ${point.surface} m²</div>` : ''}
+            ${point.budget ? `<div style="font-size: 12px; color: #6b7280;">💰 Budget: ${point.budget.toLocaleString()} Ar</div>` : ''}
+            ${point.entreprise ? `<div style="font-size: 12px; color: #6b7280;">🏢 Entreprise: ${point.entreprise}</div>` : ''}
+          </div>
+          <div style="font-size: 11px; color: #9ca3af; margin-top: 10px; text-align: center; font-style: italic; border-top: 1px solid #e5e7eb; padding-top: 8px;">👆 Cliquer pour plus de détails</div>
         </div>
       `;
 

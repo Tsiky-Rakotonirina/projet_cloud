@@ -1,17 +1,35 @@
 const db = require('../models');
 
+// Helper function to get prix_par_m2
+async function getPrixParM2() {
+  const config = await db.Configuration.findOne({ where: { cle: 'prix_par_m2' } });
+  return config ? parseFloat(config.valeur) : 1000;
+}
+
+// Calculate budget: prix_par_m2 * niveau * surface
+function calculateBudget(prixParM2, niveau, surface) {
+  return prixParM2 * (niveau || 1) * (surface || 0);
+}
+
 const problemeController = {
   async createProbleme(req, res, next) {
     try {
-      const { surface, budget, entreprise_id, signalement_id, probleme_statut_id } = req.body;
+      const { surface, entreprise_id, signalement_id, probleme_statut_id, niveau } = req.body;
 
       if (!signalement_id) {
         return res.sendError('signalement_id est requis', { code: 'MISSING_SIGNALEMENT_ID' }, 400);
       }
 
+      // Auto-calculate budget
+      const prixParM2 = await getPrixParM2();
+      const niveauValue = Math.max(1, Math.min(10, parseInt(niveau) || 1));
+      const surfaceValue = parseFloat(surface) || 0;
+      const calculatedBudget = calculateBudget(prixParM2, niveauValue, surfaceValue);
+
       const probleme = await db.Probleme.create({
-        surface: surface || null,
-        budget: budget || null,
+        surface: surfaceValue,
+        budget: calculatedBudget,
+        niveau: niveauValue,
         entreprise_id: entreprise_id || null,
         signalement_id,
         probleme_statut_id: probleme_statut_id || 1
@@ -24,7 +42,11 @@ const problemeController = {
         date_historique: new Date()
       });
 
-      return res.sendSuccess('Problème créé avec succès', probleme, 201);
+      return res.sendSuccess('Problème créé avec succès', {
+        ...probleme.toJSON(),
+        prix_par_m2_utilise: prixParM2,
+        formule: `${prixParM2} × ${niveauValue} × ${surfaceValue} = ${calculatedBudget}`
+      }, 201);
     } catch (error) {
       next(error);
     }

@@ -59,7 +59,7 @@ const signalementService = {
         {
           model: db.Probleme,
           as: 'problemes',
-          attributes: ['id_problemes', 'surface', 'budget'],
+          attributes: ['id_problemes', 'surface', 'budget', 'niveau'],
           include: {
             model: db.Entreprise,
             as: 'entreprise',
@@ -79,6 +79,7 @@ const signalementService = {
       id_problemes: p.id_problemes,
       surface: parseFloat(p.surface) || 0,
       budget: parseFloat(p.budget) || 0,
+      niveau: p.niveau || 1,
       entreprise: p.entreprise
         ? {
             id_entreprises: p.entreprise.id_entreprises,
@@ -143,7 +144,7 @@ const signalementService = {
         {
           model: db.Probleme,
           as: 'problemes',
-          attributes: ['id_problemes', 'surface', 'budget'],
+          attributes: ['id_problemes', 'surface', 'budget', 'niveau'],
         },
       ],
     });
@@ -259,7 +260,7 @@ const signalementService = {
         {
           model: db.Probleme,
           as: 'problemes',
-          attributes: ['id_problemes', 'surface', 'budget', 'probleme_statut_id'],
+          attributes: ['id_problemes', 'surface', 'budget', 'niveau', 'probleme_statut_id'],
           include: [
             {
               model: db.Entreprise,
@@ -304,6 +305,7 @@ const signalementService = {
           probleme_id: probleme?.id_problemes || null,
           probleme_pourcentage: parseFloat(probleme?.statut?.pourcentage) || 0,
           probleme_statut: probleme?.statut?.libelle || null,
+          probleme_niveau: probleme?.niveau || null,
           entreprise_nom: probleme?.entreprise?.nom || null,
           // Dates pour le calcul du délai
           date_creation: dateCreation,
