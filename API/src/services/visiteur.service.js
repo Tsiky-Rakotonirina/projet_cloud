@@ -37,7 +37,7 @@ const visiteurService = {
     const statusPercentages = await Promise.all(
       problemes.map(async (p) => {
         const statut = await this.getProblemeCurrentStatut(p.id_problemes);
-        return statut?.pourcentage || 0;
+        return parseFloat(statut?.pourcentage) || 0;
       })
     );
 

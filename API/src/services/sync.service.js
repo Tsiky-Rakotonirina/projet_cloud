@@ -5,6 +5,7 @@ const {
   Signalement, 
   SignalementStatut,
   SignalementHistorique,
+  SignalementImage,
   Point, 
   Profil, 
   FirebaseMapping,
@@ -1915,6 +1916,32 @@ const syncService = {
       throw {
         code: 'SYNC_ERROR',
         message: error.message || 'Erreur lors de la récupération du statut',
+        status: 500,
+      };
+    }
+  },
+
+  /**
+   * Récupère les images d'un signalement
+   */
+  async getSignalementImages(signalementId) {
+    try {
+      const images = await SignalementImage.findAll({
+        where: { signalement_id: signalementId },
+        order: [['date_upload', 'DESC']],
+      });
+
+      return images.map(img => ({
+        id: img.id_signalement_images,
+        name: img.name,
+        url: `/uploads/signalements/${img.name}`,
+        date_upload: img.date_upload,
+      }));
+    } catch (error) {
+      console.error('❌ Erreur récupération images signalement:', error);
+      throw {
+        code: 'IMAGES_ERROR',
+        message: error.message || 'Erreur lors de la récupération des images',
         status: 500,
       };
     }
