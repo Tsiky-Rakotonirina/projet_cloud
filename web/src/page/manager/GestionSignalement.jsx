@@ -940,7 +940,9 @@ const GestionSignalement = () => {
               <th style={styles.th}>Description</th>
               <th style={styles.th}>Entreprise</th>
               <th style={styles.th}>Budget</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Niveau</th>
               <th style={styles.th}>Avancement</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Photos</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
@@ -978,6 +980,26 @@ const GestionSignalement = () => {
                   <td style={styles.td}>{s.description}</td>
                   <td style={styles.td}>{s.entreprise_nom || 'N/A'}</td>
                   <td style={styles.td}>{budget > 0 ? `${budget.toLocaleString()} Ar` : 'N/A'}</td>
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    {s.probleme_niveau ? (
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        backgroundColor: s.probleme_niveau >= 7 ? 'rgba(239, 68, 68, 0.15)' : s.probleme_niveau >= 4 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                        color: s.probleme_niveau >= 7 ? '#EF4444' : s.probleme_niveau >= 4 ? '#F59E0B' : '#10B981'
+                      }}>
+                        <i className="fas fa-signal" style={{ fontSize: '11px' }}></i>
+                        {s.probleme_niveau}/10
+                      </span>
+                    ) : (
+                      <span style={{ color: '#9CA3AF', fontSize: '12px' }}>N/A</span>
+                    )}
+                  </td>
                   <td style={styles.td}>
                     <div 
                       style={styles.progressCell}
@@ -1010,6 +1032,46 @@ const GestionSignalement = () => {
                         <ProblemeHistoriqueTooltip problemeId={s.probleme_id} />
                       )}
                     </div>
+                  </td>
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    {s.images && s.images.length > 0 ? (
+                      <button
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          backgroundColor: colors.surface,
+                          color: colors.tertiary,
+                          border: `1px solid ${colors.border}`,
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                        onClick={() => {
+                          setSelectedImages(s.images);
+                          setSelectedSignalementId(s.id_signalements);
+                          setShowImageModal(true);
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.borderColor = colors.primary;
+                          e.target.style.color = colors.primary;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.borderColor = colors.border;
+                          e.target.style.color = colors.tertiary;
+                        }}
+                      >
+                        <i className="fas fa-image"></i>
+                        Voir
+                      </button>
+                    ) : (
+                      <span style={{ color: '#9CA3AF', fontSize: '12px' }}>
+                        <i className="fas fa-image" style={{ opacity: 0.5 }}></i>
+                      </span>
+                    )}
                   </td>
                   <td style={{ ...styles.td, textAlign: 'center' }}>
                     {pourcentage < 100 && s.probleme_id ? (

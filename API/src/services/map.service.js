@@ -217,6 +217,11 @@ const mapService = {
               limit: 1,
               separate: false,
             },
+            {
+              model: db.SignalementImage,
+              as: 'images',
+              attributes: ['id_signalement_images', 'name', 'date_upload'],
+            },
           ],
         },
         {
@@ -232,19 +237,30 @@ const mapService = {
       ],
     });
 
-    return problemes.map((p) => ({
-      id_problemes: p.id_problemes,
-      surface: p.surface,
-      budget: p.budget,
-      niveau: p.niveau || 1,
-      signalement_id: p.signalement?.id_signalements || null,
-      geometry: p.dataValues?.geometry ? JSON.parse(p.dataValues.geometry) : null,
-      description: p.signalement?.description || null,
-      statut: p.statut?.libelle || null,
-      pourcentage: p.statut?.pourcentage || 0,
-      entreprise: p.entreprise?.nom || null,
-      date_creation: p.signalement?.historiques?.[0]?.date_historique || null,
-    }));
+    return problemes.map((p) => {
+      // Mapper les images avec URL complète
+      const images = p.signalement?.images?.map(img => ({
+        id: img.id_signalement_images,
+        name: img.name,
+        url: `${BASE_URL}/uploads/signalements/${img.name}`,
+        date_upload: img.date_upload
+      })) || [];
+
+      return {
+        id_problemes: p.id_problemes,
+        surface: p.surface,
+        budget: p.budget,
+        niveau: p.niveau || 1,
+        signalement_id: p.signalement?.id_signalements || null,
+        geometry: p.dataValues?.geometry ? JSON.parse(p.dataValues.geometry) : null,
+        description: p.signalement?.description || null,
+        statut: p.statut?.libelle || null,
+        pourcentage: p.statut?.pourcentage || 0,
+        entreprise: p.entreprise?.nom || null,
+        date_creation: p.signalement?.historiques?.[0]?.date_historique || null,
+        images: images,
+      };
+    });
   },
 
   async getProblemeById(id) {

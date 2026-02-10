@@ -6,6 +6,15 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
   const [loading, setLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
+  // Helper pour générer l'URL d'image (gère les URLs complètes et relatives)
+  const getImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    return `http://localhost:3000${url}`;
+  };
+
   useEffect(() => {
     if (isOpen) {
       setCurrentIndex(0);
@@ -46,7 +55,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
   const handleDownload = () => {
     if (!currentImage) return;
     const link = document.createElement('a');
-    link.href = `http://localhost:3000${currentImage.url}`;
+    link.href = getImageUrl(currentImage.url);
     link.download = currentImage.name;
     document.body.appendChild(link);
     link.click();
@@ -412,7 +421,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
                 </div>
               ) : (
                 <img
-                  src={`http://localhost:3000${currentImage.url}`}
+                  src={getImageUrl(currentImage.url)}
                   alt={currentImage.name}
                   style={{
                     ...styles.image,
@@ -433,7 +442,7 @@ const ImageModal = ({ isOpen, onClose, images, signalementId }) => {
                 {images.map((img, index) => (
                   <img
                     key={img.id}
-                    src={`http://localhost:3000${img.url}`}
+                    src={getImageUrl(img.url)}
                     alt={img.name}
                     style={{
                       ...styles.thumbnail,
