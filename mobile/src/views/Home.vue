@@ -25,9 +25,9 @@
         <div class="welcome-icon">
           <i class="fas fa-road"></i>
         </div>
-        <h1 class="welcome-title">
+        <!-- <h1 class="welcome-title">
           Bienvenue{{ currentUser ? ' !' : ', visiteur !' }}
-        </h1>
+        </h1> -->
         <p class="welcome-subtitle">Explorez la carte d'Antananarivo</p>
         <p v-if="!currentUser" class="welcome-hint">
           <i class="fas fa-info-circle"></i>

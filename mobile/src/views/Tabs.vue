@@ -3,14 +3,14 @@
         <ion-tabs>
             <ion-router-outlet></ion-router-outlet>
             <ion-tab-bar slot="bottom">
-                <ion-tab-button tab="recap" href="/tabs/recap">
-                    <i class="fas fa-chart-bar"></i>
-                    <ion-label>Récapitulatif</ion-label>
-                </ion-tab-button>
-
                 <ion-tab-button tab="home" href="/tabs/home">
                     <i class="fas fa-home"></i>
                     <ion-label>Accueil</ion-label>
+                </ion-tab-button>
+
+                <ion-tab-button tab="recap" href="/tabs/recap">
+                    <i class="fas fa-chart-bar"></i>
+                    <ion-label>Récapitulatif</ion-label>
                 </ion-tab-button>
 
                 <ion-tab-button tab="map" href="/tabs/map">

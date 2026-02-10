@@ -34,7 +34,6 @@
               <div class="input-wrapper">
                 <i class="fas fa-envelope input-icon"></i>
                 <input
-                  value="ramarosonblessed@gmail.com"
                   v-model="formData.email"
                   type="email"
                   class="form-input"
@@ -50,7 +49,6 @@
               <div class="input-wrapper">
                 <i class="fas fa-lock input-icon"></i>
                 <input
-                  value="blessed"
                   v-model="formData.password"
                   :type="showPassword ? 'text' : 'password'"
                   class="form-input"
@@ -117,8 +115,8 @@ const error = ref('');
 const showPassword = ref(false);
 
 const formData = ref({
-  email: '',
-  password: ''
+  email: 'ramarosonblessed@gmail.com',
+  password: 'blessed'
 });
 
 const handleLogin = async () => {
