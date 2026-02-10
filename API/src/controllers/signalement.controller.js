@@ -62,7 +62,8 @@ const signalementController = {
 
   async getSignalementsByStatut(req, res, next) {
     try {
-      const { statut } = req.params;
+      // Décoder le paramètre statut pour gérer les espaces encodés (%20)
+      const statut = decodeURIComponent(req.params.statut);
       const signalements = await signalementService.getSignalementsByStatut(statut);
       return res.sendSuccess(`Signalements avec statut "${statut}"`, signalements, 200);
     } catch (error) {

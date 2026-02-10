@@ -24,7 +24,7 @@ export const signalementApi = {
    * Récupérer les signalements en cours de traitement
    */
   getEnCours: async () => {
-    const response = await callApi('/api/signalement/statut/En cours', 'GET');
+    const response = await callApi(`/api/signalement/statut/${encodeURIComponent('En cours')}`, 'GET');
     return response.data || [];
   },
 

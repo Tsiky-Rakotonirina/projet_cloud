@@ -32,7 +32,7 @@ export const SyncProgressProvider = ({ children }) => {
    */
   const fetchActiveSessions = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/sync/sessions/active`);
+      const response = await fetch(`${API_BASE_URL}/api/sync-session/active`);
       if (!response.ok) return;
       
       const data = await response.json();

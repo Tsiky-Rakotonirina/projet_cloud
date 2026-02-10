@@ -27,7 +27,7 @@ services:
     volumes:
       - ./API:/app
       - /app/node_modules
-      - uploads-data:/app/uploads
+      - ./API/uploads:/app/uploads
     command: sh -c "npm install && npm run dev"
     ports:
       - "3000:3000"
@@ -87,4 +87,3 @@ services:
 volumes:
   pgdata:
   tiles-cache:
-  uploads-data:
