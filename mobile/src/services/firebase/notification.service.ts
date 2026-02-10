@@ -53,6 +53,12 @@ export const initNotifications = async (): Promise<string | null> => {
  */
 const initWebNotifications = async (): Promise<string | null> => {
   try {
+    // Vérifier si messaging est disponible (null sur mobile natif)
+    if (!messaging) {
+      console.log("Firebase Messaging non disponible sur cette plateforme");
+      return null;
+    }
+
     const permission = await Notification.requestPermission();
 
     if (permission !== "granted") {
