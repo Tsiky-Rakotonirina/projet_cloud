@@ -113,6 +113,9 @@ const CartePage = () => {
     };
 
     loadProblemes();
+    // Rafraîchir les données toutes les 30 secondes
+    const interval = setInterval(loadProblemes, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filtrer les problèmes selon le statut

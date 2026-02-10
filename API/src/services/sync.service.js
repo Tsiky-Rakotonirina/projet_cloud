@@ -20,24 +20,8 @@ const {
 // Service de gestion des sessions de synchronisation
 const syncSessionService = require('./sync-session.service');
 
-// Configuration Firebase Admin SDK
-const admin = require('firebase-admin');
-const serviceAccount = require('../config/firebase-admin-sdk.json');
-
-// Vérifier si Firebase n'est pas déjà initialisé
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-  });
-}
-
-const firebaseDB = admin.firestore();
-// Ensure Firestore ignores undefined properties when updating documents
-try {
-  firebaseDB.settings({ ignoreUndefinedProperties: true });
-} catch (e) {
-  // ignore if settings not supported in this environment
-}
+// Configuration Firebase Admin SDK (utilise variables d'env ou fichier JSON)
+const { admin, firebaseDB } = require('../config/firebase-admin.config');
 
 const syncService = {
   /**
@@ -382,7 +366,7 @@ const syncService = {
             dateNaissance: user.date_naissance ? user.date_naissance.toISOString() : null,
             profilId: user.profil_id ? `profil_${user.profil_id}` : 'profil_2',
             role: user.profil?.libelle?.toLowerCase() || 'user',
-            statutId: user.utilisateur_statuts?.[0]?.statut?.libelle || 'Actif',
+            statutId: user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif',
             loginAttempts: 0,
             disabled: false,
             createdAt: new Date().toISOString(),
@@ -390,8 +374,8 @@ const syncService = {
           };
 
           // Déterminer le statut de blocage depuis PostgreSQL
-          const currentStatut = user.utilisateur_statuts?.[0]?.statut?.libelle || 'Actif';
-          const isBlockedInPostgres = currentStatut === 'Bloque';
+          const currentStatut = user.utilisateur_statuts?.[0]?.statut?.libelle || 'actif';
+          const isBlockedInPostgres = currentStatut === 'bloque';
 
           if (existingMapping) {
             // Vérifier si le document existe encore dans Firebase
@@ -1627,12 +1611,13 @@ const syncService = {
           if (existingMapping) {
             const probleme = await Probleme.findByPk(existingMapping.postgres_id);
             if (probleme) {
+              // Préserver les données existantes si pas de mapping trouvé dans Firebase
               await probleme.update({
-                surface: firebaseData.surface,
-                budget: firebaseData.budget,
-                entreprise_id: entrepriseId,
-                signalement_id: signalementId,
-                probleme_statut_id: problemeStatutId,
+                surface: firebaseData.surface ?? probleme.surface,
+                budget: firebaseData.budget ?? probleme.budget,
+                entreprise_id: entrepriseId ?? probleme.entreprise_id,
+                signalement_id: signalementId ?? probleme.signalement_id,
+                probleme_statut_id: problemeStatutId ?? probleme.probleme_statut_id,
               });
               await existingMapping.update({ updated_at: new Date() });
               stats.updated++;

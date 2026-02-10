@@ -32,9 +32,9 @@ const STATUTS = {
 
 // Liste des filtres pour le dropdown (format API)
 const FILTER_OPTIONS = [
-  { key: 'Nouveau', color: '#EF4444', label: 'Non commencé' },
+  { key: 'Non commence', color: '#EF4444', label: 'Non commencé' },
   { key: 'En cours', color: '#F59E0B', label: 'En cours' },
-  { key: 'Resolu', color: '#10B981', label: 'Terminé' }
+  { key: 'Termine', color: '#10B981', label: 'Terminé' }
 ];
 
 // Créer une icône personnalisée selon le statut
@@ -115,6 +115,9 @@ const PointsPage = () => {
     };
 
     loadProblemes();
+    // Rafraîchir les données toutes les 30 secondes
+    const interval = setInterval(loadProblemes, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filtrer les problèmes selon le statut
