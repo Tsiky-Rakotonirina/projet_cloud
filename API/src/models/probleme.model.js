@@ -17,6 +17,15 @@ module.exports = (sequelize) => {
         type: DataTypes.NUMERIC,
         allowNull: true,
       },
+      niveau: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1,
+        validate: {
+          min: 1,
+          max: 10,
+        },
+      },
       entreprise_id: {
         type: DataTypes.INTEGER,
         allowNull: true,

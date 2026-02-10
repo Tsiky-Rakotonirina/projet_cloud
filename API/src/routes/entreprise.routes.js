@@ -5,7 +5,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/entreprises:
+ * /api/entreprise:
  *   get:
  *     tags:
  *       - Entreprises
@@ -70,7 +70,7 @@ router.post('/', entrepriseController.createEntreprise);
 
 /**
  * @swagger
- * /api/entreprises/{id}:
+ * /api/entreprise/{id}:
  *   get:
  *     tags:
  *       - Entreprises
@@ -142,7 +142,7 @@ router.delete('/:id', entrepriseController.deleteEntreprise);
 
 /**
  * @swagger
- * /api/entreprises/{id}/problemes:
+ * /api/entreprise/{id}/problemes:
  *   get:
  *     tags:
  *       - Entreprises

@@ -1,0 +1,969 @@
+{
+  "info": {
+    "_postman_id": "projet-cloud-api",
+    "name": "Projet Cloud - API Routes",
+    "description": "Collection Postman pour toutes les routes de l'API du projet cloud (gestion des signalements routiers)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Check API Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"nom\": \"Doe\",\n  \"prenom\": \"John\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register with Firebase",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firebaseUid\": \"firebase_uid_here\",\n  \"email\": \"user@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register-firebase",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register-firebase"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"profil_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "register"]
+            }
+          }
+        },
+        {
+          "name": "Block User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utilisateur_id\": 1,\n  \"raison\": \"Violation des règles\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/block",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "block"]
+            }
+          }
+        },
+        {
+          "name": "Unblock User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"utilisateur_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/admin/unblock",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "unblock"]
+            }
+          }
+        },
+        {
+          "name": "Get Blocked Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/blocked-users",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "blocked-users"]
+            }
+          }
+        },
+        {
+          "name": "Get User Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/admin/user-status/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["admin", "user-status", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Signalement",
+      "item": [
+        {
+          "name": "Get All Signalements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/signalement",
+              "host": ["{{baseUrl}}"],
+              "path": ["signalement"]
+            }
+          }
+        },
+        {
+          "name": "Get Signalements by Statut",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/signalement/statut/nouveau",
+              "host": ["{{baseUrl}}"],
+              "path": ["signalement", "statut", "nouveau"]
+            }
+          }
+        },
+        {
+          "name": "Get Signalement Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/signalement/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["signalement", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Signalement Statut",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statut_id\": 2,\n  \"utilisateur_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/signalement/1/statut",
+              "host": ["{{baseUrl}}"],
+              "path": ["signalement", "1", "statut"]
+            }
+          }
+        },
+        {
+          "name": "Get Signalement Historique",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/signalement/1/historique",
+              "host": ["{{baseUrl}}"],
+              "path": ["signalement", "1", "historique"]
+            }
+          }
+        },
+        {
+          "name": "Get Signalement Images",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/signalement/1/images",
+              "host": ["{{baseUrl}}"],
+              "path": ["signalement", "1", "images"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Probleme",
+      "item": [
+        {
+          "name": "Create Probleme",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"signalement_id\": 1,\n  \"surface\": 100,\n  \"niveau\": 5,\n  \"entreprise_id\": 1,\n  \"probleme_statut_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/probleme",
+              "host": ["{{baseUrl}}"],
+              "path": ["probleme"]
+            }
+          }
+        },
+        {
+          "name": "Get All Problemes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/probleme",
+              "host": ["{{baseUrl}}"],
+              "path": ["probleme"]
+            }
+          }
+        },
+        {
+          "name": "Get Probleme Historique",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/probleme/1/historique",
+              "host": ["{{baseUrl}}"],
+              "path": ["probleme", "1", "historique"]
+            }
+          }
+        },
+        {
+          "name": "Avancer Probleme Statut",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/probleme/1/avancer",
+              "host": ["{{baseUrl}}"],
+              "path": ["probleme", "1", "avancer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Entreprise",
+      "item": [
+        {
+          "name": "Get All Entreprises",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/entreprise",
+              "host": ["{{baseUrl}}"],
+              "path": ["entreprise"]
+            }
+          }
+        },
+        {
+          "name": "Create Entreprise",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Nouvelle Entreprise\",\n  \"adresse\": \"123 Rue Example\",\n  \"telephone\": \"0341234567\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/entreprise",
+              "host": ["{{baseUrl}}"],
+              "path": ["entreprise"]
+            }
+          }
+        },
+        {
+          "name": "Get Entreprise by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/entreprise/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["entreprise", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Entreprise",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Entreprise Modifiée\",\n  \"adresse\": \"456 Nouvelle Adresse\",\n  \"telephone\": \"0349876543\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/entreprise/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["entreprise", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Entreprise",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/entreprise/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["entreprise", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Entreprise Problemes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/entreprise/1/problemes",
+              "host": ["{{baseUrl}}"],
+              "path": ["entreprise", "1", "problemes"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Map",
+      "item": [
+        {
+          "name": "Get Signalements (GeoJSON)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/signalements",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "signalements"]
+            }
+          }
+        },
+        {
+          "name": "Get Signalements Carte (avec images)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/signalements-carte",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "signalements-carte"]
+            }
+          }
+        },
+        {
+          "name": "Get Signalement by ID (Map)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/signalements/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "signalements", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Problemes (Map)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/problemes",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "problemes"]
+            }
+          }
+        },
+        {
+          "name": "Get Probleme by ID (Map)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/problemes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "problemes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Villes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/villes",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "villes"]
+            }
+          }
+        },
+        {
+          "name": "Get Map Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "stats"]
+            }
+          }
+        },
+        {
+          "name": "Get Map Data (All)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/map/data",
+              "host": ["{{baseUrl}}"],
+              "path": ["map", "data"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Visiteur",
+      "item": [
+        {
+          "name": "Get Point with Probleme",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/visiteur/point/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["visiteur", "point", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Summary Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/visiteur/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["visiteur", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Configuration",
+      "item": [
+        {
+          "name": "Get All Configurations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/config",
+              "host": ["{{baseUrl}}"],
+              "path": ["config"]
+            }
+          }
+        },
+        {
+          "name": "Get Prix par M2",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/config/prix-par-m2",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "prix-par-m2"]
+            }
+          }
+        },
+        {
+          "name": "Update Prix par M2",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valeur\": \"1500\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/config/prix-par-m2",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "prix-par-m2"]
+            }
+          }
+        },
+        {
+          "name": "Get Configuration by Key",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/config/prix_par_m2",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "prix_par_m2"]
+            }
+          }
+        },
+        {
+          "name": "Update Configuration by Key",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valeur\": \"nouvelle_valeur\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/config/prix_par_m2",
+              "host": ["{{baseUrl}}"],
+              "path": ["config", "prix_par_m2"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sync",
+      "item": [
+        {
+          "name": "Sync All",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "all"]
+            }
+          }
+        },
+        {
+          "name": "Get Sync Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "status"]
+            }
+          }
+        },
+        {
+          "name": "Push Users to PostgreSQL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/users/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "users", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Users to Firebase",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/users/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "users", "pull"]
+            }
+          }
+        },
+        {
+          "name": "Push Signalements to PostgreSQL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/signalements/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "signalements", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Signalements to Firebase",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/signalements/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "signalements", "pull"]
+            }
+          }
+        },
+        {
+          "name": "Push Problemes to PostgreSQL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/problemes/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "problemes", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Problemes to Firebase",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/problemes/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "problemes", "pull"]
+            }
+          }
+        },
+        {
+          "name": "Push Entreprises to PostgreSQL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/entreprises/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "entreprises", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Entreprises to Firebase",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/entreprises/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "entreprises", "pull"]
+            }
+          }
+        },
+        {
+          "name": "Push Villes to PostgreSQL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/villes/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "villes", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Villes to Firebase",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/villes/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "villes", "pull"]
+            }
+          }
+        },
+        {
+          "name": "Push Profils to PostgreSQL",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/profils/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "profils", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Profils to Firebase",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/profils/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync", "profils", "pull"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sync Session",
+      "item": [
+        {
+          "name": "Sync All with Tracking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "all"]
+            }
+          }
+        },
+        {
+          "name": "Push Users with Tracking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/users/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "users", "push"]
+            }
+          }
+        },
+        {
+          "name": "Pull Users with Tracking",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/users/pull",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "users", "pull"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "active"]
+            }
+          }
+        },
+        {
+          "name": "Get Global Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/global-status",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "global-status"]
+            }
+          }
+        },
+        {
+          "name": "Get Session History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/history",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "history"]
+            }
+          }
+        },
+        {
+          "name": "Get Session Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/session_id_here",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "session_id_here"]
+            }
+          }
+        },
+        {
+          "name": "Get Session Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/session_id_here/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "session_id_here", "users"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Session",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/session_id_here/cancel",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "session_id_here", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Cleanup Sessions",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync-session/cleanup",
+              "host": ["{{baseUrl}}"],
+              "path": ["sync-session", "cleanup"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
