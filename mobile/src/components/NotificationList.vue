@@ -11,7 +11,7 @@
       </ion-toolbar>
     </ion-header>
     
-    <ion-content class="ion-padding">
+    <ion-content class="ion-padding notification-content">
       <!-- Loading -->
       <div v-if="loading" class="loading-container">
         <ion-spinner name="crescent"></ion-spinner>
@@ -20,7 +20,9 @@
 
       <!-- Empty state -->
       <div v-else-if="notifications.length === 0" class="empty-state">
-        <i class="fas fa-bell-slash"></i>
+        <div class="empty-icon">
+          <i class="fas fa-bell-slash"></i>
+        </div>
         <p>Aucune notification</p>
       </div>
 
@@ -29,21 +31,21 @@
         <div 
           v-for="notification in notifications" 
           :key="notification.id"
-          :class="['notification-item', { 'unread': !notification.lue }]"
+          :class="['notification-card', { 'unread': !notification.lue }]"
           @click="handleNotificationClick(notification)"
         >
-          <div class="notification-icon">
-            <i :class="notification.lue ? 'fas fa-bell' : 'fas fa-bell'"></i>
+          <div :class="['card-icon-box', notification.lue ? 'card-icon-read' : 'card-icon-unread']">
+            <i class="fas fa-bell"></i>
             <span v-if="!notification.lue" class="unread-dot"></span>
           </div>
-          <div class="notification-content">
-            <p class="notification-message">{{ notification.message }}</p>
-            <span class="notification-date">{{ formatDate(notification.createdAt) }}</span>
-            <span v-if="notification.readAt" class="notification-read">
+          <div class="card-content">
+            <p class="card-message">{{ notification.message }}</p>
+            <p class="card-date">{{ formatDate(notification.createdAt) }}</p>
+            <p v-if="notification.readAt" class="card-read-date">
               Lu le {{ formatDate(notification.readAt) }}
-            </span>
+            </p>
           </div>
-          <div class="notification-arrow">
+          <div class="card-arrow">
             <i class="fas fa-chevron-right"></i>
           </div>
         </div>
@@ -73,7 +75,9 @@
           :signalement="selectedSignalement" 
         />
         <div v-else class="empty-state">
-          <i class="fas fa-exclamation-triangle"></i>
+          <div class="empty-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
           <p>Signalement non trouvé</p>
         </div>
       </ion-content>
@@ -193,6 +197,10 @@ const formatDate = (dateStr: string | null) => {
 </script>
 
 <style scoped>
+.notification-content {
+  --background: #FFFFFF;
+}
+
 .loading-container {
   display: flex;
   flex-direction: column;
@@ -214,119 +222,154 @@ const formatDate = (dateStr: string | null) => {
   justify-content: center;
   height: 200px;
   color: #9CA3AF;
+  text-align: center;
+  padding: 24px;
 }
 
-.empty-state i {
-  font-size: 48px;
-  margin-bottom: 12px;
+.empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  background: rgba(156, 163, 175, 0.1);
+  border: 2px solid rgba(156, 163, 175, 0.15);
+  border-radius: 18px;
+  margin-bottom: 16px;
+}
+
+.empty-icon i {
+  font-size: 28px;
+  color: #9CA3AF;
 }
 
 .empty-state p {
   font-size: 16px;
+  margin: 0;
 }
 
 .notifications-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
-.notification-item {
+/* Card style matching Home.vue feature-card */
+.notification-card {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 14px;
+  gap: 16px;
   background: #FFFFFF;
-  border-radius: 12px;
-  border: 1px solid #E5E7EB;
+  border-radius: 16px;
+  padding: 16px 20px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.notification-item:hover {
-  background: #F9FAFB;
-  transform: translateX(2px);
+.notification-card:active {
+  transform: scale(0.98);
 }
 
-.notification-item.unread {
-  background: #EEF2FF;
-  border-color: #C7D2FE;
+.notification-card.unread {
+  background: rgba(39, 76, 119, 0.04);
+  border-color: rgba(39, 76, 119, 0.2);
 }
 
-.notification-item.unread:hover {
-  background: #E0E7FF;
-}
-
-.notification-icon {
+.card-icon-box {
   position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: #E0E7FF;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   flex-shrink: 0;
 }
 
-.notification-item.unread .notification-icon {
-  background: #274c77;
+.card-icon-box i {
+  font-size: 22px;
 }
 
-.notification-icon i {
-  font-size: 16px;
+.card-icon-read {
+  background: rgba(107, 114, 128, 0.12);
+}
+
+.card-icon-read i {
+  color: #6B7280;
+}
+
+.card-icon-unread {
+  background: rgba(39, 76, 119, 0.1);
+}
+
+.card-icon-unread i {
   color: #274c77;
-}
-
-.notification-item.unread .notification-icon i {
-  color: #FFFFFF;
 }
 
 .unread-dot {
   position: absolute;
-  top: 0;
-  right: 0;
-  width: 12px;
-  height: 12px;
+  top: 2px;
+  right: 2px;
+  width: 14px;
+  height: 14px;
   background: #EF4444;
   border-radius: 50%;
   border: 2px solid #FFFFFF;
 }
 
-.notification-content {
+.card-content {
   flex: 1;
   min-width: 0;
 }
 
-.notification-message {
+.card-message {
   font-size: 14px;
-  color: #1F2937;
+  font-weight: 500;
+  color: #1a1a2e;
   margin: 0 0 4px 0;
   line-height: 1.4;
 }
 
-.notification-item.unread .notification-message {
+.notification-card.unread .card-message {
   font-weight: 600;
+  color: #274c77;
 }
 
-.notification-date {
-  font-size: 12px;
+.card-date {
+  font-size: 13px;
   color: #6B7280;
+  margin: 0;
 }
 
-.notification-read {
-  display: block;
-  font-size: 11px;
-  color: #9CA3AF;
-  margin-top: 2px;
-}
-
-.notification-arrow {
-  color: #9CA3AF;
+.card-read-date {
   font-size: 12px;
+  color: #9CA3AF;
+  margin: 4px 0 0 0;
 }
 
-.notification-item.unread .notification-arrow {
+.card-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: rgba(107, 114, 128, 0.08);
+  flex-shrink: 0;
+}
+
+.card-arrow i {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.notification-card.unread .card-arrow {
+  background: rgba(39, 76, 119, 0.1);
+}
+
+.notification-card.unread .card-arrow i {
   color: #274c77;
 }
 </style>
