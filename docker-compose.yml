@@ -13,8 +13,7 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./database/table.sql:/docker-entrypoint-initdb.d/01_table.sql
       - ./database/data.sql:/docker-entrypoint-initdb.d/02_data.sql
-      - ./database/create_firebase_mapping.sql:/docker-entrypoint-initdb.d/03_create_firebase_mapping.sql
-      - ./database/sync_tables.sql:/docker-entrypoint-initdb.d/04_sync_tables.sql
+      - ./database/sync_tables.sql:/docker-entrypoint-initdb.d/03_sync_tables.sql
 
   API:
     image: node:20-alpine

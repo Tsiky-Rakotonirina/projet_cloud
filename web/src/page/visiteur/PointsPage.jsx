@@ -96,7 +96,7 @@ const PointsPage = () => {
             lat,
             lng,
             description: p.description || 'Problème sans description',
-            status: p.statut || 'non_commence',
+            status: p.statut || 'Non commence',
             pourcentage: parseFloat(p.pourcentage) || 0,
             surface: p.surface,
             budget: p.budget,
