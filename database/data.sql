@@ -67,7 +67,23 @@ INSERT INTO points (xy, ville_id) VALUES
   (ST_GeomFromText('POINT(47.5150 18.8900)', 4326), 1),
   (ST_GeomFromText('POINT(47.5300 18.8750)', 4326), 1),
   (ST_GeomFromText('POINT(47.5100 18.8820)', 4326), 1),
-  (ST_GeomFromText('POINT(47.5270 18.8900)', 4326), 1);
+  (ST_GeomFromText('POINT(47.5270 18.8900)', 4326), 1),
+
+  (ST_GeomFromText('POINT(47.5350 18.9000)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5600 18.8750)', 4326), 1),
+  (ST_GeomFromText('POINT(47.6100 18.4820)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5490 18.9470)', 4326), 1),
+
+  (ST_GeomFromText('POINT(47.5732 18.8100)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5980 18.8640)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5360 18.8420)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5550 18.8650)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5490 18.8340)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5670 18.8880)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5940 18.8710)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5840 18.8050)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5120 18.8400)', 4326), 1),
+  (ST_GeomFromText('POINT(47.5245 18.8379)', 4326), 1);
 
 
 INSERT INTO signalements (description, utilisateur_id, point_id, signalement_statut_id) VALUES 
@@ -81,24 +97,24 @@ INSERT INTO signalements (description, utilisateur_id, point_id, signalement_sta
 
 -- 3 EN COURS
 ('Nids de poule multiples quartier Isoraka', 2, 6, 2),
-('Chaussée fissurée près station-service', 3, 1, 2),
-('Déformation route nationale sortie ville', 2, 2, 2),
+('Chaussée fissurée près station-service', 3, 7, 2),
+('Déformation route nationale sortie ville', 2, 8, 2),
 
 -- 2 REJETÉS
-('Plainte non confirmée - route en bon état', 3, 3, 4),
-('Signalement en double', 2, 4, 4),
+('Plainte non confirmée - route en bon état', 3, 9, 4),
+('Signalement en double', 2, 10, 4),
 
 -- 10 RÉSOLUS
-('Réparation terminée Avenue centrale', 2, 5, 3),
-('Travaux achevés Rue secondaire', 3, 6, 3),
-('Chaussée restaurée quartier Ouest', 2, 1, 3),
-('Route réparée secteur Sud', 3, 2, 3),
-('Reprise complète revêtement', 2, 3, 3),
-('Réhabilitation terminée Boulevard', 3, 4, 3),
-('Stabilisation sol et réasphaltage', 2, 5, 3),
-('Travaux finalisés zone industrielle', 3, 6, 3),
-('Réfection complète chaussée urbaine', 2, 1, 3),
-('Rénovation terminée route périphérique', 3, 2, 3);
+('Réparation terminée Avenue centrale', 2, 11, 3),
+('Travaux achevés Rue secondaire', 3, 12, 3),
+('Chaussée restaurée quartier Ouest', 2, 20, 3),
+('Route réparée secteur Sud', 3, 13, 3),
+('Reprise complète revêtement', 2, 14, 3),
+('Réhabilitation terminée Boulevard', 3, 15, 3),
+('Stabilisation sol et réasphaltage', 2, 16, 3),
+('Travaux finalisés zone industrielle', 3, 17, 3),
+('Réfection complète chaussée urbaine', 2, 18, 3),
+('Rénovation terminée route périphérique', 3, 19, 3);
 
 INSERT INTO signalement_images (name, signalement_id) VALUES
 ('image1.jpg',1),('image2.jpg',2),('image3.jpg',3),('image4.jpg',4),('image5.jpg',5),
