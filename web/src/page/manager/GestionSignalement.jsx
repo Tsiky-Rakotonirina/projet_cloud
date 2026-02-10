@@ -4,13 +4,18 @@ import ImageModal from '@components/ImageModal';
 import { colors } from '@assets/colors';
 import signalementApi from '@api/manager/Signalement';
 import problemeApi from '@api/manager/Probleme';
+import { 
+  Flag, Check, X, MapPin, Edit3, ArrowUpCircle, 
+  Search, RefreshCw, Building, ChevronDown, CheckCircle, Image,
+  ArrowRight, History, BarChart3, Clock, TrendingUp, Users 
+} from 'lucide-react';
 
 const GestionSignalement = () => {
   const [signalements, setSignalements] = useState([]);
   const [signalementsEnCours, setSignalementsEnCours] = useState([]);
   const [signalementsResolus, setSignalementsResolus] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('Nouveau');
+  const [activeTab, setActiveTab] = useState('nouveaux');
   const [showModal, setShowModal] = useState(false);
   const [selectedSignalement, setSelectedSignalement] = useState(null);
   const [entreprises, setEntreprises] = useState([]);
@@ -234,14 +239,14 @@ const GestionSignalement = () => {
       textTransform: 'capitalize'
     };
     switch (statut) {
-      case 'Nouveau':
+      case 'planifié':
         return { ...base, color: colors.primary, backgroundColor: `${colors.primary}20` };
-      case 'En cours':
+      case 'en_cours':
         return { ...base, color: '#F59E0B', backgroundColor: 'rgba(245, 158, 11, 0.2)' };
-      case 'Resolu':
+      case 'terminé':
         return { ...base, color: '#10B981', backgroundColor: 'rgba(16, 185, 129, 0.2)' };
       default:
-        return { ...base, color: '#6B7280', backgroundColor: '#F3F4F6' };
+        return { ...base, color: 'rgba(255,255,255,0.6)', backgroundColor: 'rgba(255,255,255,0.1)' };
     }
   };
 
@@ -259,7 +264,7 @@ const GestionSignalement = () => {
   const styles = {
     page: {
       minHeight: '100vh',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.darker,
       paddingTop: '80px'
     },
     container: {
@@ -288,12 +293,12 @@ const GestionSignalement = () => {
     title: {
       fontSize: '28px',
       fontWeight: '700',
-      color: colors.text,
+      color: 'white',
       margin: 0
     },
     subtitle: {
       fontSize: '15px',
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.6)',
       margin: 0,
       marginLeft: '64px'
     },
@@ -301,7 +306,7 @@ const GestionSignalement = () => {
       display: 'flex',
       gap: '8px',
       marginBottom: '24px',
-      backgroundColor: '#F3F4F6',
+      backgroundColor: colors.dark,
       padding: '6px',
       borderRadius: '12px',
       width: 'fit-content'
@@ -317,32 +322,31 @@ const GestionSignalement = () => {
       transition: 'all 0.2s'
     },
     tabActive: {
-      color: 'white',
+      color: colors.darker,
       backgroundColor: colors.primary
     },
     tabInactive: {
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.6)',
       backgroundColor: 'transparent'
     },
     card: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.dark,
       borderRadius: '16px',
-      border: '1px solid #E5E7EB',
+      border: `1px solid ${colors.primary}15`,
       marginBottom: '24px',
-      position: 'relative',
-      boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      position: 'relative'
     },
     cardHeader: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '20px 24px',
-      borderBottom: '1px solid #E5E7EB'
+      borderBottom: `1px solid ${colors.primary}15`
     },
     cardTitle: {
       fontSize: '16px',
       fontWeight: '600',
-      color: colors.text,
+      color: 'white',
       margin: 0
     },
     badge: {
@@ -359,18 +363,18 @@ const GestionSignalement = () => {
       padding: '14px 20px',
       fontSize: '12px',
       fontWeight: '600',
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.5)',
       textAlign: 'left',
       textTransform: 'uppercase',
       letterSpacing: '0.5px',
-      backgroundColor: '#F9FAFB',
-      borderBottom: '1px solid #E5E7EB'
+      backgroundColor: `${colors.darker}50`,
+      borderBottom: `1px solid ${colors.primary}10`
     },
     td: {
       padding: '14px 20px',
       fontSize: '14px',
-      color: colors.text,
-      borderBottom: '1px solid #F3F4F6',
+      color: 'rgba(255,255,255,0.85)',
+      borderBottom: `1px solid ${colors.primary}08`,
       verticalAlign: 'middle'
     },
     pointLink: {
@@ -468,7 +472,7 @@ const GestionSignalement = () => {
     },
     emptyText: {
       fontSize: '15px',
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.5)',
       margin: 0
     },
     // Modal styles
@@ -486,20 +490,19 @@ const GestionSignalement = () => {
       padding: '24px'
     },
     modal: {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: colors.dark,
       borderRadius: '20px',
       width: '100%',
       maxWidth: '480px',
-      border: '1px solid #E5E7EB',
-      overflow: 'hidden',
-      boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)'
+      border: `1px solid ${colors.primary}20`,
+      overflow: 'hidden'
     },
     modalHeader: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
       padding: '24px',
-      borderBottom: '1px solid #E5E7EB'
+      borderBottom: `1px solid ${colors.primary}15`
     },
     modalTitle: {
       display: 'flex',
@@ -507,14 +510,14 @@ const GestionSignalement = () => {
       gap: '12px',
       fontSize: '18px',
       fontWeight: '600',
-      color: colors.text,
+      color: 'white',
       margin: 0
     },
     modalClose: {
       padding: '8px',
       backgroundColor: 'transparent',
       border: 'none',
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.5)',
       cursor: 'pointer',
       borderRadius: '8px',
       display: 'flex'
@@ -529,7 +532,7 @@ const GestionSignalement = () => {
       display: 'block',
       fontSize: '13px',
       fontWeight: '600',
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.7)',
       marginBottom: '8px',
       textTransform: 'uppercase',
       letterSpacing: '0.5px'
@@ -539,9 +542,9 @@ const GestionSignalement = () => {
       padding: '14px 16px',
       fontSize: '15px',
       fontFamily: 'inherit',
-      color: colors.text,
-      backgroundColor: '#F9FAFB',
-      border: '2px solid #E5E7EB',
+      color: 'white',
+      backgroundColor: colors.darker,
+      border: `2px solid ${colors.primary}30`,
       borderRadius: '10px',
       outline: 'none',
       boxSizing: 'border-box'
@@ -551,9 +554,9 @@ const GestionSignalement = () => {
       padding: '14px 16px',
       fontSize: '15px',
       fontFamily: 'inherit',
-      color: colors.text,
-      backgroundColor: '#F9FAFB',
-      border: '2px solid #E5E7EB',
+      color: 'white',
+      backgroundColor: colors.darker,
+      border: `2px solid ${colors.primary}30`,
       borderRadius: '10px',
       outline: 'none',
       cursor: 'pointer',
@@ -574,7 +577,7 @@ const GestionSignalement = () => {
       display: 'flex',
       gap: '12px',
       padding: '24px',
-      borderTop: '1px solid #E5E7EB'
+      borderTop: `1px solid ${colors.primary}15`
     },
     btnCancel: {
       flex: 1,
@@ -582,9 +585,9 @@ const GestionSignalement = () => {
       fontSize: '15px',
       fontWeight: '500',
       fontFamily: 'inherit',
-      color: '#6B7280',
+      color: 'rgba(255,255,255,0.7)',
       backgroundColor: 'transparent',
-      border: '1px solid #E5E7EB',
+      border: `1px solid ${colors.primary}30`,
       borderRadius: '10px',
       cursor: 'pointer'
     },
@@ -594,7 +597,7 @@ const GestionSignalement = () => {
       fontSize: '15px',
       fontWeight: '600',
       fontFamily: 'inherit',
-      color: 'white',
+      color: colors.darker,
       backgroundColor: colors.primary,
       border: 'none',
       borderRadius: '10px',
@@ -603,14 +606,14 @@ const GestionSignalement = () => {
     // Styles pour les tooltips d'historique
     tooltip: {
       position: 'absolute',
-      backgroundColor: '#FFFFFF',
-      border: '1px solid #E5E7EB',
+      backgroundColor: colors.darker,
+      border: `1px solid ${colors.primary}30`,
       borderRadius: '8px',
       padding: '12px',
       zIndex: 1000,
       minWidth: '250px',
       maxWidth: '350px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+      boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
     },
     tooltipTitle: {
       fontSize: '12px',
@@ -623,9 +626,9 @@ const GestionSignalement = () => {
     },
     tooltipItem: {
       fontSize: '11px',
-      color: colors.text,
+      color: 'rgba(255,255,255,0.8)',
       padding: '4px 0',
-      borderBottom: '1px solid #F3F4F6'
+      borderBottom: `1px solid ${colors.primary}10`
     },
     idCell: {
       position: 'relative',
@@ -685,12 +688,12 @@ const GestionSignalement = () => {
   const SignalementHistoriqueTooltip = ({ signalementId }) => (
     <div style={{ ...styles.tooltip, top: '100%', left: '0', marginTop: '4px' }}>
       <div style={styles.tooltipTitle}>
-        <i className="fas fa-history" style={{ fontSize: '14px', marginRight: '6px' }}></i> Historique {formatSignalementId(signalementId)}
+        <History size={14} /> Historique {formatSignalementId(signalementId)}
       </div>
       {loadingHistorique ? (
-        <div style={{ fontSize: '11px', color: '#6B7280' }}>Chargement...</div>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Chargement...</div>
       ) : signalementHistorique.length === 0 ? (
-        <div style={{ fontSize: '11px', color: '#6B7280' }}>Aucun historique</div>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Aucun historique</div>
       ) : (
         signalementHistorique.slice(0, 5).map((h, i) => (
           <div key={i} style={styles.tooltipItem}>
@@ -705,12 +708,12 @@ const GestionSignalement = () => {
   const ProblemeHistoriqueTooltip = ({ problemeId }) => (
     <div style={{ ...styles.tooltip, top: '100%', left: '0', marginTop: '4px' }}>
       <div style={styles.tooltipTitle}>
-        <i className="fas fa-history" style={{ fontSize: '14px', marginRight: '6px' }}></i> Historique travaux
+        <History size={14} /> Historique travaux
       </div>
       {loadingHistorique ? (
-        <div style={{ fontSize: '11px', color: '#6B7280' }}>Chargement...</div>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Chargement...</div>
       ) : problemeHistorique.length === 0 ? (
-        <div style={{ fontSize: '11px', color: '#6B7280' }}>Aucun historique</div>
+        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Aucun historique</div>
       ) : (
         problemeHistorique.slice(0, 5).map((h, i) => (
           <div key={i} style={styles.tooltipItem}>
@@ -758,7 +761,7 @@ const GestionSignalement = () => {
                     onMouseLeave={() => setHoveredSignalement(null)}
                   >
                     <span style={styles.idBadge}>
-                      <i className="fas fa-history" style={{ fontSize: '12px', marginRight: '4px' }}></i>
+                      <History size={12} />
                       {formatSignalementId(s.id_signalements)}
                     </span>
                     {hoveredSignalement === s.id_signalements && (
@@ -768,7 +771,7 @@ const GestionSignalement = () => {
                 </td>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
-                    <i className="fas fa-map-marker-alt" style={{ fontSize: '14px', marginRight: '4px' }}></i>
+                    <MapPin size={14} />
                     {s.ville || 'N/A'}
                   </span>
                 </td>
@@ -780,16 +783,16 @@ const GestionSignalement = () => {
                     onClick={() => handleVoirImages(s.id_signalements)}
                     disabled={loadingImages}
                   >
-                    <i className="fas fa-image" style={{ fontSize: '14px', marginRight: '4px' }}></i> Voir
+                    <Image size={14} /> Voir
                   </button>
                 </td>
                 <td style={styles.td}>
                   <div style={styles.actionBtns}>
                     <button style={styles.btnApprouver} onClick={() => handleApprouver(s.id_signalements)}>
-                      <i className="fas fa-check" style={{ fontSize: '14px', marginRight: '4px' }}></i> Approuver
+                      <Check size={14} /> Approuver
                     </button>
                     <button style={styles.btnRefuser} onClick={() => handleRefuser(s.id_signalements)}>
-                      <i className="fas fa-times" style={{ fontSize: '14px', marginRight: '4px' }}></i> Refuser
+                      <X size={14} /> Refuser
                     </button>
                   </div>
                 </td>
@@ -821,7 +824,6 @@ const GestionSignalement = () => {
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email Utilisateur</th>
               <th style={styles.th}>Description</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>Budget</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
@@ -839,7 +841,7 @@ const GestionSignalement = () => {
                     onMouseLeave={() => setHoveredSignalement(null)}
                   >
                     <span style={styles.idBadge}>
-                      <i className="fas fa-history" style={{ fontSize: '12px', marginRight: '4px' }}></i>
+                      <History size={12} />
                       {formatSignalementId(s.id_signalements)}
                     </span>
                     {hoveredSignalement === s.id_signalements && (
@@ -849,28 +851,25 @@ const GestionSignalement = () => {
                 </td>
                 <td style={styles.td}>
                   <span style={styles.pointLink}>
-                    <i className="fas fa-map-marker-alt" style={{ fontSize: '14px', marginRight: '4px' }}></i>
+                    <MapPin size={14} />
                     {s.ville || 'N/A'}
                   </span>
                 </td>
                 <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.description}</td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
-                  {s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}
-                </td>
-                <td style={{ ...styles.td, textAlign: 'center' }}>
                   <button 
                     style={styles.btnImages} 
                     onClick={() => handleVoirImages(s.id_signalements)}
                     disabled={loadingImages}
                   >
-                    <i className="fas fa-image" style={{ fontSize: '14px', marginRight: '4px' }}></i> Voir
+                    <Image size={14} /> Voir
                   </button>
                 </td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
                     <button style={styles.btnInfo} onClick={() => handleMettreInfos(s)}>
-                      <i className="fas fa-edit" style={{ fontSize: '14px', marginRight: '4px' }}></i> Mettre Infos
+                      <Edit3 size={14} /> Mettre Infos
                     </button>
                   </div>
                 </td>
@@ -924,7 +923,7 @@ const GestionSignalement = () => {
                       onMouseLeave={() => setHoveredSignalement(null)}
                     >
                       <span style={styles.idBadge}>
-                        <i className="fas fa-history" style={{ fontSize: '12px', marginRight: '4px' }}></i>
+                        <History size={12} />
                         {formatSignalementId(s.id_signalements)}
                       </span>
                       {hoveredSignalement === s.id_signalements && (
@@ -934,7 +933,7 @@ const GestionSignalement = () => {
                   </td>
                   <td style={styles.td}>
                     <span style={styles.pointLink}>
-                      <i className="fas fa-map-marker-alt" style={{ fontSize: '14px', marginRight: '4px' }}></i>
+                      <MapPin size={14} />
                       {s.ville || 'N/A'}
                     </span>
                   </td>
@@ -977,15 +976,15 @@ const GestionSignalement = () => {
                   <td style={{ ...styles.td, textAlign: 'center' }}>
                     {pourcentage < 100 && s.probleme_id ? (
                       <button style={styles.btnAvancer} onClick={() => handleAvancerProbleme(s)}>
-                        <i className="fas fa-arrow-right" style={{ fontSize: '14px', marginRight: '4px' }}></i> Avancer
+                        <ArrowRight size={14} /> Avancer
                       </button>
                     ) : pourcentage >= 100 ? (
                       <span style={{ color: '#10B981', fontSize: '13px', fontWeight: '600' }}>
-                        <i className="fas fa-check-circle" style={{ fontSize: '14px', marginRight: '4px' }}></i>
+                        <CheckCircle size={14} style={{ marginRight: '4px' }} />
                         Terminé
                       </span>
                     ) : (
-                      <span style={{ color: '#9CA3AF', fontSize: '12px' }}>
+                      <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px' }}>
                         Pas de problème lié
                       </span>
                     )}
@@ -1060,25 +1059,24 @@ const GestionSignalement = () => {
     const stats = calculateStats();
     
     const statCardStyle = {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: 'rgba(255,255,255,0.05)',
       borderRadius: '12px',
-      padding: '20px',
+      padding: '24px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '12px',
-      border: '1px solid #E5E7EB'
+      gap: '8px',
+      border: '1px solid rgba(255,255,255,0.1)'
     };
     
     const statValueStyle = {
-      fontSize: '28px',
+      fontSize: '32px',
       fontWeight: '700',
-      color: colors.text
+      color: '#fff'
     };
     
     const statLabelStyle = {
-      fontSize: '13px',
-      fontWeight: '500',
-      color: '#6B7280',
+      fontSize: '14px',
+      color: 'rgba(255,255,255,0.6)',
       display: 'flex',
       alignItems: 'center',
       gap: '8px'
@@ -1086,48 +1084,39 @@ const GestionSignalement = () => {
     
     const progressBarContainerStyle = {
       width: '100%',
-      height: '6px',
-      backgroundColor: '#E5E7EB',
-      borderRadius: '3px',
+      height: '8px',
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      borderRadius: '4px',
       overflow: 'hidden',
-      marginTop: '4px'
+      marginTop: '8px'
     };
 
-    const iconWrapperStyle = (bgColor) => ({
-      width: '36px',
-      height: '36px',
-      borderRadius: '10px',
-      backgroundColor: bgColor,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    });
-
     return (
-      <div style={{ padding: '24px' }}>
+      <div style={styles.card}>
+        <div style={styles.cardHeader}>
+          <h3 style={styles.cardTitle}>
+            <BarChart3 size={20} style={{ marginRight: '8px' }} />
+            Tableau de bord - Statistiques
+          </h3>
+        </div>
+        
         {/* Cartes de statistiques principales */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px', marginBottom: '32px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
           {/* Total signalements */}
           <div style={statCardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={iconWrapperStyle(`${colors.primary}15`)}>
-                <i className="fas fa-flag" style={{ fontSize: '14px', color: colors.primary }}></i>
-              </div>
-              <span style={statLabelStyle}>Total Signalements</span>
+            <div style={statLabelStyle}>
+              <Flag size={16} color={colors.primary} /> Total Signalements
             </div>
             <div style={statValueStyle}>{stats.totalSignalements}</div>
-            <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
               {stats.nouveaux} nouveaux • {stats.enCours} en cours • {stats.resolus} résolus
             </div>
           </div>
           
           {/* Taux de résolution */}
           <div style={statCardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={iconWrapperStyle('rgba(16, 185, 129, 0.15)')}>
-                <i className="fas fa-chart-line" style={{ fontSize: '14px', color: '#10B981' }}></i>
-              </div>
-              <span style={statLabelStyle}>Taux de Résolution</span>
+            <div style={statLabelStyle}>
+              <TrendingUp size={16} color="#10B981" /> Taux de Résolution
             </div>
             <div style={{ ...statValueStyle, color: '#10B981' }}>{stats.tauxResolution}%</div>
             <div style={progressBarContainerStyle}>
@@ -1142,11 +1131,8 @@ const GestionSignalement = () => {
           
           {/* Avancement moyen des travaux */}
           <div style={statCardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={iconWrapperStyle('rgba(245, 158, 11, 0.15)')}>
-                <i className="fas fa-tasks" style={{ fontSize: '14px', color: '#F59E0B' }}></i>
-              </div>
-              <span style={statLabelStyle}>Avancement Moyen</span>
+            <div style={statLabelStyle}>
+              <TrendingUp size={16} color="#F59E0B" /> Avancement Moyen
             </div>
             <div style={{ ...statValueStyle, color: '#F59E0B' }}>{stats.avancementMoyen}%</div>
             <div style={progressBarContainerStyle}>
@@ -1161,66 +1147,49 @@ const GestionSignalement = () => {
           
           {/* Délai moyen de résolution */}
           <div style={statCardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={iconWrapperStyle('rgba(139, 92, 246, 0.15)')}>
-                <i className="fas fa-clock" style={{ fontSize: '14px', color: '#8B5CF6' }}></i>
-              </div>
-              <span style={statLabelStyle}>Délai Moyen</span>
+            <div style={statLabelStyle}>
+              <Clock size={16} color="#8B5CF6" /> Délai Moyen de Résolution
             </div>
             <div style={{ ...statValueStyle, color: '#8B5CF6' }}>
-              {stats.delaiMoyenJours} <span style={{ fontSize: '14px', fontWeight: '500' }}>jours</span>
+              {stats.delaiMoyenJours} <span style={{ fontSize: '16px' }}>jours</span>
             </div>
-            <div style={{ fontSize: '11px', color: '#9CA3AF' }}>
+            <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>
               Temps moyen entre création et résolution
             </div>
           </div>
           
           {/* Budget total */}
           <div style={statCardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={iconWrapperStyle(`${colors.primary}15`)}>
-                <i className="fas fa-wallet" style={{ fontSize: '14px', color: colors.primary }}></i>
-              </div>
-              <span style={statLabelStyle}>Budget Total Alloué</span>
+            <div style={statLabelStyle}>
+              <Building size={16} color={colors.primary} /> Budget Total Alloué
             </div>
             <div style={{ ...statValueStyle, color: colors.primary }}>
-              {stats.budgetTotal.toLocaleString()} <span style={{ fontSize: '14px', fontWeight: '500' }}>Ar</span>
+              {stats.budgetTotal.toLocaleString()} <span style={{ fontSize: '16px' }}>Ar</span>
             </div>
           </div>
         </div>
         
         {/* Section détails des travaux */}
-        <div style={{ marginTop: '32px' }}>
-          <h4 style={{ color: colors.text, fontSize: '15px', fontWeight: '600', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <i className="fas fa-hard-hat" style={{ fontSize: '16px', color: colors.primary }}></i> Répartition des Travaux
+        <div style={{ marginTop: '24px' }}>
+          <h4 style={{ color: '#fff', fontSize: '16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Users size={18} /> Répartition des Travaux
           </h4>
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             {/* Travaux terminés */}
             <div style={{ 
               ...statCardStyle, 
-              textAlign: 'center',
-              padding: '24px'
+              borderLeft: '4px solid #10B981',
+              textAlign: 'center'
             }}>
-              <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(16, 185, 129, 0.1)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                margin: '0 auto 12px'
-              }}>
-                <i className="fas fa-check" style={{ fontSize: '20px', color: '#10B981' }}></i>
-              </div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: '#10B981' }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#10B981' }}>
                 {stats.problemesTermines}
               </div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>
-                Travaux Terminés
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                <CheckCircle size={14} style={{ marginRight: '4px' }} />
+                Travaux Terminés (100%)
               </div>
-              <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px' }}>
+              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', marginTop: '4px' }}>
                 {stats.tauxCompletion}% des signalements résolus
               </div>
             </div>
@@ -1228,141 +1197,103 @@ const GestionSignalement = () => {
             {/* Travaux en cours */}
             <div style={{ 
               ...statCardStyle, 
-              textAlign: 'center',
-              padding: '24px'
+              borderLeft: '4px solid #F59E0B',
+              textAlign: 'center'
             }}>
-              <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(245, 158, 11, 0.1)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                margin: '0 auto 12px'
-              }}>
-                <i className="fas fa-spinner" style={{ fontSize: '20px', color: '#F59E0B' }}></i>
-              </div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: '#F59E0B' }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#F59E0B' }}>
                 {stats.problemesEnCours}
               </div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>
-                Travaux En Cours
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                <ArrowRight size={14} style={{ marginRight: '4px' }} />
+                Travaux En Cours (50%)
               </div>
             </div>
             
             {/* Travaux non commencés */}
             <div style={{ 
               ...statCardStyle, 
-              textAlign: 'center',
-              padding: '24px'
+              borderLeft: '4px solid #EF4444',
+              textAlign: 'center'
             }}>
-              <div style={{ 
-                width: '48px', 
-                height: '48px', 
-                borderRadius: '50%', 
-                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                margin: '0 auto 12px'
-              }}>
-                <i className="fas fa-pause" style={{ fontSize: '20px', color: '#EF4444' }}></i>
-              </div>
-              <div style={{ fontSize: '32px', fontWeight: '700', color: '#EF4444' }}>
+              <div style={{ fontSize: '28px', fontWeight: '700', color: '#EF4444' }}>
                 {stats.problemesNonCommences}
               </div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px' }}>
-                Non Commencés
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)' }}>
+                <Clock size={14} style={{ marginRight: '4px' }} />
+                Non Commencés (0%)
               </div>
             </div>
           </div>
         </div>
         
         {/* Tableau récapitulatif */}
-        <div style={{ 
-          marginTop: '32px',
-          backgroundColor: '#FFFFFF',
-          borderRadius: '12px',
-          border: '1px solid #E5E7EB',
-          overflow: 'hidden'
-        }}>
-          <div style={{ 
-            padding: '16px 20px',
-            borderBottom: '1px solid #E5E7EB',
-            backgroundColor: '#F9FAFB'
-          }}>
-            <h4 style={{ color: colors.text, fontSize: '15px', fontWeight: '600', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <i className="fas fa-list-alt" style={{ fontSize: '16px', color: colors.primary }}></i>
-              Récapitulatif par Statut
-            </h4>
-          </div>
-          <table style={{ ...styles.table, margin: 0 }}>
+        <div style={{ marginTop: '32px' }}>
+          <h4 style={{ color: '#fff', fontSize: '16px', marginBottom: '16px' }}>
+            Récapitulatif par Statut
+          </h4>
+          <table style={styles.table}>
             <thead>
               <tr>
-                <th style={{ ...styles.th, backgroundColor: 'transparent' }}>Statut</th>
-                <th style={{ ...styles.th, backgroundColor: 'transparent' }}>Nombre</th>
-                <th style={{ ...styles.th, backgroundColor: 'transparent' }}>Pourcentage</th>
-                <th style={{ ...styles.th, backgroundColor: 'transparent' }}>Progression</th>
+                <th style={styles.th}>Statut</th>
+                <th style={styles.th}>Nombre</th>
+                <th style={styles.th}>Pourcentage</th>
+                <th style={styles.th}>Progression</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td style={styles.td}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors.secondary }} />
-                    <span style={{ fontWeight: '500' }}>Nouveaux</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: colors.secondary }} />
+                    Nouveaux
                   </span>
                 </td>
-                <td style={{ ...styles.td, fontWeight: '600' }}>{stats.nouveaux}</td>
+                <td style={styles.td}>{stats.nouveaux}</td>
                 <td style={styles.td}>{stats.totalSignalements > 0 ? ((stats.nouveaux / stats.totalSignalements) * 100).toFixed(1) : 0}%</td>
                 <td style={styles.td}>
-                  <div style={{ width: '120px', height: '6px', backgroundColor: '#E5E7EB', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ ...progressBarContainerStyle, width: '100px' }}>
                     <div style={{ 
                       width: `${stats.totalSignalements > 0 ? (stats.nouveaux / stats.totalSignalements) * 100 : 0}%`, 
                       height: '100%', 
-                      backgroundColor: colors.secondary,
-                      borderRadius: '3px'
+                      backgroundColor: colors.secondary 
                     }} />
                   </div>
                 </td>
               </tr>
               <tr>
                 <td style={styles.td}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
-                    <span style={{ fontWeight: '500' }}>En cours</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#F59E0B' }} />
+                    En cours
                   </span>
                 </td>
-                <td style={{ ...styles.td, fontWeight: '600' }}>{stats.enCours}</td>
+                <td style={styles.td}>{stats.enCours}</td>
                 <td style={styles.td}>{stats.totalSignalements > 0 ? ((stats.enCours / stats.totalSignalements) * 100).toFixed(1) : 0}%</td>
                 <td style={styles.td}>
-                  <div style={{ width: '120px', height: '6px', backgroundColor: '#E5E7EB', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ ...progressBarContainerStyle, width: '100px' }}>
                     <div style={{ 
                       width: `${stats.totalSignalements > 0 ? (stats.enCours / stats.totalSignalements) * 100 : 0}%`, 
                       height: '100%', 
-                      backgroundColor: '#F59E0B',
-                      borderRadius: '3px'
+                      backgroundColor: '#F59E0B' 
                     }} />
                   </div>
                 </td>
               </tr>
               <tr>
                 <td style={styles.td}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981' }} />
-                    <span style={{ fontWeight: '500' }}>Résolus</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10B981' }} />
+                    Résolus
                   </span>
                 </td>
-                <td style={{ ...styles.td, fontWeight: '600' }}>{stats.resolus}</td>
+                <td style={styles.td}>{stats.resolus}</td>
                 <td style={styles.td}>{stats.tauxResolution}%</td>
                 <td style={styles.td}>
-                  <div style={{ width: '120px', height: '6px', backgroundColor: '#E5E7EB', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ ...progressBarContainerStyle, width: '100px' }}>
                     <div style={{ 
                       width: `${stats.tauxResolution}%`, 
                       height: '100%', 
-                      backgroundColor: '#10B981',
-                      borderRadius: '3px'
+                      backgroundColor: '#10B981' 
                     }} />
                   </div>
                 </td>
@@ -1382,7 +1313,7 @@ const GestionSignalement = () => {
           <header style={styles.header}>
             <div style={styles.titleRow}>
               <div style={styles.titleIcon}>
-                <i className="fas fa-flag" style={{ fontSize: '24px', color: colors.secondary }}></i>
+                <Flag size={24} color={colors.secondary} />
               </div>
               <h1 style={styles.title}>Gestion des Signalements</h1>
             </div>
@@ -1391,20 +1322,20 @@ const GestionSignalement = () => {
 
           <div style={styles.tabs}>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'Nouveau' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('Nouveau')}
+              style={{ ...styles.tab, ...(activeTab === 'nouveaux' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('nouveaux')}
             >
               Nouveaux ({signalements.length})
             </button>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'En cours' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('En cours')}
+              style={{ ...styles.tab, ...(activeTab === 'en_cours' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('en_cours')}
             >
               En cours ({signalementsEnCours.length})
             </button>
             <button
-              style={{ ...styles.tab, ...(activeTab === 'Resolu' ? styles.tabActive : styles.tabInactive) }}
-              onClick={() => setActiveTab('Resolu')}
+              style={{ ...styles.tab, ...(activeTab === 'resolus' ? styles.tabActive : styles.tabInactive) }}
+              onClick={() => setActiveTab('resolus')}
             >
               Résolus ({signalementsResolus.length})
             </button>
@@ -1412,20 +1343,20 @@ const GestionSignalement = () => {
               style={{ ...styles.tab, ...(activeTab === 'statistiques' ? styles.tabActive : styles.tabInactive) }}
               onClick={() => setActiveTab('statistiques')}
             >
-              <i className="fas fa-chart-bar" style={{ marginRight: '6px', fontSize: '16px' }}></i>
+              <BarChart3 size={16} style={{ marginRight: '6px' }} />
               Statistiques
             </button>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '60px', color: '#6B7280' }}>
+            <div style={{ textAlign: 'center', padding: '60px', color: 'rgba(255,255,255,0.5)' }}>
               Chargement...
             </div>
           ) : (
             <>
-              {activeTab === 'Nouveau' && renderNouveaux()}
-              {activeTab === 'En cours' && renderEnCours()}
-              {activeTab === 'Resolu' && renderResolus()}
+              {activeTab === 'nouveaux' && renderNouveaux()}
+              {activeTab === 'en_cours' && renderEnCours()}
+              {activeTab === 'resolus' && renderResolus()}
               {activeTab === 'statistiques' && renderStatistiques()}
             </>
           )}
@@ -1438,11 +1369,11 @@ const GestionSignalement = () => {
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
               <h3 style={styles.modalTitle}>
-                <i className="fas fa-building" style={{ marginRight: '8px', fontSize: '20px', color: colors.primary }}></i>
+                <Building size={20} color={colors.primary} />
                 Compléter les informations
               </h3>
               <button style={styles.modalClose} onClick={() => setShowModal(false)}>
-                <i className="fas fa-times" style={{ fontSize: '20px' }}></i>
+                <X size={20} />
               </button>
             </div>
             <div style={styles.modalBody}>
@@ -1459,7 +1390,7 @@ const GestionSignalement = () => {
                       <option key={e.id_entreprises} value={e.id_entreprises}>{e.nom}</option>
                     ))}
                   </select>
-                  <i className="fas fa-chevron-down" style={{ ...styles.selectIcon, fontSize: '14px' }}></i>
+                  <ChevronDown size={18} style={styles.selectIcon} />
                 </div>
               </div>
               <div style={styles.formGroup}>
