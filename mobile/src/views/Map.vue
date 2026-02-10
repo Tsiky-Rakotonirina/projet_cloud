@@ -244,7 +244,7 @@ const centerOnAntananarivo = () => {
 };
 
 const goToRecap = () => {
-  router.push({ name: 'recap' });
+  router.push({ name: 'tabs-recap' });
 };
 
 const goToProfile = () => {
@@ -259,7 +259,7 @@ const handleLogout = async () => {
   try {
     await logout();
     filterMode.value = 'all';
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }

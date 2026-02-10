@@ -308,6 +308,50 @@ export const getUnreadNotifications = async (): Promise<UserNotification[]> => {
 };
 
 /**
+ * Récupérer toutes les notifications de l'utilisateur (lues et non lues)
+ */
+export const getAllNotifications = async (): Promise<UserNotification[]> => {
+  const user = auth.currentUser;
+  if (!user) {
+    return [];
+  }
+
+  try {
+    const notificationsRef = collection(db, "notifications");
+    const q = query(
+      notificationsRef, 
+      where("utilisateurId", "==", user.uid)
+    );
+    const snapshot = await getDocs(q);
+
+    const notifications: UserNotification[] = snapshot.docs
+      .map(doc => ({
+        id: doc.id,
+        ...doc.data() as Omit<UserNotification, 'id'>
+      }));
+
+    // Trier côté client par createdAt desc
+    notifications.sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    console.log(`${notifications.length} notifications trouvées au total`);
+    return notifications;
+  } catch (error) {
+    console.error("Erreur récupération notifications:", error);
+    return [];
+  }
+};
+
+/**
+ * Compter les notifications non lues de l'utilisateur
+ */
+export const getUnreadNotificationsCount = async (): Promise<number> => {
+  const unread = await getUnreadNotifications();
+  return unread.length;
+};
+
+/**
  * Marquer une notification comme lue
  */
 export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
@@ -356,7 +400,7 @@ export const markAllNotificationsAsRead = async (): Promise<boolean> => {
 
 /**
  * Afficher les notifications non lues lors de la connexion
- * Les notifications affichées sont automatiquement marquées comme lues
+ * (Les notifications restent non lues jusqu'à ce que l'utilisateur clique dessus)
  */
 export const pushUnreadNotificationsOnConnect = async (): Promise<void> => {
   const user = auth.currentUser;
@@ -380,30 +424,17 @@ export const pushUnreadNotificationsOnConnect = async (): Promise<void> => {
       console.log(`   ${i + 1}. [${notif.id}] ${notif.message}`);
     });
 
-    // Afficher les notifications (max 5 pour ne pas spam)
-    const notificationsToShow = unreadNotifications.slice(0, 5);
-    notificationsToShow.forEach((notification, index) => {
-      // Délai progressif pour éviter de spam l'utilisateur
-      setTimeout(async () => {
-        showLocalNotification("📢 Notification", notification.message);
-        // Marquer comme lue après affichage
-        await markNotificationAsRead(notification.id);
-      }, index * 2000); // 2 secondes entre chaque notification
-    });
-
-    // Si plus de 5 notifications, les marquer toutes comme lues
-    if (unreadNotifications.length > 5) {
-      setTimeout(async () => {
-        showLocalNotification(
-          "📬 Notifications", 
-          `Vous avez ${unreadNotifications.length - 5} autres notifications non lues`
-        );
-        // Marquer les notifications restantes comme lues
-        for (const notification of unreadNotifications.slice(5)) {
-          await markNotificationAsRead(notification.id);
-        }
-      }, 5 * 2000);
+    // Afficher une notification push indiquant le nombre de notifications non lues
+    // (on n'affiche pas chaque notification individuellement pour éviter le spam)
+    if (unreadNotifications.length === 1) {
+      showLocalNotification("📢 Notification", unreadNotifications[0].message);
+    } else {
+      showLocalNotification(
+        "📬 Notifications", 
+        `Vous avez ${unreadNotifications.length} notifications non lues`
+      );
     }
+    // Note: les notifications restent non lues jusqu'à ce que l'utilisateur les consulte
   } catch (error) {
     console.error("❌ Erreur affichage notifications non lues:", error);
   }
@@ -618,16 +649,12 @@ export const startListeningToMySignalementsHistoriques = async (): Promise<void>
             const message = `Votre signalement (${sigId}) a été mis à jour en "${statutLibelle}"`;
             const title = "📢 Mise à jour de votre signalement";
             
-            // Sauvegarder la notification dans Firestore
-            const notifId = await saveNotificationToFirestore(user.uid, sigId, message);
+            // Sauvegarder la notification dans Firestore (reste non lue)
+            await saveNotificationToFirestore(user.uid, sigId, message);
             
             console.log("Notification signalement:", title, message);
             showLocalNotification(title, message);
-            
-            // Marquer comme lue après affichage
-            if (notifId) {
-              await markNotificationAsRead(notifId);
-            }
+            // Note: la notification reste non lue jusqu'à ce que l'utilisateur clique dessus
           });
         }
       });

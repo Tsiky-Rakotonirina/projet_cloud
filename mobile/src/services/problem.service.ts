@@ -266,8 +266,55 @@ export const getMyProblems = async (): Promise<Problem[]> => {
   }
 };
 
+// Récupérer un signalement par son ID avec le statut résolu
+export const getSignalementById = async (signalementId: string): Promise<Signalement | null> => {
+  try {
+    const signalementRef = collection(db, "signalements");
+    const signalementQuery = query(signalementRef, where("__name__", "==", signalementId));
+    const signalementDocs = await getDocs(signalementQuery);
 
+    if (signalementDocs.empty) {
+      console.log(`Signalement ${signalementId} non trouvé`);
+      return null;
+    }
 
+    const docItem = signalementDocs.docs[0];
+    const data = docItem.data() as Omit<Signalement, 'id' | 'statut'>;
 
+    // Récupérer les statuts de signalement
+    const statutsRef = collection(db, "signalement_statuts");
+    const statutsDocs = await getDocs(statutsRef);
+    const statutsMap = new Map<string, { libelle: string; descri: string }>();
+    statutsDocs.docs.forEach(doc => {
+      const statData = doc.data();
+      statutsMap.set(doc.id, { libelle: statData.libelle, descri: statData.descri });
+    });
 
+    // Récupérer le dernier statut de l'historique
+    const historiques = data.historiques || [];
+    const sortedHistoriques = [...historiques].sort((a, b) => 
+      new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+    const latestStatutId = sortedHistoriques.length > 0 
+      ? sortedHistoriques[0].statutId 
+      : data.statutId;
 
+    // Résoudre le statut
+    let statut = undefined;
+    if (latestStatutId) {
+      const statutData = statutsMap.get(latestStatutId);
+      if (statutData) {
+        statut = { id: latestStatutId, libelle: statutData.libelle, descri: statutData.descri };
+      }
+    }
+
+    return {
+      id: docItem.id,
+      ...data,
+      statut
+    };
+  } catch (error) {
+    console.error("Erreur lors de la récupération du signalement :", error);
+    return null;
+  }
+};
