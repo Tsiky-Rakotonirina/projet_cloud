@@ -9,11 +9,6 @@
         </ion-buttons>
         <ion-title>Lalan-Tsara</ion-title>
         <ion-buttons slot="end">
-          <!-- Notification icon (only for connected users) -->
-          <ion-button v-if="currentUser" @click="openNotifications" class="notification-btn">
-            <i class="fas fa-bell"></i>
-            <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
-          </ion-button>
           <ion-button v-if="currentUser" @click="handleLogout" color="danger">
             <i class="fas fa-sign-out-alt"></i>
           </ion-button>
@@ -85,19 +80,11 @@
         </button>
       </div>
     </ion-content>
-
-    <!-- Notifications Modal -->
-    <NotificationList 
-      :is-open="showNotifications" 
-      @close="closeNotifications"
-      @unread-count-changed="handleUnreadCountChanged"
-    />
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
-import { ref, onMounted, watch } from 'vue';
 import {
   IonPage,
   IonHeader,
@@ -108,56 +95,15 @@ import {
   IonButtons,
 } from '@ionic/vue';
 import { logout, currentUser } from '@/services/firebase/auth.service';
-import { getUnreadNotificationsCount } from '@/services/firebase/notification.service';
-import NotificationList from '@/components/NotificationList.vue';
 
 const router = useRouter();
 
-// Notifications state
-const showNotifications = ref(false);
-const unreadCount = ref(0);
-
-// Charger le nombre de notifications non lues
-const loadUnreadCount = async () => {
-  if (currentUser.value) {
-    unreadCount.value = await getUnreadNotificationsCount();
-  } else {
-    unreadCount.value = 0;
-  }
-};
-
-// Surveiller les changements d'utilisateur
-watch(currentUser, async (user) => {
-  if (user) {
-    await loadUnreadCount();
-  } else {
-    unreadCount.value = 0;
-  }
-});
-
-// Charger au montage si l'utilisateur est déjà connecté
-onMounted(async () => {
-  await loadUnreadCount();
-});
-
-const openNotifications = () => {
-  showNotifications.value = true;
-};
-
-const closeNotifications = () => {
-  showNotifications.value = false;
-};
-
-const handleUnreadCountChanged = (count: number) => {
-  unreadCount.value = count;
-};
-
 const goToMap = () => {
-  router.push({ name: 'map' });
+  router.push({ name: 'tabs-map' });
 };
 
 const goToRecap = () => {
-  router.push({ name: 'recap' });
+  router.push({ name: 'tabs-recap' });
 };
 
 const goToProfile = () => {
@@ -171,7 +117,7 @@ const goToLogin = () => {
 const handleLogout = async () => {
   try {
     await logout();
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }
@@ -353,28 +299,5 @@ const handleLogout = async () => {
 /* Header toolbar button icon size */
 ion-toolbar ion-button i {
   font-size: 18px;
-}
-
-/* Notification button styles */
-.notification-btn {
-  position: relative;
-}
-
-.notification-badge {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
-  background: #EF4444;
-  color: #FFFFFF;
-  font-size: 10px;
-  font-weight: 700;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
 }
 </style>

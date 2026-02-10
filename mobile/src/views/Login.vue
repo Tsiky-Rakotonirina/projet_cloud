@@ -34,6 +34,7 @@
               <div class="input-wrapper">
                 <i class="fas fa-envelope input-icon"></i>
                 <input
+                  value="ramarosonblessed@gmail.com"
                   v-model="formData.email"
                   type="email"
                   class="form-input"
@@ -49,6 +50,7 @@
               <div class="input-wrapper">
                 <i class="fas fa-lock input-icon"></i>
                 <input
+                  value="blessed"
                   v-model="formData.password"
                   :type="showPassword ? 'text' : 'password'"
                   class="form-input"
@@ -143,7 +145,7 @@ const handleLogin = async () => {
     await login(formData.value.email, formData.value.password);
     await resetLoginAttempts(formData.value.email);
 
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (err: any) {
     // Ne PAS appeler incrementLoginAttempts ici car c'est déjà fait dans authService.login()
     // Extraire le nombre de tentatives restantes du message d'erreur
@@ -183,7 +185,7 @@ const handleGithubLogin = async () => {
     });
     await toast.present();
 
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (err: any) {
     error.value = err.message || 'Erreur lors de la connexion avec GitHub';
     

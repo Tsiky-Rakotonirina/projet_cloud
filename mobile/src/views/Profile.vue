@@ -290,13 +290,13 @@ const saveProfile = async () => {
 };
 
 const goToMySignalements = () => {
-  router.push({ name: 'map', query: { filter: 'mine' } });
+  router.push({ name: 'tabs-map', query: { filter: 'mine' } });
 };
 
 const handleLogout = async () => {
   try {
     await logout();
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }
