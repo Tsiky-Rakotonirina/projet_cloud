@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const { 
   Utilisateur, 
   UtilisateurStatut, 
@@ -5,6 +8,7 @@ const {
   Signalement, 
   SignalementStatut,
   SignalementHistorique,
+  SignalementImage,
   Point, 
   Profil, 
   FirebaseMapping,
@@ -38,6 +42,36 @@ try {
 } catch (e) {
   // ignore if settings not supported in this environment
 }
+
+/**
+ * Helper: Sauvegarde une image base64 en fichier
+ */
+const saveBase64Image = async (base64Data, fileName) => {
+  try {
+    // Extraire les données base64 (enlever le préfixe data:image/...;base64,)
+    const matches = base64Data.match(/^data:image\/([a-zA-Z]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      throw new Error('Format base64 invalide');
+    }
+
+    const imageBuffer = Buffer.from(matches[2], 'base64');
+    const uploadsDir = path.join(__dirname, '../../uploads/signalements');
+
+    // Créer le dossier s'il n'existe pas
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const filePath = path.join(uploadsDir, fileName);
+    fs.writeFileSync(filePath, imageBuffer);
+
+    console.log(`✅ Image sauvegardée: ${fileName}`);
+    return fileName;
+  } catch (error) {
+    console.error(`❌ Erreur sauvegarde image ${fileName}:`, error.message);
+    return null;
+  }
+};
 
 const syncService = {
   /**
@@ -644,6 +678,28 @@ const syncService = {
               postgres_id: newSignalement.id_signalements,
               firebase_id: firebaseId,
             });
+
+            // Traiter les images si présentes
+            if (firebaseData.images && Array.isArray(firebaseData.images) && firebaseData.images.length > 0) {
+              console.log(`📸 ${firebaseData.images.length} image(s) à traiter pour le signalement ${newSignalement.id_signalements}`);
+              
+              for (const img of firebaseData.images) {
+                if (img.base64 && img.name) {
+                  // Sauvegarder l'image en fichier
+                  const savedFileName = await saveBase64Image(img.base64, img.name);
+                  
+                  if (savedFileName) {
+                    // Créer l'entrée dans signalement_images
+                    await SignalementImage.create({
+                      name: savedFileName,
+                      signalement_id: newSignalement.id_signalements,
+                      date_upload: new Date(),
+                    });
+                    console.log(`✅ Image enregistrée en BDD: ${savedFileName}`);
+                  }
+                }
+              }
+            }
 
             stats.inserted++;
             console.log(`✅ Nouveau signalement créé avec historique (PG ID: ${newSignalement.id_signalements})`);
@@ -1915,6 +1971,32 @@ const syncService = {
       throw {
         code: 'SYNC_ERROR',
         message: error.message || 'Erreur lors de la récupération du statut',
+        status: 500,
+      };
+    }
+  },
+
+  /**
+   * Récupère les images d'un signalement
+   */
+  async getSignalementImages(signalementId) {
+    try {
+      const images = await SignalementImage.findAll({
+        where: { signalement_id: signalementId },
+        order: [['date_upload', 'DESC']],
+      });
+
+      return images.map(img => ({
+        id: img.id_signalement_images,
+        name: img.name,
+        url: `/uploads/signalements/${img.name}`,
+        date_upload: img.date_upload,
+      }));
+    } catch (error) {
+      console.error('❌ Erreur récupération images signalement:', error);
+      throw {
+        code: 'IMAGES_ERROR',
+        message: error.message || 'Erreur lors de la récupération des images',
         status: 500,
       };
     }

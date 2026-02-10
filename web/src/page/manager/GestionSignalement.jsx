@@ -14,9 +14,10 @@ const GestionSignalement = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedSignalement, setSelectedSignalement] = useState(null);
   const [entreprises, setEntreprises] = useState([]);
+  const [prixParM2, setPrixParM2] = useState(1000);
   const [modalData, setModalData] = useState({
     entreprise_id: '',
-    budget: '',
+    niveau: 1,
     surface: ''
   });
   // État pour le modal d'images
@@ -30,11 +31,51 @@ const GestionSignalement = () => {
   const [signalementHistorique, setSignalementHistorique] = useState([]);
   const [problemeHistorique, setProblemeHistorique] = useState([]);
   const [loadingHistorique, setLoadingHistorique] = useState(false);
+  // États pour la configuration prix/m2
+  const [editingPrix, setEditingPrix] = useState(false);
+  const [tempPrix, setTempPrix] = useState('');
 
   useEffect(() => {
     loadData();
     loadEntreprises();
+    loadPrixParM2();
   }, []);
+
+  const loadPrixParM2 = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/config/prix-par-m2');
+      const data = await response.json();
+      if (data.success && data.data.prix_par_m2) {
+        setPrixParM2(data.data.prix_par_m2);
+      }
+    } catch (err) {
+      console.error('Erreur lors du chargement du prix par m2:', err);
+    }
+  };
+
+  const updatePrixParM2 = async () => {
+    const newPrix = parseFloat(tempPrix);
+    if (isNaN(newPrix) || newPrix <= 0) {
+      alert('Veuillez entrer un prix valide');
+      return;
+    }
+    try {
+      const response = await fetch('http://localhost:3000/api/config/prix-par-m2', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prix_par_m2: newPrix })
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPrixParM2(newPrix);
+        setEditingPrix(false);
+        setTempPrix('');
+      }
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour du prix:', err);
+      alert('Erreur lors de la mise à jour');
+    }
+  };
 
   const loadEntreprises = async () => {
     try {
@@ -91,19 +132,19 @@ const GestionSignalement = () => {
 
   const handleMettreInfos = (signalement) => {
     setSelectedSignalement(signalement);
-    setModalData({ entreprise_id: '', budget: '', surface: '' });
+    setModalData({ entreprise_id: '', niveau: 1, surface: '' });
     setShowModal(true);
   };
 
   const handleSubmitInfos = async () => {
     try {
-      // Créer un problème pour le signalement
+      // Créer un problème pour le signalement (budget calculé automatiquement côté serveur)
       const response = await fetch('http://localhost:3000/api/probleme', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           surface: parseFloat(modalData.surface),
-          budget: parseFloat(modalData.budget),
+          niveau: parseInt(modalData.niveau),
           entreprise_id: parseInt(modalData.entreprise_id),
           signalement_id: selectedSignalement.id_signalements,
           probleme_statut_id: 1 // Statut par défaut: non_commence (0%)
@@ -821,7 +862,6 @@ const GestionSignalement = () => {
               <th style={styles.th}>Ville</th>
               <th style={styles.th}>Email Utilisateur</th>
               <th style={styles.th}>Description</th>
-              <th style={{ ...styles.th, textAlign: 'center' }}>Budget</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Images</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
@@ -855,9 +895,6 @@ const GestionSignalement = () => {
                 </td>
                 <td style={styles.td}>{s.email_utilisateur || 'N/A'}</td>
                 <td style={styles.td}>{s.description}</td>
-                <td style={{ ...styles.td, textAlign: 'center' }}>
-                  {s.total_budget ? `${s.total_budget.toLocaleString()} Ar` : 'N/A'}
-                </td>
                 <td style={{ ...styles.td, textAlign: 'center' }}>
                   <button 
                     style={styles.btnImages} 
@@ -903,7 +940,9 @@ const GestionSignalement = () => {
               <th style={styles.th}>Description</th>
               <th style={styles.th}>Entreprise</th>
               <th style={styles.th}>Budget</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Niveau</th>
               <th style={styles.th}>Avancement</th>
+              <th style={{ ...styles.th, textAlign: 'center' }}>Photos</th>
               <th style={{ ...styles.th, textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
@@ -941,6 +980,26 @@ const GestionSignalement = () => {
                   <td style={styles.td}>{s.description}</td>
                   <td style={styles.td}>{s.entreprise_nom || 'N/A'}</td>
                   <td style={styles.td}>{budget > 0 ? `${budget.toLocaleString()} Ar` : 'N/A'}</td>
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    {s.probleme_niveau ? (
+                      <span style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        backgroundColor: s.probleme_niveau >= 7 ? 'rgba(239, 68, 68, 0.15)' : s.probleme_niveau >= 4 ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                        color: s.probleme_niveau >= 7 ? '#EF4444' : s.probleme_niveau >= 4 ? '#F59E0B' : '#10B981'
+                      }}>
+                        <i className="fas fa-signal" style={{ fontSize: '11px' }}></i>
+                        {s.probleme_niveau}/10
+                      </span>
+                    ) : (
+                      <span style={{ color: '#9CA3AF', fontSize: '12px' }}>N/A</span>
+                    )}
+                  </td>
                   <td style={styles.td}>
                     <div 
                       style={styles.progressCell}
@@ -973,6 +1032,46 @@ const GestionSignalement = () => {
                         <ProblemeHistoriqueTooltip problemeId={s.probleme_id} />
                       )}
                     </div>
+                  </td>
+                  <td style={{ ...styles.td, textAlign: 'center' }}>
+                    {s.images && s.images.length > 0 ? (
+                      <button
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '6px 14px',
+                          backgroundColor: colors.surface,
+                          color: colors.tertiary,
+                          border: `1px solid ${colors.border}`,
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                        onClick={() => {
+                          setSelectedImages(s.images);
+                          setSelectedSignalementId(s.id_signalements);
+                          setShowImageModal(true);
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.borderColor = colors.primary;
+                          e.target.style.color = colors.primary;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.borderColor = colors.border;
+                          e.target.style.color = colors.tertiary;
+                        }}
+                      >
+                        <i className="fas fa-image"></i>
+                        Voir
+                      </button>
+                    ) : (
+                      <span style={{ color: '#9CA3AF', fontSize: '12px' }}>
+                        <i className="fas fa-image" style={{ opacity: 0.5 }}></i>
+                      </span>
+                    )}
                   </td>
                   <td style={{ ...styles.td, textAlign: 'center' }}>
                     {pourcentage < 100 && s.probleme_id ? (
@@ -1389,6 +1488,96 @@ const GestionSignalement = () => {
             <p style={styles.subtitle}>Gérez et traitez les signalements des utilisateurs</p>
           </header>
 
+          {/* Configuration prix par m² */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            padding: '12px 20px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            border: '1px solid #e9ecef'
+          }}>
+            <span style={{ color: '#666', fontSize: '14px', fontWeight: '500' }}>
+              <i className="fas fa-calculator" style={{ marginRight: '6px' }}></i>
+              Prix par m² :
+            </span>
+            {editingPrix ? (
+              <>
+                <input
+                  type="number"
+                  value={tempPrix}
+                  onChange={(e) => setTempPrix(e.target.value)}
+                  placeholder={prixParM2.toString()}
+                  style={{
+                    width: '120px',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: `2px solid ${colors.primary}`,
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                  autoFocus
+                />
+                <button
+                  onClick={updatePrixParM2}
+                  style={{
+                    padding: '8px 16px',
+                    backgroundColor: colors.primary,
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px',
+                    fontWeight: '500'
+                  }}
+                >
+                  <i className="fas fa-check" style={{ marginRight: '4px' }}></i>
+                  Valider
+                </button>
+                <button
+                  onClick={() => { setEditingPrix(false); setTempPrix(''); }}
+                  style={{
+                    padding: '8px 12px',
+                    backgroundColor: '#e0e0e0',
+                    color: '#666',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '13px'
+                  }}
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </>
+            ) : (
+              <>
+                <span style={{ fontSize: '18px', fontWeight: '700', color: colors.primary }}>
+                  {prixParM2.toLocaleString()} Ar
+                </span>
+                <button
+                  onClick={() => { setEditingPrix(true); setTempPrix(prixParM2.toString()); }}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: 'white',
+                    color: colors.primary,
+                    border: `1px solid ${colors.primary}`,
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <i className="fas fa-edit" style={{ marginRight: '4px' }}></i>
+                  Modifier
+                </button>
+              </>
+            )}
+          </div>
+
           <div style={styles.tabs}>
             <button
               style={{ ...styles.tab, ...(activeTab === 'Nouveau' ? styles.tabActive : styles.tabInactive) }}
@@ -1463,16 +1652,6 @@ const GestionSignalement = () => {
                 </div>
               </div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Budget (MGA)</label>
-                <input
-                  type="number"
-                  value={modalData.budget}
-                  onChange={(e) => setModalData({ ...modalData, budget: e.target.value })}
-                  placeholder="Ex: 50000000"
-                  style={styles.input}
-                />
-              </div>
-              <div style={styles.formGroup}>
                 <label style={styles.label}>Surface (m²)</label>
                 <input
                   type="number"
@@ -1482,6 +1661,66 @@ const GestionSignalement = () => {
                   style={styles.input}
                 />
               </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Niveau de réparation (1-10)</label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(5, 1fr)',
+                  gap: '8px',
+                  marginTop: '8px'
+                }}>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                    <label
+                      key={n}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '12px 8px',
+                        borderRadius: '8px',
+                        border: `2px solid ${modalData.niveau === n ? colors.primary : '#e0e0e0'}`,
+                        backgroundColor: modalData.niveau === n ? `${colors.primary}15` : '#fff',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        fontWeight: modalData.niveau === n ? '600' : '400',
+                        color: modalData.niveau === n ? colors.primary : '#666'
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="niveau"
+                        value={n}
+                        checked={modalData.niveau === n}
+                        onChange={() => setModalData({ ...modalData, niveau: n })}
+                        style={{ display: 'none' }}
+                      />
+                      {n}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {/* Budget calculé automatiquement */}
+              <div style={{
+                padding: '16px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '8px',
+                marginTop: '16px',
+                border: '1px solid #e9ecef'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ color: '#666', fontSize: '14px' }}>Budget estimé :</span>
+                  <span style={{ 
+                    fontSize: '20px', 
+                    fontWeight: '700', 
+                    color: colors.primary 
+                  }}>
+                    {(prixParM2 * (modalData.niveau || 1) * (parseFloat(modalData.surface) || 0)).toLocaleString()} Ar
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
+                  Formule: {prixParM2.toLocaleString()} Ar/m² × niveau {modalData.niveau || 1} × {parseFloat(modalData.surface) || 0} m²
+                </div>
+              </div>
             </div>
             <div style={styles.modalFooter}>
               <button style={styles.btnCancel} onClick={() => setShowModal(false)}>
@@ -1490,7 +1729,7 @@ const GestionSignalement = () => {
               <button 
                 style={styles.btnSubmit} 
                 onClick={handleSubmitInfos}
-                disabled={!modalData.entreprise_id || !modalData.budget || !modalData.surface}
+                disabled={!modalData.entreprise_id || !modalData.surface}
               >
                 Enregistrer
               </button>

@@ -115,8 +115,8 @@ const error = ref('');
 const showPassword = ref(false);
 
 const formData = ref({
-  email: '',
-  password: ''
+  email: 'ramarosonblessed@gmail.com',
+  password: 'blessed'
 });
 
 const handleLogin = async () => {
@@ -143,7 +143,7 @@ const handleLogin = async () => {
     await login(formData.value.email, formData.value.password);
     await resetLoginAttempts(formData.value.email);
 
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (err: any) {
     // Ne PAS appeler incrementLoginAttempts ici car c'est déjà fait dans authService.login()
     // Extraire le nombre de tentatives restantes du message d'erreur
@@ -183,7 +183,7 @@ const handleGithubLogin = async () => {
     });
     await toast.present();
 
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (err: any) {
     error.value = err.message || 'Erreur lors de la connexion avec GitHub';
     

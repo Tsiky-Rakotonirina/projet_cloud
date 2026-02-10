@@ -40,7 +40,13 @@
     
     <ion-content :fullscreen="true">
       <div class="map-wrapper">
-        <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" @mapClicked="onMapClicked" />
+        <MapView ref="mapViewRef" :filter-mine="filterMode === 'mine'" @mapClicked="onMapClicked" @loadingChange="onMapLoading" />
+        
+        <!-- Indicateur de chargement de la carte -->
+        <div v-if="mapLoading" class="map-loading-indicator">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+          <span>Chargement...</span>
+        </div>
         
         <!-- Indicateur mode signalement actif -->
         <div v-if="signalementMode" class="signal-mode-indicator">
@@ -213,7 +219,12 @@ const signalementMode = ref(false);
 const filterMode = ref<'all' | 'mine'>('all');
 const selectedImages = ref<File[]>([]);
 const isSubmitting = ref(false);
+const mapLoading = ref(true);
 let tempMarker: any = null;
+
+const onMapLoading = (loading: boolean) => {
+  mapLoading.value = loading;
+};
 
 onMounted(() => {
   // Vérifier si on vient avec un filtre dans l'URL
@@ -233,7 +244,7 @@ const centerOnAntananarivo = () => {
 };
 
 const goToRecap = () => {
-  router.push({ name: 'recap' });
+  router.push({ name: 'tabs-recap' });
 };
 
 const goToProfile = () => {
@@ -248,7 +259,7 @@ const handleLogout = async () => {
   try {
     await logout();
     filterMode.value = 'all';
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }
@@ -459,6 +470,31 @@ const submitSignalement = async () => {
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+/* Indicateur de chargement subtil */
+.map-loading-indicator {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  backdrop-filter: blur(8px);
+}
+
+.map-loading-indicator ion-spinner {
+  width: 18px;
+  height: 18px;
 }
 
 /* Custom Filter Bar */

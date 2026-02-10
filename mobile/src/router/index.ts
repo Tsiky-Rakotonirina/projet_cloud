@@ -5,7 +5,7 @@ import { observeAuthState, currentUser } from '@/services/firebase/auth.service'
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
+    redirect: '/tabs/home'
   },
   {
     path: '/login',
@@ -13,19 +13,47 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/Login.vue')
   },
   {
-    path: '/home',
-    name: 'home',
-    component: () => import('@/views/Home.vue')
+    path: '/tabs/',
+    component: () => import('@/views/Tabs.vue'),
+    children: [
+      {
+        path: '',
+        redirect: '/tabs/home'
+      },
+      {
+        path: 'home',
+        name: 'tabs-home',
+        component: () => import('@/views/Home.vue')
+      },
+      {
+        path: 'recap',
+        name: 'tabs-recap',
+        component: () => import('@/views/Recap.vue')
+      },
+      {
+        path: 'notifications',
+        name: 'tabs-notifications',
+        component: () => import('@/views/Notifications.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'map',
+        name: 'tabs-map',
+        component: () => import('@/views/Map.vue')
+      }
+    ]
   },
   {
-    path: '/map',
-    name: 'map',
-    component: () => import('@/views/Map.vue')
+    path: '/home',
+    redirect: '/tabs/home'
   },
   {
     path: '/recap',
-    name: 'recap',
-    component: () => import('@/views/Recap.vue')
+    redirect: '/tabs/recap'
+  },
+  {
+    path: '/map',
+    redirect: '/tabs/map'
   },
   {
     path: '/profile',

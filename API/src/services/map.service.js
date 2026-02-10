@@ -189,6 +189,7 @@ const mapService = {
         'id_problemes',
         'surface',
         'budget',
+        'niveau',
         [
           db.sequelize.fn(
             'ST_AsGeoJSON',
@@ -202,11 +203,26 @@ const mapService = {
           model: db.Signalement,
           as: 'signalement',
           attributes: ['id_signalements', 'description'],
-          include: {
-            model: db.Point,
-            as: 'point',
-            attributes: [],
-          },
+          include: [
+            {
+              model: db.Point,
+              as: 'point',
+              attributes: [],
+            },
+            {
+              model: db.SignalementHistorique,
+              as: 'historiques',
+              attributes: ['date_historique'],
+              order: [['date_historique', 'ASC']],
+              limit: 1,
+              separate: false,
+            },
+            {
+              model: db.SignalementImage,
+              as: 'images',
+              attributes: ['id_signalement_images', 'name', 'date_upload'],
+            },
+          ],
         },
         {
           model: db.ProblemeStatut,
@@ -219,19 +235,32 @@ const mapService = {
           attributes: ['id_entreprises', 'nom'],
         },
       ],
-      raw: true,
     });
 
-    return problemes.map((p) => ({
-      id_problemes: p.id_problemes,
-      surface: p.surface,
-      budget: p.budget,
-      geometry: p.geometry ? JSON.parse(p.geometry) : null,
-      description: p['signalement.description'],
-      statut: p['statut.libelle'],
-      pourcentage: p['statut.pourcentage'],
-      entreprise: p['entreprise.nom'],
-    }));
+    return problemes.map((p) => {
+      // Mapper les images avec URL complète
+      const images = p.signalement?.images?.map(img => ({
+        id: img.id_signalement_images,
+        name: img.name,
+        url: `${BASE_URL}/uploads/signalements/${img.name}`,
+        date_upload: img.date_upload
+      })) || [];
+
+      return {
+        id_problemes: p.id_problemes,
+        surface: p.surface,
+        budget: p.budget,
+        niveau: p.niveau || 1,
+        signalement_id: p.signalement?.id_signalements || null,
+        geometry: p.dataValues?.geometry ? JSON.parse(p.dataValues.geometry) : null,
+        description: p.signalement?.description || null,
+        statut: p.statut?.libelle || null,
+        pourcentage: p.statut?.pourcentage || 0,
+        entreprise: p.entreprise?.nom || null,
+        date_creation: p.signalement?.historiques?.[0]?.date_historique || null,
+        images: images,
+      };
+    });
   },
 
   async getProblemeById(id) {

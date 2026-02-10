@@ -100,7 +100,10 @@ const PointsPage = () => {
             pourcentage: parseFloat(p.pourcentage) || 0,
             surface: p.surface,
             budget: p.budget,
-            entreprise: p.entreprise
+            niveau: p.niveau || 1,
+            entreprise: p.entreprise,
+            signalement_id: p.signalement_id,
+            date_creation: p.date_creation
           };
         });
         setProblemes(formattedData);
@@ -159,17 +162,26 @@ const PointsPage = () => {
       }).addTo(mapInstanceRef.current);
 
       // Tooltip au survol avec infos du problème
+      const formatDate = (dateStr) => {
+        if (!dateStr) return 'N/A';
+        return new Date(dateStr).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      };
+      
       const tooltipContent = `
-        <div style="min-width: 220px; padding: 8px;">
-          <div style="font-weight: 600; margin-bottom: 8px; color: #1f2937;">${point.description}</div>
-          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-            <span style="width: 8px; height: 8px; border-radius: 50%; background: ${getStatusConfig(point.status).color};"></span>
-            <span style="font-size: 12px; color: #6b7280;">${getStatusConfig(point.status).label} (${point.pourcentage}%)</span>
+        <div style="min-width: 260px; padding: 10px;">
+          <div style="font-weight: 600; margin-bottom: 10px; color: #1f2937; font-size: 14px;">${point.description}</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${getStatusConfig(point.status).color};"></span>
+            <span style="font-size: 13px; font-weight: 500; color: #374151;">${getStatusConfig(point.status).label} (${point.pourcentage}%)</span>
           </div>
-          ${point.surface ? `<div style="font-size: 12px; color: #6b7280;">📐 Surface: ${point.surface} m²</div>` : ''}
-          ${point.budget ? `<div style="font-size: 12px; color: #6b7280;">💰 Budget: ${point.budget.toLocaleString()} Ar</div>` : ''}
-          ${point.entreprise ? `<div style="font-size: 12px; color: #6b7280;">🏢 Entreprise: ${point.entreprise}</div>` : ''}
-          <div style="font-size: 11px; color: #9ca3af; margin-top: 8px; text-align: center; font-style: italic; border-top: 1px solid #e5e7eb; padding-top: 6px;">👆 Cliquer pour plus de détails</div>
+          <div style="display: grid; gap: 4px; margin-top: 8px;">
+            <div style="font-size: 12px; color: #6b7280;">📅 Date: ${formatDate(point.date_creation)}</div>
+            <div style="font-size: 12px; color: #6b7280;">⚡ Niveau: <strong style="color: #1f2937;">${point.niveau}/10</strong></div>
+            ${point.surface ? `<div style="font-size: 12px; color: #6b7280;">📐 Surface: ${point.surface} m²</div>` : ''}
+            ${point.budget ? `<div style="font-size: 12px; color: #6b7280;">💰 Budget: ${point.budget.toLocaleString()} Ar</div>` : ''}
+            ${point.entreprise ? `<div style="font-size: 12px; color: #6b7280;">🏢 Entreprise: ${point.entreprise}</div>` : ''}
+          </div>
+          <div style="font-size: 11px; color: #9ca3af; margin-top: 10px; text-align: center; font-style: italic; border-top: 1px solid #e5e7eb; padding-top: 8px;">👆 Cliquer pour plus de détails</div>
         </div>
       `;
 
@@ -390,52 +402,76 @@ const PointsPage = () => {
       position: 'absolute',
       top: '16px',
       right: '16px',
-      width: '300px',
+      width: '340px',
+      maxHeight: 'calc(100vh - 160px)',
       backgroundColor: colors.surface,
       borderRadius: '16px',
       border: `1px solid ${colors.border}`,
       overflow: 'hidden',
-      zIndex: 1000
+      zIndex: 1000,
+      boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)'
     },
     infoPanelHeader: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '16px',
-      borderBottom: `1px solid ${colors.border}`
+      padding: '18px 20px',
+      borderBottom: `1px solid ${colors.border}`,
+      background: `linear-gradient(135deg, ${colors.primary}08 0%, ${colors.secondary}08 100%)`
     },
     infoPanelTitle: {
-      fontSize: '14px',
-      fontWeight: '600',
-      color: colors.text,
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      fontSize: '16px',
+      fontWeight: '700',
+      color: colors.primary,
       margin: 0
     },
     infoPanelClose: {
       display: 'flex',
-      padding: '6px',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: '32px',
+      height: '32px',
       backgroundColor: 'transparent',
       border: 'none',
       color: colors.tertiary,
       cursor: 'pointer',
-      borderRadius: '6px'
+      borderRadius: '8px',
+      transition: 'all 0.2s'
     },
     infoPanelBody: {
-      padding: '16px'
+      padding: '20px',
+      overflowY: 'auto',
+      maxHeight: 'calc(100vh - 260px)'
     },
     infoRow: {
-      marginBottom: '12px'
+      marginBottom: '18px',
+      paddingBottom: '18px',
+      borderBottom: `1px solid ${colors.border}`
+    },
+    infoRowLast: {
+      marginBottom: '0',
+      paddingBottom: '0',
+      borderBottom: 'none'
     },
     infoLabel: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
       fontSize: '11px',
-      fontWeight: '600',
-      color: colors.tertiary,
+      fontWeight: '700',
+      color: colors.primary,
       textTransform: 'uppercase',
-      letterSpacing: '0.5px',
-      marginBottom: '4px'
+      letterSpacing: '0.8px',
+      marginBottom: '8px'
     },
     infoValue: {
-      fontSize: '14px',
-      color: colors.text
+      fontSize: '15px',
+      color: colors.text,
+      fontWeight: '500',
+      lineHeight: '1.5'
     },
     statusBadge: {
       display: 'inline-flex',
@@ -674,37 +710,52 @@ const PointsPage = () => {
           {selectedPoint && (
             <div style={styles.infoPanel}>
               <div style={styles.infoPanelHeader}>
-                <h3 style={styles.infoPanelTitle}>Détails du problème</h3>
+                <h3 style={styles.infoPanelTitle}>
+                  <i className="fas fa-road" style={{ color: colors.primary }}></i>
+                  Détails du problème
+                </h3>
                 <button
                   style={styles.infoPanelClose}
                   onClick={() => setSelectedPoint(null)}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = `${colors.primary}10`}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
                 >
-                  <i className="fas fa-times" style={{ fontSize: '18px' }}></i>
+                  <i className="fas fa-times" style={{ fontSize: '16px' }}></i>
                 </button>
               </div>
               <div style={styles.infoPanelBody}>
                 <div style={styles.infoRow}>
-                  <p style={styles.infoLabel}>Description</p>
+                  <p style={styles.infoLabel}>
+                    <i className="fas fa-align-left" style={{ fontSize: '12px' }}></i>
+                    Description
+                  </p>
                   <p style={styles.infoValue}>{selectedPoint.description}</p>
                 </div>
                 <div style={styles.infoRow}>
-                  <p style={styles.infoLabel}>Coordonnées</p>
-                  <p style={styles.infoValue}>
+                  <p style={styles.infoLabel}>
+                    <i className="fas fa-map-marker-alt" style={{ fontSize: '12px' }}></i>
+                    Coordonnées
+                  </p>
+                  <p style={{ ...styles.infoValue, fontFamily: 'monospace', color: colors.secondary, fontWeight: '600' }}>
                     {selectedPoint.lat?.toFixed(4)}, {selectedPoint.lng?.toFixed(4)}
                   </p>
                 </div>
                 <div style={styles.infoRow}>
-                  <p style={styles.infoLabel}>Statut</p>
+                  <p style={styles.infoLabel}>
+                    <i className="fas fa-tasks" style={{ fontSize: '12px' }}></i>
+                    Statut
+                  </p>
                   <span
                     style={{
                       ...styles.statusBadge,
-                      color: getStatusConfig(selectedPoint.status).color,
-                      backgroundColor: `${getStatusConfig(selectedPoint.status).color}20`
+                      color: '#FFFFFF',
+                      background: `linear-gradient(135deg, ${getStatusConfig(selectedPoint.status).color} 0%, ${getStatusConfig(selectedPoint.status).color}DD 100%)`,
+                      boxShadow: `0 2px 8px ${getStatusConfig(selectedPoint.status).color}40`
                     }}
                   >
-                    {(selectedPoint.status === 'Non commence' || selectedPoint.status === 'Non commence') && <i className="fas fa-exclamation-triangle" style={{ fontSize: '14px' }}></i>}
-                    {(selectedPoint.status === 'En cours' || selectedPoint.status === 'En cours') && <i className="fas fa-clock" style={{ fontSize: '14px' }}></i>}
-                    {(selectedPoint.status === 'Termine' || selectedPoint.status === 'Termine') && <i className="fas fa-check-circle" style={{ fontSize: '14px' }}></i>}
+                    {(selectedPoint.status === 'Non commence' || selectedPoint.status === 'Non commence') && <i className="fas fa-exclamation-triangle" style={{ fontSize: '12px' }}></i>}
+                    {(selectedPoint.status === 'En cours' || selectedPoint.status === 'En cours') && <i className="fas fa-clock" style={{ fontSize: '12px' }}></i>}
+                    {(selectedPoint.status === 'Termine' || selectedPoint.status === 'Termine') && <i className="fas fa-check-circle" style={{ fontSize: '12px' }}></i>}
                     {getStatusConfig(selectedPoint.status).label}
                   </span>
                   <div style={styles.progressBar}>
@@ -712,30 +763,45 @@ const PointsPage = () => {
                       style={{
                         ...styles.progressFill,
                         width: `${selectedPoint.pourcentage}%`,
-                        backgroundColor: getStatusConfig(selectedPoint.status).color
+                        background: `linear-gradient(90deg, ${getStatusConfig(selectedPoint.status).color} 0%, ${getStatusConfig(selectedPoint.status).color}AA 100%)`
                       }}
                     />
                   </div>
-                  <p style={{ fontSize: '12px', color: colors.tertiary, marginTop: '4px' }}>
-                    Avancement: {selectedPoint.pourcentage}%
+                  <p style={{ fontSize: '13px', color: colors.tertiary, marginTop: '6px', fontWeight: '500' }}>
+                    <i className="fas fa-chart-line" style={{ marginRight: '6px', fontSize: '11px' }}></i>
+                    Avancement: <strong style={{ color: getStatusConfig(selectedPoint.status).color }}>{selectedPoint.pourcentage}%</strong>
                   </p>
                 </div>
                 {selectedPoint.surface && (
                   <div style={styles.infoRow}>
-                    <p style={styles.infoLabel}>Surface</p>
-                    <p style={styles.infoValue}>{selectedPoint.surface} m²</p>
+                    <p style={styles.infoLabel}>
+                      <i className="fas fa-ruler-combined" style={{ fontSize: '12px' }}></i>
+                      Surface
+                    </p>
+                    <p style={styles.infoValue}>
+                      <strong style={{ fontSize: '18px', color: colors.primary }}>{selectedPoint.surface}</strong>
+                      <span style={{ fontSize: '13px', marginLeft: '4px' }}>m²</span>
+                    </p>
                   </div>
                 )}
                 {selectedPoint.budget && (
                   <div style={styles.infoRow}>
-                    <p style={styles.infoLabel}>Budget</p>
-                    <p style={styles.infoValue}>{formatBudget(selectedPoint.budget)}</p>
+                    <p style={styles.infoLabel}>
+                      <i className="fas fa-coins" style={{ fontSize: '12px' }}></i>
+                      Budget
+                    </p>
+                    <p style={{ ...styles.infoValue, color: '#10B981', fontWeight: '700', fontSize: '16px' }}>
+                      {formatBudget(selectedPoint.budget)}
+                    </p>
                   </div>
                 )}
                 {selectedPoint.entreprise && (
-                  <div style={styles.infoRow}>
-                    <p style={styles.infoLabel}>Entreprise responsable</p>
-                    <p style={styles.infoValue}>{selectedPoint.entreprise}</p>
+                  <div style={{ ...styles.infoRow, ...styles.infoRowLast }}>
+                    <p style={styles.infoLabel}>
+                      <i className="fas fa-building" style={{ fontSize: '12px' }}></i>
+                      Entreprise responsable
+                    </p>
+                    <p style={{ ...styles.infoValue, color: colors.secondary, fontWeight: '600' }}>{selectedPoint.entreprise}</p>
                   </div>
                 )}
               </div>

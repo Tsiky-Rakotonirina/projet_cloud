@@ -231,7 +231,7 @@ const loadStats = async () => {
 };
 
 const goToMap = () => {
-  router.push({ name: 'map' });
+  router.push({ name: 'tabs-map' });
 };
 
 const goToLogin = () => {
@@ -241,7 +241,7 @@ const goToLogin = () => {
 const handleLogout = async () => {
   try {
     await logout();
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }

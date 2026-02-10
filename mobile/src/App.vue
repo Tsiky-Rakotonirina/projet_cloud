@@ -27,22 +27,22 @@ setSessionTimeout(60); // 1 heure
 initActivityDetection();
 
 // Afficher une notification toast de bienvenue
-const showWelcomeNotification = async (displayName: string | null, email: string | null) => {
-  const toast = await toastController.create({
-    message: `Bienvenue ${displayName || email || 'utilisateur'} !`,
-    duration: 3000,
-    position: 'top',
-    color: 'success',
-    icon: 'notifications-outline',
-    buttons: [
-      {
-        text: 'OK',
-        role: 'cancel'
-      }
-    ]
-  });
-  await toast.present();
-};
+// const showWelcomeNotification = async (displayName: string | null, email: string | null) => {
+//   const toast = await toastController.create({
+//     message: `Bienvenue ${displayName || email || 'utilisateur'} !`,
+//     duration: 3000,
+//     position: 'top',
+//     color: 'success',
+//     icon: 'notifications-outline',
+//     buttons: [
+//       {
+//         text: 'OK',
+//         role: 'cancel'
+//       }
+//     ]
+//   });
+//   await toast.present();
+// };
 
 // Initialiser les notifications et l'écoute des historiques
 onMounted(async () => {
@@ -59,7 +59,7 @@ onMounted(async () => {
       await requestNotificationPermission();
       
       // Afficher notification de bienvenue
-      await showWelcomeNotification(user.displayName, user.email);
+      // await showWelcomeNotification(user.displayName, user.email);
       
       // Synchroniser les notifications manquantes (historiques non encore notifiés)
       await syncMissingNotifications();

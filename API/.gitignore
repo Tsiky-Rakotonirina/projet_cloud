@@ -28,3 +28,7 @@ logs/
 # Temporaire
 tmp/
 temp/
+
+# Firebase credentials (sensible)
+firebase-admin-sdk.json
+**/firebase-admin-sdk.json

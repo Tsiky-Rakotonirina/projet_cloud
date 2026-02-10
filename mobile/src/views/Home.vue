@@ -25,9 +25,9 @@
         <div class="welcome-icon">
           <i class="fas fa-road"></i>
         </div>
-        <h1 class="welcome-title">
+        <!-- <h1 class="welcome-title">
           Bienvenue{{ currentUser ? ' !' : ', visiteur !' }}
-        </h1>
+        </h1> -->
         <p class="welcome-subtitle">Explorez la carte d'Antananarivo</p>
         <p v-if="!currentUser" class="welcome-hint">
           <i class="fas fa-info-circle"></i>
@@ -99,11 +99,11 @@ import { logout, currentUser } from '@/services/firebase/auth.service';
 const router = useRouter();
 
 const goToMap = () => {
-  router.push({ name: 'map' });
+  router.push({ name: 'tabs-map' });
 };
 
 const goToRecap = () => {
-  router.push({ name: 'recap' });
+  router.push({ name: 'tabs-recap' });
 };
 
 const goToProfile = () => {
@@ -117,7 +117,7 @@ const goToLogin = () => {
 const handleLogout = async () => {
   try {
     await logout();
-    router.push({ name: 'home' });
+    router.push({ name: 'tabs-home' });
   } catch (error) {
     console.error('Erreur lors de la déconnexion:', error);
   }
