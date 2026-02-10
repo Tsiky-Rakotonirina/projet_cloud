@@ -997,16 +997,16 @@ const Synchronisation = () => {
                       onClick={() => handleSync('utilisateurs')}
                       disabled={syncing || globalSyncing}
                     >
-                      Sync rapide
+                      Synchroniser
                     </Button>
-                    <Button
+                    {/* <Button
                       variant="primary"
                       onClick={() => handleSync('utilisateurs_tracked')}
                       disabled={syncing || globalSyncing}
                       style={{ backgroundColor: colors.primary }}
                     >
                       Avec tracking
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
 
