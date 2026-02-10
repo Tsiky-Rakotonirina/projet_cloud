@@ -117,10 +117,10 @@ INSERT INTO signalements (description, utilisateur_id, point_id, signalement_sta
 ('Rénovation terminée route périphérique', 3, 19, 3);
 
 INSERT INTO signalement_images (name, signalement_id) VALUES
-('image1.jpg',1),('image2.jpg',2),('image3.jpg',3),('image4.jpg',4),('image5.jpg',5),
-('image6.jpg',6),('image7.jpg',7),('image8.jpg',8),('image9.jpg',9),('image10.jpg',10),
-('image1.jpg',11),('image2.jpg',12),('image3.jpg',13),('image4.jpg',14),('image5.jpg',15),
-('image6.jpg',16),('image7.jpg',17),('image8.jpg',18),('image9.jpg',19),('image10.jpg',20);
+('image1.jpg',1),('image2.jpg',2),('image3.jpg',3),('image4.jpg',4),('image1.jpg',5),
+('image2.jpg',6),('image3.jpg',7),('image4.jpg',8),('image1.jpg',9),('image2.jpg',10),
+('image3.jpg',11),('image4.jpg',12),('image3.jpg',13),('image4.jpg',14),('image1.jpg',15),
+('image2.jpg',16),('image1.jpg',17),('image2.jpg',18),('image3.jpg',19),('image4.jpg',20);
 
 INSERT INTO problemes (surface, budget, entreprise_id, signalement_id, probleme_statut_id) VALUES
 
